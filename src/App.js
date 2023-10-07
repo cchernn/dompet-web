@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Modal from "./components/Modal";
 import axios from "axios";
+import { FiEdit, FiTrash2, FiPlusCircle } from "react-icons/fi";
 
 class App extends Component {
   constructor(props) {
@@ -13,11 +14,20 @@ class App extends Component {
         name: "",
         location: "",
         amount: 0,
-        currency: "",
+        currency: "MYR",
         type: "",
         payment_method: "",
-        user: "",
+        user: "Chern Ning",
       },
+    };
+    this.headers = {
+      date: "Date",
+      name: "Name",
+      location: "Location",
+      amount: "Amount",
+      currency: "Currency",
+      type: "Type",
+      payment_method: "Payment Method",
     };
   }
 
@@ -75,52 +85,47 @@ class App extends Component {
     this.setState({ activeItem: item, modal: !this.state.modal });
   };
 
-  displayCompleted = (status) => {
-    if (status) {
-      return this.setState({ viewCompleted: true });
+  renderTableHeaders = () => {
+    const data = this.state.expenditureList.filter(
+      (item) => item.type === "Expenditure"
+    );
+    if (data.length === 0) {
+      return null;
     }
+    const headers = Object.values(this.headers);
 
-    return this.setState({ viewCompleted: false });
+    return (
+      <thead>
+        <tr>
+          <th><button className="btn btn-primary" onClick={this.createItem}><FiPlusCircle /></button></th>
+          <th></th>
+          {headers.map((header, index) => (
+            <th key={index}>{header}</th>
+          ))}
+        </tr>
+      </thead>
+    )
   };
 
-  renderItems = () => {
-    const newItems = this.state.expenditureList.filter(
+  renderTableBody = () => {
+    const data = this.state.expenditureList.filter(
       (item) => item.type === "Expenditure"
     )
-    .sort((a,b) => b.id - a.id)
-    // .reverse()
+    .sort((a,b) => b.id - a.id);
 
-    return newItems.map((item) => (
-      <li
-        key={item.id}
-        className="list-group-item d-flex justify-content-between align-items-center"
-      >
-        <span
-          className={`expenditure-title mr-2`}
-        >
-          {item.date}
-        </span>
-        <span
-          className={`expenditure-title mr-2`}
-        >
-          {item.name}
-        </span>
-        <span>
-          <button
-            className="btn btn-secondary mr-2"
-            onClick={() => this.editItem(item)}
-          >
-            Edit
-          </button>
-          <button
-            className="btn btn-danger"
-            onClick={() => this.handleDelete(item)}
-          >
-            Delete
-          </button>
-        </span>
-      </li>
-    ));
+    return (
+      <tbody>
+        {data.map((rowData, rowIndex) => (
+          <tr key={rowIndex}>
+            <td><button className="btn btn-secondary mr-2" onClick={() => this.editItem(rowData)}><FiEdit /></button></td>
+            <td><button className="btn btn-secondary mr-2" onClick={() => this.handleDelete(rowData)}><FiTrash2 /></button></td>
+            {Object.entries(rowData).map(([cellKey,cellValue], cellIndex) => (
+              Object.keys(this.headers).includes(cellKey) && <td key={cellIndex}>{cellValue}</td>
+            ))}
+          </tr>
+        ))}
+    </tbody>
+    );
   };
 
   render() {
@@ -128,19 +133,12 @@ class App extends Component {
       <main className="container">
         <h1 className="text-black text-uppercase text-center my-4">Expenditure app</h1>
         <div className="row">
-          <div className="col-md-6 col-sm-10 mx-auto p-0">
+          <div className="col-md-12 col-sm-10 mx-auto p-0">
             <div className="card p-3">
-              <div className="mb-4">
-                <button
-                  className="btn btn-primary"
-                  onClick={this.createItem}
-                >
-                  Add Expenditure
-                </button>
-              </div>
-              <ul className="list-group list-group-flush border-top-0">
-                {this.renderItems()}
-              </ul>
+              <table className="table table-hover">
+                {this.renderTableHeaders()}
+                {this.renderTableBody()}
+              </table>
             </div>
           </div>
         </div>
