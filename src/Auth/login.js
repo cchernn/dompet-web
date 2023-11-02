@@ -1,6 +1,6 @@
 // Import the react JS packages 
 import axios from "axios";
-import {useState} from "react";
+import {useState, setError} from "react";
 
 // Define the Login function.
 export const Login = () => {
@@ -14,24 +14,26 @@ export const Login = () => {
                 password: password
                };
           // Create the POST requuest
-          const {data} = await axios.post(
-            "http://localhost:8000/api/token",
-            user ,
-            {
-                headers: {'Content-Type': 'application/json'},
-                withCredentials: true,
-            });
+          try {
+            const {data} = await axios.post(
+              "http://localhost:8000/api/token",
+              user ,
+              {
+                  headers: {'Content-Type': 'application/json'},
+                  withCredentials: true,
+              });
 
-          console.log("hello");
-
-         // Initialize the access & refresh token in localstorage.      
-         localStorage.clear();
-         localStorage.setItem('access_token', data.access);
-         localStorage.setItem('refresh_token', data.refresh);
-         axios.defaults.headers.common['Authorization'] = 
-                                         `Bearer ${data['access']}`;
-         window.location.href = '/'
-    }
+            // Initialize the access & refresh token in localstorage.      
+            localStorage.clear();
+            localStorage.setItem('access_token', data.access);
+            localStorage.setItem('refresh_token', data.refresh);
+            axios.defaults.headers.common['Authorization'] = 
+                                            `Bearer ${data['access']}`;
+            window.location.href = '/'
+          } catch (error) {
+            setError("Login Failed. Please check Username and Password.");
+          }
+      }
     return(
       <div className="Auth-form-container">
         <form className="Auth-form" onSubmit={submit}>

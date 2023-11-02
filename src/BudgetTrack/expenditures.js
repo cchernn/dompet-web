@@ -40,8 +40,14 @@ class Expenditures extends Component {
     }
     
     refreshList = () => {
+        const token = localStorage.getItem('access_token');
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        };
         axios
-        .get("/api/expenditures/")
+        .get("/api/expenditures", config)
         .then((res) => this.setState({ expenditureList: res.data }))
         .catch((err) => console.log(err));
     };
@@ -53,20 +59,33 @@ class Expenditures extends Component {
     handleSubmit = (item) => {
         this.toggle();
     
+        const token = localStorage.getItem('access_token');
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        };
+
         if (item.id) {
         axios
-            .put(`/api/expenditures/${item.id}/`, item)
+            .put(`/api/expenditures/${item.id}`, item, config)
             .then((res) => this.refreshList());
         return;
         }
         axios
-        .post("/api/expenditures/", item)
+        .post("/api/expenditures", item, config)
         .then((res) => this.refreshList());
     };
     
     handleDelete = (item) => {
+        const token = localStorage.getItem('access_token');
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        };
         axios
-        .delete(`/api/expenditures/${item.id}/`)
+        .delete(`/api/expenditures/${item.id}`, config)
         .then((res) => this.refreshList());
     };
     

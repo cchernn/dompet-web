@@ -11,11 +11,11 @@ export function Navigation() {
      return ( 
       <div>
         <Navbar bg="dark" variant="dark">
-          <Navbar.Brand href="/">JWT Authentification</Navbar.Brand>            
+          <Navbar.Brand href="/">Hello</Navbar.Brand>            
           <Nav className="me-auto"> 
+          <Nav.Link href="/">Home</Nav.Link>
           {isAuth ? 
-            (<><Nav.Link href="/">Home</Nav.Link>
-            <Nav.Link href="/expenditures">Expenditures</Nav.Link></> )
+            (<><Nav.Link href="/expenditures">Expenditures</Nav.Link></> )
           : null}
           </Nav>
           <Nav>
