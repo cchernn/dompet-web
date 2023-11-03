@@ -17,7 +17,6 @@ class Expenditures extends Component {
             currency: "MYR",
             type: "",
             payment_method: "",
-            user: "",
         },
         };
         this.headers = {
@@ -98,7 +97,6 @@ class Expenditures extends Component {
         currency: "MYR",
         type: "",
         payment_method: "",
-        user: "", 
         };
     
         this.setState({ activeItem: item, modal: !this.state.modal });

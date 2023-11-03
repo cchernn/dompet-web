@@ -115,17 +115,6 @@ export default class CustomModal extends Component {
                 placeholder="Enter Expenditure Payment Method"
               />
             </FormGroup>
-            <FormGroup>
-              <Label for="expenditure-user">User</Label>
-              <Input
-                type="text"
-                id="expenditure-user"
-                name="user"
-                value={this.state.activeItem.user}
-                onChange={this.handleChange}
-                placeholder="Enter Expenditure User"
-              />
-            </FormGroup>
           </Form>
         </ModalBody>
         <ModalFooter>
