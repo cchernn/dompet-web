@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import Modal from "./Modal";
+import Modal from "./modal";
 import axios from "axios";
 import { FiEdit, FiTrash2, FiPlusCircle } from "react-icons/fi";
 

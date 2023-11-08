@@ -39,7 +39,7 @@ export default class CustomModal extends Component {
         <ModalBody>
           <Form>
             <FormGroup>
-              <Label for="expenditure-date">Date</Label>
+                <Label for="expenditure-date">Date</Label>
               <Input
                 type="date"
                 id="expenditure-date"
