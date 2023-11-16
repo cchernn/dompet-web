@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { Modal, Button } from "react-bootstrap"
+import { Modal, Button, Nav } from "react-bootstrap"
 import axios from "axios"
 
 class Logout extends Component {
@@ -20,18 +20,19 @@ class Logout extends Component {
                 "http://localhost:8000/api/logout",
                 payload,
                 {
-                    headers: { 'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                     }
                 }
             )
 
             localStorage.clear()
-            axios.defaults.headers.common['Authorization'] = null;
+            axios.defaults.headers.common['Authorization'] = null
             this.setState({ show: false })
             window.location.href = '/'
         } catch (error) {
-            this.setState({ error: "Invalid Credentials"})
+            this.setState({ error: "Invalid Credentials" })
         }
     }
 
@@ -46,9 +47,9 @@ class Logout extends Component {
     render() {
         return (
             <div>
-                <Button variant="secondary" onClick={this.handleOpen}>
+                <Nav.Link onClick={this.handleOpen}>
                     Logout
-                </Button>
+                </Nav.Link>
                 <Modal show={this.state.show} onHide={this.handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>Logout</Modal.Title>
@@ -57,6 +58,11 @@ class Logout extends Component {
                         Click the Logout button to confirm Logout.
                     </Modal.Body>
                     <Modal.Footer>
+                        {
+                            this.state.error && (
+                                <div className="text-danger">{this.state.error}</div>
+                            )
+                        }
                         <Button variant="secondary" onClick={this.handleClose}>
                             Back
                         </Button>
@@ -64,11 +70,6 @@ class Logout extends Component {
                             Logout
                         </Button>
                     </Modal.Footer>
-                    {
-                        this.state.error && (
-                            <div className="text-danger">{this.state.error}</div>
-                        )
-                    }
                 </Modal>
             </div>
         )

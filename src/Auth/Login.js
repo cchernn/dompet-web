@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { Modal, Button, Form } from "react-bootstrap"
+import { Modal, Button, Form, Nav } from "react-bootstrap"
 import axios from "axios"
 
 class Login extends Component {
@@ -59,9 +59,9 @@ class Login extends Component {
     render() {
         return (
             <div>
-                <Button variant="secondary" onClick={this.handleOpen}>
+                <Nav.Link onClick={this.handleOpen}>
                     Login
-                </Button>
+                </Nav.Link>
                 <Modal show={this.state.show} onHide={this.handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>Login</Modal.Title>
@@ -69,24 +69,29 @@ class Login extends Component {
                     <Modal.Body>
                         <Form.Group>
                             <Form.Label>Username</Form.Label>
-                            <Form.Control 
-                                type="text" 
-                                placeholder="Enter Username Here" 
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter Username Here"
                                 value={this.state.username}
                                 onChange={(resp => this.setUsername(resp.target.value))}
                             />
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Password</Form.Label>
-                            <Form.Control 
-                                type="password" 
-                                placeholder="Enter Password Here" 
+                            <Form.Control
+                                type="password"
+                                placeholder="Enter Password Here"
                                 value={this.state.password}
                                 onChange={(resp => this.setPassword(resp.target.value))}
                             />
                         </Form.Group>
                     </Modal.Body>
                     <Modal.Footer>
+                        {
+                            this.state.error && (
+                                <div className="text-danger">{this.state.error}</div>
+                            )
+                        }
                         <Button variant="secondary" onClick={this.handleClose}>
                             Close
                         </Button>
@@ -94,11 +99,6 @@ class Login extends Component {
                             Login
                         </Button>
                     </Modal.Footer>
-                    {
-                        this.state.error && (
-                            <div className="text-danger">{this.state.error}</div>
-                        )
-                    }
                 </Modal>
             </div>
         )

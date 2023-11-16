@@ -1,7 +1,5 @@
 import React, { Component } from "react"
-import Nav from 'react-bootstrap/Nav'
-import Navbar from 'react-bootstrap/Navbar'
-import Container from 'react-bootstrap/Container'
+import { Nav, Navbar, Container } from 'react-bootstrap'
 import Login from "../Auth/Login"
 import Logout from "../Auth/Logout"
 
@@ -20,18 +18,29 @@ class Navigation extends Component {
     }
 
     render() {
-        console.log(this.state.isAuth)
         return (
             <Navbar className="bg-body-tertiary">
                 <Container>
                     <Navbar.Brand href="#home" ><img src="/logo192.png" height="45" alt="Hello" /></Navbar.Brand>
-                    <Nav className="me-auto">
-                        <Nav.Link href="/">Home</Nav.Link>
-                        {this.state.isAuth ? <Nav.Link href="/expenditures">Expenditures</Nav.Link> : null}
-                    </Nav>
-                    <Nav>
-                        {this.state.isAuth ? <Logout /> : <Login />}
-                    </Nav>
+                    <Navbar.Toggle aria-controls="navbar-toggle" />
+                    <Navbar.Collapse id="navbar-toggle">
+                        <Nav className="me-auto">
+                            <Nav.Link href="/">Home</Nav.Link>
+                            {this.state.isAuth ?
+                                <Nav.Link href="/expenditures">Expenditures</Nav.Link>
+                                : 
+                                null}
+                        </Nav>
+                        <Nav>
+                            {this.state.isAuth ? 
+                                <Logout /> 
+                                : 
+                                <>
+                                    <Nav.Link href="/register">Register</Nav.Link>
+                                    <Login />
+                                </>}
+                        </Nav>
+                    </Navbar.Collapse>
                 </Container>
             </Navbar>
         )
