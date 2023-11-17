@@ -1,8 +1,8 @@
 import React, { Component } from "react"
-import axios from "axios"
 import { Container, Button, Row } from "react-bootstrap"
 import ExpenditureModal from "./ExpenditureModal"
 import { FiEdit, FiTrash2, FiPlusCircle } from "react-icons/fi"
+import API from "../Services/API"
 
 class ExpenditureList extends Component {
     constructor(props) {
@@ -39,17 +39,14 @@ class ExpenditureList extends Component {
         }
     }
 
-    refreshList = () => {
-        const token = localStorage.getItem('access_token')
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        }
-        axios
-            .get("/api/expenditures", config)
-            .then((res) => this.setState({ expenditure_list: res.data }))
-            .catch((err) => console.log(err))
+    refreshList = async () => {
+        await API.request(
+            'get',
+            '/expenditures',
+            {}
+        )
+        .then((res) => this.setState({ expenditure_list: res.data }))
+        .catch((err) => console.log(err))
     }
 
     handleOpen = () => {
@@ -60,25 +57,24 @@ class ExpenditureList extends Component {
         this.setState({ show: false})
     }
 
-    handleSaveItem = (item) => {
+    handleSaveItem = async (item) => {
         this.handleClose()
 
-        const token = localStorage.getItem('access_token')
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        }
-
         if (item.id) {
-            axios
-                .put(`/api/expenditures/${item.id}`, item, config)
-                .then((res) => this.refreshList())
+            await API.request(
+                'put',
+                `/expenditures/${item.id}`,
+                item
+            )
+            .then((res) => this.refreshList())
             return
         }
-        axios
-            .post("/api/expenditures", item, config)
-            .then((res) => this.refreshList())
+        await API.request(
+            'post',
+            'expenditures',
+            item
+        )
+        .then((res) => this.refreshList())
     }
 
     createItem = () => {
@@ -104,16 +100,13 @@ class ExpenditureList extends Component {
         }))
     }
 
-    handleDelete = (item) => {
-        const token = localStorage.getItem('access_token')
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        }
-        axios
-            .delete(`/api/expenditures/${item.id}`, config)
-            .then((res) => this.refreshList())
+    handleDelete = async (item) => {
+        await API.request(
+            'delete',
+            `/expenditures/${item.id}`,
+            {}
+        )
+        .then((res) => this.refreshList())
     }
 
     renderTableHeaders = () => {

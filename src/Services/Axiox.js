@@ -13,10 +13,8 @@ axios.interceptors.response.use(resp => resp, async error => {
                 {
                     headers: {
                         'Content-Type': 'application/json',
+                        withCredentials: true
                     }
-                },
-                {
-                    withCredentials: true
                 })
         if (response.status === 200) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${response.data['access']}`

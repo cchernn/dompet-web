@@ -1,6 +1,7 @@
 import React, { Component } from "react"
 import { Modal, Button, Form, Nav } from "react-bootstrap"
 import axios from "axios"
+import API from "../Services/API"
 
 class Login extends Component {
     constructor(props) {
@@ -28,13 +29,10 @@ class Login extends Component {
         }
 
         try {
-            const { data } = await axios.post(
-                "http://localhost:8000/api/token",
-                payload,
-                {
-                    headers: { 'Content-Type': 'application/json' },
-                    withCredentials: true,
-                }
+            const { data } = await API.request(
+                'post',
+                '/token',
+                payload
             )
 
             localStorage.clear()

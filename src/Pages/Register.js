@@ -1,6 +1,6 @@
 import React, { Component } from "react"
 import { Container, Form, Button } from "react-bootstrap"
-import axios from "axios"
+import API from "../Services/API"
 
 class Register extends Component {
     constructor(props) {
@@ -46,14 +46,19 @@ class Register extends Component {
         }
 
         try {
-            await axios
-            .post(
-                "http://localhost:8000/api/register",
-                payload,
-                {
-                    headers: { 'Content-Type': 'application/json' },
-                    withCredentials: true,
-                }
+            // await axios
+            // .post(
+            //     "http://localhost:8000/api/register",
+            //     payload,
+            //     {
+            //         headers: { 'Content-Type': 'application/json' },
+            //         withCredentials: true,
+            //     }
+            // )
+            await API.request(
+                'post',
+                '/register',
+                payload
             )
             .then((res) => {
                 if (res.status === 200) {

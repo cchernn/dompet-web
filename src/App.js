@@ -1,6 +1,6 @@
 import React, { Component } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import './Components/Axiox'
+import './Services/Axiox'
 import Home from "./Pages/Home"
 import Register from "./Pages/Register"
 import Navigation from './Components/Navigation'

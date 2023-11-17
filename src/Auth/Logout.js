@@ -1,6 +1,7 @@
 import React, { Component } from "react"
 import { Modal, Button, Nav } from "react-bootstrap"
 import axios from "axios"
+import API from "../Services/API"
 
 class Logout extends Component {
     constructor(props) {
@@ -16,15 +17,10 @@ class Logout extends Component {
             refresh_token: localStorage.getItem('refresh_token')
         }
         try {
-            await axios.post(
-                "http://localhost:8000/api/logout",
-                payload,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                    }
-                }
+            await API.request(
+                'post',
+                '/logout',
+                payload
             )
 
             localStorage.clear()
