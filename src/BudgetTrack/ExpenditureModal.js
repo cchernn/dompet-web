@@ -27,6 +27,8 @@ class ExpenditureModal extends Component {
 
         this.setState({ active_item })
 
+        console.log(active_item)
+
     }
 
     render() {
@@ -89,13 +91,16 @@ class ExpenditureModal extends Component {
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Type</Form.Label>
-                            <Form.Control
-                                type="text"
+                            <Form.Select
                                 name="type"
                                 value={this.state.active_item.type}
                                 onChange={this.handleChange}
-                                placeholder="Enter Expenditure Type"
-                            />
+                                // placeholder="Enter Expenditure Type"
+                            >
+                                <option value="spend">Spend</option>
+                                <option value="receive">Receive</option>
+                                <option value="transfer">Transfer</option>
+                            </Form.Select>
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Payment Method</Form.Label>

@@ -16,7 +16,7 @@ class ExpenditureList extends Component {
                 location: "",
                 amount: 0,
                 currency: "MYR",
-                type: "",
+                type: "spend",
                 payment_method: "",
             }
         }
