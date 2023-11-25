@@ -1,6 +1,5 @@
 import React, { Component } from "react"
 import { Modal, Button, Nav } from "react-bootstrap"
-import axios from "axios"
 import API from "../Services/API"
 
 class Logout extends Component {
@@ -24,7 +23,7 @@ class Logout extends Component {
             )
 
             localStorage.clear()
-            axios.defaults.headers.common['Authorization'] = null
+            delete API.api.defaults.headers.common['Authorization']
             this.setState({ show: false })
             window.location.href = '/'
         } catch (error) {

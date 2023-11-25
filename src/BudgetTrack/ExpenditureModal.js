@@ -6,7 +6,7 @@ class ExpenditureModal extends Component {
         super(props)
         this.state = {
             active_item: props.active_item,
-            error: "",
+            errors: {}
         }
     }
 
@@ -14,6 +14,48 @@ class ExpenditureModal extends Component {
         if (prevProps.active_item !== this.props.active_item) {
             this.setState({ active_item: this.props.active_item });
         }
+    }
+
+    validateSaveItem = () => {
+        const errors = []
+        const { date, name, location, amount, currency, type, payment_method } = this.state.active_item
+        if (!date) {
+            errors.date = "Date should not be empty"
+        }
+        if (!name) {
+            errors.name = "Name should not be empty"
+        }
+        if (!location) {
+            errors.location = "Location should not be empty"
+        }
+        if (amount < 0) {
+            errors.amount = "Amount should be 0 or positive value"
+        }
+        if (!currency) {
+            errors.currency = "Currency should not be empty"
+        }
+        if (!type) {
+            errors.type = "Type should not be empty"
+        }
+        if (!payment_method) {
+            errors.payment_method = "Payment Method should not be empty"
+        }
+        return errors
+    }
+
+    handleSaveItem = () => {
+        const localErrors = this.validateSaveItem()
+
+        if (Object.keys(localErrors).length === 0) {
+            this.props.handleSaveItem(this.state.active_item)
+        } else {
+            this.setState(() => ({
+                errors: {
+                    ...localErrors
+                }
+            }))
+        }
+        
     }
 
     handleChange = (event) => {
@@ -27,12 +69,10 @@ class ExpenditureModal extends Component {
 
         this.setState({ active_item })
 
-        console.log(active_item)
-
     }
 
     render() {
-        const { show, handleClose, handleSaveItem } = this.props
+        const { show, handleClose } = this.props
 
         return (
             <Modal show={show} onHide={handleClose}>
@@ -48,6 +88,11 @@ class ExpenditureModal extends Component {
                                 onChange={this.handleChange}
                                 placeholder="date placeholder"
                             />
+                            {
+                                this.state.errors.date && (
+                                    <div className="text-danger">{this.state.errors.date}</div>
+                                )
+                            }
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Name</Form.Label>
@@ -58,6 +103,11 @@ class ExpenditureModal extends Component {
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Name"
                             />
+                            {
+                                this.state.errors.name && (
+                                    <div className="text-danger">{this.state.errors.name}</div>
+                                )
+                            }
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Location</Form.Label>
@@ -68,6 +118,11 @@ class ExpenditureModal extends Component {
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Location"
                             />
+                            {
+                                this.state.errors.location && (
+                                    <div className="text-danger">{this.state.errors.location}</div>
+                                )
+                            }
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Amount</Form.Label>
@@ -78,6 +133,11 @@ class ExpenditureModal extends Component {
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Amount"
                             />
+                            {
+                                this.state.errors.amount && (
+                                    <div className="text-danger">{this.state.errors.amount}</div>
+                                )
+                            }
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Currency</Form.Label>
@@ -88,6 +148,11 @@ class ExpenditureModal extends Component {
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Currency"
                             />
+                            {
+                                this.state.errors.currency && (
+                                    <div className="text-danger">{this.state.errors.currency}</div>
+                                )
+                            }
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Type</Form.Label>
@@ -101,6 +166,11 @@ class ExpenditureModal extends Component {
                                 <option value="receive">Receive</option>
                                 <option value="transfer">Transfer</option>
                             </Form.Select>
+                            {
+                                this.state.errors.type && (
+                                    <div className="text-danger">{this.state.errors.type}</div>
+                                )
+                            }
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Payment Method</Form.Label>
@@ -111,16 +181,16 @@ class ExpenditureModal extends Component {
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Payment Method"
                             />
+                            {
+                                this.state.errors.payment_method && (
+                                    <div className="text-danger">{this.state.errors.payment_method}</div>
+                                )
+                            }
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    {
-                        this.state.error && (
-                            <div className="text-danger">{this.state.error}</div>
-                        )
-                    }
-                    <Button variant="primary" onClick={() => handleSaveItem(this.state.active_item)}
+                    <Button variant="primary" onClick={this.handleSaveItem}
                     >Save
                     </Button>
                 </Modal.Footer>

@@ -6,19 +6,44 @@ class API {
     constructor() {
         this.api = axios.create({
             baseURL: baseURL,
-            timeout: 1000,
+            timeout: 5000,
             headers: {
                 "Content-Type": "application/json",
             }
         })
 
-        const accessToken = localStorage.getItem('access_token')
-        if (accessToken) {
-            this.api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
-        }
+        this.api.interceptors.request.use(
+            (config) => {
+                const accessToken = localStorage.getItem('access_token')
+                if (accessToken) {
+                    config.headers['Authorization'] = `Bearer ${accessToken}`
+                }
+                return config
+            },
+            (error) => {
+                return Promise.reject(error)
+            }
+        )
+
+        this.api.interceptors.response.use(
+            (response) => {
+                return response
+            },
+            (error) => {
+                if (error.response.status === 401) {
+                    localStorage.clear()
+                    delete this.api.defaults.headers.common['Authorization']
+                    if (error.response.data.detail !== "No active account found with the given credentials") {
+                        window.location.href = "/"
+                    }
+                } else {
+                    return Promise.reject(error)
+                }
+            }
+        )
     }
 
-    request(method, url, data=null, cred=true) {
+    async request(method, url, data=null, cred=true) {
         return this.api({
             method: method,
             url: url,

@@ -11,6 +11,7 @@ class Register extends Component {
             email: "",
             first_name: "",
             last_name: "",
+            error: ""
         }
     }
 
@@ -46,15 +47,6 @@ class Register extends Component {
         }
 
         try {
-            // await axios
-            // .post(
-            //     "http://localhost:8000/api/register",
-            //     payload,
-            //     {
-            //         headers: { 'Content-Type': 'application/json' },
-            //         withCredentials: true,
-            //     }
-            // )
             await API.request(
                 'post',
                 '/register',
@@ -68,7 +60,7 @@ class Register extends Component {
                 }
             })
         } catch (error) {
-            this.setState({ error: "Registration Failed"})
+            this.setState({ error: `${Object.keys(error)[0]}: ${Object.values(error)[0]}` })
         }
     }
 
@@ -129,6 +121,11 @@ class Register extends Component {
                     <Button variant="primary" type="submit" onClick={this.handleRegister}>
                         Register
                     </Button>
+                    {
+                        this.state.error && (
+                            <div className="text-danger">{this.state.error}</div>
+                        )
+                    }
                 </Form>
             </Container>
         )
