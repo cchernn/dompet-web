@@ -32,11 +32,7 @@ class ExpenditureList extends Component {
     }
 
     componentDidMount() {
-        if (localStorage.getItem('access_token') === null) {
-            window.location.href = "/login"
-        } else {
-            this.refreshList()
-        }
+        this.refreshList()
     }
 
     refreshList = async () => {
