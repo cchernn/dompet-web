@@ -2,8 +2,6 @@ import React, { Component } from "react"
 import { Container, Form, Button } from "react-bootstrap"
 import API from "../Services/API"
 
-const baseURL = "http://localhost:8000/api"
-
 class ResetPassword extends Component {
     constructor(props) {
         super(props)

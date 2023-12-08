@@ -1,6 +1,6 @@
 import React, { Component } from "react"
 import { Container, Form, Button } from "react-bootstrap"
-import { useParams, useLocation, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 import API from "../Services/API"
 
 class ResetPasswordConfirmClass extends Component {
@@ -45,12 +45,11 @@ class ResetPasswordConfirmClass extends Component {
         }
 
         try {
-            const resp = await API.request(
+            await API.request(
                 "post",
                 "/password_reset/confirm/",
                 payload
             )
-            console.log("success, bitch")
             this.setState({
                 resMessage: "Password has been reset. Please proceed to login with your new credentials.",
                 error: ""
