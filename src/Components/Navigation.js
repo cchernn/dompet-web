@@ -26,6 +26,7 @@ class Navigation extends Component {
                     <Navbar.Collapse id="navbar-toggle">
                         <Nav className="me-auto">
                             <Nav.Link href="/">Home</Nav.Link>
+                            <Nav.Link href="/contact">Contact</Nav.Link>
                             {this.state.isAuth ?
                                 <Nav.Link href="/expenditures">Expenditures</Nav.Link>
                                 : 
@@ -33,7 +34,7 @@ class Navigation extends Component {
                         </Nav>
                         <Nav>
                             {this.state.isAuth ? 
-                                <Logout /> 
+                                <Logout />
                                 : 
                                 <>
                                     <Nav.Link href="/register">Register</Nav.Link>
