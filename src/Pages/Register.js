@@ -115,9 +115,6 @@ class Register extends Component {
                             onChange={(resp => this.setLastName(resp.target.value))}
                         />
                     </Form.Group>
-                    <Button variant="secondary">
-                        Close
-                    </Button>
                     <Button variant="primary" type="submit" onClick={this.handleRegister}>
                         Register
                     </Button>
