@@ -110,7 +110,7 @@ class ResetPasswordConfirmClass extends Component {
 }
 
 const ResetPasswordConfirm = () => {
-    const [searchParams, _] = useSearchParams()
+    const [searchParams] = useSearchParams()
     const token = searchParams.get('token')
 
     return (
