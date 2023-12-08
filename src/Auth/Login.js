@@ -41,7 +41,6 @@ class Login extends Component {
             this.setState({ show: false })
             window.location.href = '/'
         } catch (error) {
-            console.log(error)
             this.setState({ error: "Invalid Credentials" })
         }
     }
