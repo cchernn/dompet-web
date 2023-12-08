@@ -34,7 +34,10 @@ class Navigation extends Component {
                         </Nav>
                         <Nav>
                             {this.state.isAuth ? 
-                                <Logout />
+                                <>
+                                    <Nav.Link href="/profile">Profile</Nav.Link>
+                                    <Logout /> 
+                                </>
                                 : 
                                 <>
                                     <Nav.Link href="/register">Register</Nav.Link>
