@@ -32,7 +32,7 @@ class API {
                     localStorage.clear()
                     delete this.api.defaults.headers.common['Authorization']
                     if (error.response.data.detail !== "No active account found with the given credentials") {
-                        window.location.href = "/"
+                        window.location.href = "/login"
                     }
                 } else {
                     return Promise.reject(error)
