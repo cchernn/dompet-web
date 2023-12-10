@@ -8,9 +8,9 @@ class ExpenditureList extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            expenditure_list: [],
+            expenditureList: [],
             show: false,
-            active_item: {
+            activeItem: {
                 date: "",
                 name: "",
                 location: "",
@@ -41,7 +41,7 @@ class ExpenditureList extends Component {
             '/expenditures',
             {}
         )
-        .then((res) => this.setState({ expenditure_list: res.data }))
+        .then((res) => this.setState({ expenditureList: res.data }))
         .catch((err) => console.log(err))
     }
 
@@ -84,14 +84,14 @@ class ExpenditureList extends Component {
             payment_method: "",
         }
         this.setState(prevState => ({ 
-            active_item: item,
+            activeItem: item,
             show: true
         }))
     }
 
     editItem = (item) => {
         this.setState(prevState => ({ 
-            active_item: item,
+            activeItem: item,
             show: true
         }))
     }
@@ -122,7 +122,7 @@ class ExpenditureList extends Component {
     }
 
     renderTableBody = () => {
-        const data = this.state.expenditure_list
+        const data = this.state.expenditureList
             .sort((a, b) => b.id - a.id)
 
         return (
@@ -155,7 +155,7 @@ class ExpenditureList extends Component {
                     </div>
                 </Row>
                 <ExpenditureModal
-                    active_item = {this.state.active_item}
+                    activeItem = {this.state.activeItem}
                     show = {this.state.show}
                     handleClose = {this.handleClose}
                     handleSaveItem = {this.handleSaveItem}

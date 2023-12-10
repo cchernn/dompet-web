@@ -5,20 +5,20 @@ class ExpenditureModal extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            active_item: props.active_item,
+            activeItem: props.activeItem,
             errors: {}
         }
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.active_item !== this.props.active_item) {
-            this.setState({ active_item: this.props.active_item });
+        if (prevProps.activeItem !== this.props.activeItem) {
+            this.setState({ activeItem: this.props.activeItem });
         }
     }
 
     validateSaveItem = () => {
         const errors = []
-        const { date, name, location, amount, currency, type, payment_method } = this.state.active_item
+        const { date, name, location, amount, currency, type, payment_method } = this.state.activeItem
         if (!date) {
             errors.date = "Date should not be empty"
         }
@@ -47,7 +47,7 @@ class ExpenditureModal extends Component {
         const localErrors = this.validateSaveItem()
 
         if (Object.keys(localErrors).length === 0) {
-            this.props.handleSaveItem(this.state.active_item)
+            this.props.handleSaveItem(this.state.activeItem)
             this.setState(() => ({ errors: {} }))
         } else {
             this.setState(() => ({
@@ -66,9 +66,9 @@ class ExpenditureModal extends Component {
             value = event.target.checked
         }
 
-        const active_item = { ...this.state.active_item, [name]: value }
+        const activeItem = { ...this.state.activeItem, [name]: value }
 
-        this.setState({ active_item })
+        this.setState({ activeItem })
 
     }
 
@@ -85,7 +85,7 @@ class ExpenditureModal extends Component {
                             <Form.Control
                                 type="date"
                                 name="date"
-                                value={this.state.active_item.date}
+                                value={this.state.activeItem.date}
                                 onChange={this.handleChange}
                                 placeholder="date placeholder"
                             />
@@ -100,7 +100,7 @@ class ExpenditureModal extends Component {
                             <Form.Control
                                 type="text"
                                 name="name"
-                                value={this.state.active_item.name}
+                                value={this.state.activeItem.name}
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Name"
                             />
@@ -115,7 +115,7 @@ class ExpenditureModal extends Component {
                             <Form.Control
                                 type="text"
                                 name="location"
-                                value={this.state.active_item.location}
+                                value={this.state.activeItem.location}
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Location"
                             />
@@ -130,7 +130,7 @@ class ExpenditureModal extends Component {
                             <Form.Control
                                 type="number"
                                 name="amount"
-                                value={this.state.active_item.amount}
+                                value={this.state.activeItem.amount}
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Amount"
                             />
@@ -145,7 +145,7 @@ class ExpenditureModal extends Component {
                             <Form.Control
                                 type="text"
                                 name="currency"
-                                value={this.state.active_item.currency}
+                                value={this.state.activeItem.currency}
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Currency"
                             />
@@ -159,7 +159,7 @@ class ExpenditureModal extends Component {
                             <Form.Label>Type</Form.Label>
                             <Form.Select
                                 name="type"
-                                value={this.state.active_item.type}
+                                value={this.state.activeItem.type}
                                 onChange={this.handleChange}
                                 // placeholder="Enter Expenditure Type"
                             >
@@ -178,7 +178,7 @@ class ExpenditureModal extends Component {
                             <Form.Control
                                 type="text"
                                 name="payment_method"
-                                value={this.state.active_item.payment_method}
+                                value={this.state.activeItem.payment_method}
                                 onChange={this.handleChange}
                                 placeholder="Enter Expenditure Payment Method"
                             />

@@ -7,37 +7,37 @@ class ResetPasswordConfirmClass extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            new_password: "",
-            new_password_confirm: "",
+            newPassword: "",
+            newPasswordConfirm: "",
             error: "",
             resMessage: ""
         }
     }
 
-    setPassword = (new_password) => {
-        this.setState({ new_password })
+    setPassword = (newPassword) => {
+        this.setState({ newPassword })
     }
 
-    setPasswordConfirm = (new_password_confirm) => {
-        this.setState({ new_password_confirm })
+    setPasswordConfirm = (newPasswordConfirm) => {
+        this.setState({ newPasswordConfirm })
     }
 
     handleResetPassword = async (token) => {
         const payload = {
-            password: this.state.new_password,
+            password: this.state.newPassword,
             token: token
         }
 
-        // Validation for new_password and new_password_confirm
-        if (!this.state.new_password || !this.state.new_password_confirm) {
+        // Validation for newPassword and newPasswordConfirm
+        if (!this.state.newPassword || !this.state.newPasswordConfirm) {
             this.setState({
                 error: "Passwords are required fields"
             })
             return 
         }
 
-        // Validation for new_password and new_password_confirm to be equivalent
-        if (this.state.new_password !== this.state.new_password_confirm) {
+        // Validation for newPassword and newPasswordConfirm to be equivalent
+        if (this.state.newPassword !== this.state.newPasswordConfirm) {
             this.setState({
                 error: "Password confirmation is not equal to Password. Try again."
             })
@@ -59,8 +59,8 @@ class ResetPasswordConfirmClass extends Component {
             this.setState({ error: "Password reset failed. Please go through the reset password request and try again." })
         } finally {
             this.setState({
-                new_password: "",
-                new_password_confirm: "",
+                newPassword: "",
+                newPasswordConfirm: "",
             })
         }
     }
@@ -75,7 +75,7 @@ class ResetPasswordConfirmClass extends Component {
                         <Form.Control
                             type="password"
                             placeholder="Enter New Password Here"
-                            value={this.state.new_password}
+                            value={this.state.newPassword}
                             onChange={(resp => this.setPassword(resp.target.value))}
                             autoComplete="on"
                         />
@@ -85,7 +85,7 @@ class ResetPasswordConfirmClass extends Component {
                         <Form.Control
                             type="password"
                             placeholder="Enter New Password Here"
-                            value={this.state.new_password_confirm}
+                            value={this.state.newPasswordConfirm}
                             onChange={(resp => this.setPasswordConfirm(resp.target.value))}
                             autoComplete="on"
                         />

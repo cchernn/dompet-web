@@ -8,7 +8,7 @@ import Login from "./Pages/Login"
 import ResetPassword from "./Auth/ResetPassword"
 import ResetPasswordConfirm from "./Auth/ResetPasswordConfirm"
 import Navigation from './Components/Navigation'
-import ExpenditureList from './BudgetTrack/ExpenditureList'
+import ExpenditureList from './Expenditure/ExpenditureList'
 
 class App extends Component {
     render() {
