@@ -31,7 +31,7 @@ class ExpenditureListClass extends Component {
             currency: "Currency",
             type: "Type",
             payment_method: "Payment Method",
-            user: "User"
+            username: "User"
         }
     }
 

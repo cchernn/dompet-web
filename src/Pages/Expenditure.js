@@ -55,7 +55,8 @@ class Expenditure extends Component {
                                     <Card.Title>{rowData.name}</Card.Title>
                                 </Card.Header>
                                 <Card.Body className="d-flex flex-column">
-                                    <Card.Text>Owner: {rowData.owner}</Card.Text>
+                                    <Card.Text>Owner: {rowData.username}</Card.Text>
+                                    <Card.Text>Created Date: {rowData.inserted_at}</Card.Text>
                                     <Card.Text>Last Updated: {rowData.updated_at}</Card.Text>
                                 </Card.Body>
                                 <Card.Footer className="d-flex justify-content-end">
