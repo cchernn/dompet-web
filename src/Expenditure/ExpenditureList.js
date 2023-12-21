@@ -2,14 +2,17 @@ import React, { Component } from "react"
 import { Container, Button, Row } from "react-bootstrap"
 import ExpenditureModal from "./ExpenditureModal"
 import { FiEdit, FiTrash2, FiPlusCircle } from "react-icons/fi"
+import { useParams } from "react-router-dom"
 import API from "../Services/API"
 
-class ExpenditureList extends Component {
+class ExpenditureListClass extends Component {
     constructor(props) {
         super(props)
+        const { groupId } = props
         this.state = {
             expenditureList: [],
             show: false,
+            groupId: groupId,
             activeItem: {
                 date: "",
                 name: "",
@@ -28,6 +31,7 @@ class ExpenditureList extends Component {
             currency: "Currency",
             type: "Type",
             payment_method: "Payment Method",
+            user: "User"
         }
     }
 
@@ -36,9 +40,11 @@ class ExpenditureList extends Component {
     }
 
     refreshList = async () => {
+        const groupId = this.state.groupId
+
         await API.request(
             'get',
-            '/expenditures',
+            `/expendituregroups/${groupId}/expenditures`,
             {}
         )
         .then((res) => this.setState({ expenditureList: res.data }))
@@ -54,12 +60,13 @@ class ExpenditureList extends Component {
     }
 
     handleSaveItem = async (item) => {
+        const groupId = this.state.groupId
         this.handleClose()
 
         if (item.id) {
             await API.request(
                 'put',
-                `/expenditures/${item.id}`,
+                `/expendituregroups/${groupId}/expenditures/${item.id}`,
                 item
             )
             .then((res) => this.refreshList())
@@ -67,7 +74,7 @@ class ExpenditureList extends Component {
         }
         await API.request(
             'post',
-            'expenditures',
+            `/expendituregroups/${groupId}/expenditures`,
             item
         )
         .then((res) => this.refreshList())
@@ -97,9 +104,11 @@ class ExpenditureList extends Component {
     }
 
     handleDelete = async (item) => {
+        const groupId = this.state.groupId
+
         await API.request(
             'delete',
-            `/expenditures/${item.id}`,
+            `/expendituregroups/${groupId}/expenditures/${item.id}`,
             {}
         )
         .then((res) => this.refreshList())
@@ -164,5 +173,16 @@ class ExpenditureList extends Component {
         )
     }
 }
+
+const ExpenditureList = () => {
+    const params = useParams()
+    const { groupId } = params
+
+    return (
+      <>
+        <ExpenditureListClass groupId={groupId} />
+      </>
+    );
+  };
 
 export default ExpenditureList

@@ -5,6 +5,7 @@ import Contact from "./Pages/Contact"
 import Register from "./Pages/Register"
 import Profile from "./Pages/Profile"
 import Login from "./Pages/Login"
+import Expenditure from "./Pages/Expenditure"
 import ResetPassword from "./Auth/ResetPassword"
 import ResetPasswordConfirm from "./Auth/ResetPasswordConfirm"
 import Navigation from './Components/Navigation'
@@ -23,7 +24,8 @@ class App extends Component {
                     <Route path="/reset-password-confirm" element={<ResetPasswordConfirm />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/profile" element={<Profile />} />
-                    <Route path="/expenditures" element={<ExpenditureList />} />
+                    <Route path="/expenditures" element={<Expenditure />} />
+                    <Route path="/expenditures/:groupId/summary" element={<ExpenditureList />} />
                 </Routes>
             </BrowserRouter>
         )
