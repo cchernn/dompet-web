@@ -47,8 +47,8 @@ class ExpenditureModal extends Component {
         const localErrors = this.validateSaveItem()
 
         if (Object.keys(localErrors).length === 0) {
-            this.props.handleSaveItem(this.state.activeItem)
             this.setState(() => ({ errors: {} }))
+            this.props.handleSaveItem(this.state.activeItem)
         } else {
             this.setState(() => ({
                 errors: {

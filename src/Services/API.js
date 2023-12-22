@@ -34,6 +34,10 @@ class API {
                     if (error.response.data.detail !== "No active account found with the given credentials") {
                         window.location.href = "/login"
                     }
+                } else if (error.response.status === 403) {
+                    const customError = new Error("Forbidden")
+                    customError.statusCode = 403
+                    return Promise.reject(customError)
                 } else {
                     return Promise.reject(error)
                 }
