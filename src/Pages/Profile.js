@@ -30,16 +30,17 @@ class Profile extends Component {
     }
 
     render() {
-        const {username, email, first_name, last_name} = this.state.profileData
+        const {username, email, first_name, last_name, is_superuser, group_names} = this.state.profileData
 
         return (
             <Container>
-                <ul>
-                    <li>Username: {username}</li>
-                    <li>Email: {email}</li>
-                    <li>First Name: {first_name}</li>
-                    <li>Last Name: {last_name}</li>
-                </ul>
+                <div className="text-center my-5">
+                    <p>Username: {username}</p>
+                    <p>Email: {email}</p>
+                    <p>First Name: {first_name}</p>
+                    <p>Last Name: {last_name}</p>
+                    <p>Modules: {is_superuser ? "All" : group_names}</p>
+                </div>
             </Container>
         )
     }

@@ -27,7 +27,7 @@ class ExpenditureGroupModal extends Component {
 
         if (Object.keys(localErrors).length === 0) {
             this.setState(() => ({ errors: {} }))
-            this.props.handleSaveItem(this.state.activeItem)
+            this.props.handleSaveItem(item)
         } else {
             this.setState(() => ({
                 errors: {
