@@ -18,7 +18,7 @@ class ExpenditureModal extends Component {
 
     validateSaveItem = () => {
         const errors = []
-        const { date, name, location, amount, currency, type, payment_method } = this.state.activeItem
+        const { date, name, location, amount, currency, type, payment_method, category } = this.state.activeItem
         if (!date) {
             errors.date = "Date should not be empty"
         }
@@ -39,6 +39,9 @@ class ExpenditureModal extends Component {
         }
         if (!payment_method) {
             errors.payment_method = "Payment Method should not be empty"
+        }
+        if (!category) {
+            errors.category = "Category should not be empty"
         }
         return errors
     }
@@ -185,6 +188,36 @@ class ExpenditureModal extends Component {
                             {
                                 this.state.errors.payment_method && (
                                     <div className="text-danger">{this.state.errors.payment_method}</div>
+                                )
+                            }
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label>Category</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="category"
+                                value={this.state.activeItem.category}
+                                onChange={this.handleChange}
+                                placeholder="Enter Expenditure Category"
+                            />
+                            {
+                                this.state.errors.category && (
+                                    <div className="text-danger">{this.state.errors.category}</div>
+                                )
+                            }
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label>Attachment</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="attachment"
+                                value={this.state.activeItem.attachment}
+                                onChange={this.handleChange}
+                                placeholder="Enter Expenditure Attachment"
+                            />
+                            {
+                                this.state.errors.attachment && (
+                                    <div className="text-danger">{this.state.errors.attachment}</div>
                                 )
                             }
                         </Form.Group>

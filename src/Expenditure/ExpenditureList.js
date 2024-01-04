@@ -1,7 +1,7 @@
 import React, { Component } from "react"
 import { Container, Button, Row } from "react-bootstrap"
 import ExpenditureModal from "./ExpenditureModal"
-import { FiEdit, FiTrash2, FiPlusCircle } from "react-icons/fi"
+import { FiEdit, FiTrash2, FiPlusCircle, FiFile } from "react-icons/fi"
 import { useParams } from "react-router-dom"
 import API from "../Services/API"
 
@@ -21,6 +21,8 @@ class ExpenditureListClass extends Component {
                 currency: "MYR",
                 type: "spend",
                 payment_method: "",
+                category: "others",
+                attachment: "",
             }
         }
         this.headers = {
@@ -31,7 +33,9 @@ class ExpenditureListClass extends Component {
             currency: "Currency",
             type: "Type",
             payment_method: "Payment Method",
-            username: "User"
+            username: "User",
+            category: "Category",
+            attachment: "Attachment",
         }
     }
 
@@ -89,6 +93,8 @@ class ExpenditureListClass extends Component {
             currency: "MYR",
             type: "spend",
             payment_method: "",
+            category: "others",
+            attachment: "",
         }
         this.setState(prevState => ({ 
             activeItem: item,
@@ -140,9 +146,15 @@ class ExpenditureListClass extends Component {
                     <tr key={rowIndex}>
                         <td><button className="btn btn-secondary mr-2" onClick={() => this.editItem(rowData)}><FiEdit /></button></td>
                         <td><button className="btn btn-secondary mr-2" onClick={() => this.handleDelete(rowData)}><FiTrash2 /></button></td>
-                        {Object.entries(rowData).map(([cellKey, cellValue], cellIndex) => (
-                            Object.keys(this.headers).includes(cellKey) && <td key={cellIndex}>{cellValue}</td>
-                        ))}
+                        {Object.entries(rowData).map(([cellKey, cellValue], cellIndex) => {
+                            if (cellKey === "attachment") {
+                                return <td key={cellIndex} className="text-center">{(cellValue !== null && cellValue !== "") ? <a className="btn btn-secondary mr-2" href={cellValue}><FiFile /></a> : ""}</td>
+                            } else if (Object.keys(this.headers).includes(cellKey)) {
+                                return <td key={cellIndex}>{cellValue}</td>
+                            } else {
+                                return null
+                            }
+                        })}
                     </tr>
                 ))}
             </tbody>
