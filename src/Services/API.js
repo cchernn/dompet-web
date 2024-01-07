@@ -46,12 +46,15 @@ class API {
     }
 
     async request(method, url, data=null, cred=true) {
-        return this.api({
+        const config = {
             method: method,
             url: url,
-            data: data,
+            data: method === 'get' ? null : data,
+            params: method === 'get' ? data : null,
             withCredentials: cred 
-        })
+        }
+
+        return this.api(config)
         .then(response => response)
         .catch(error => {
             throw error.response ? error.response.data : error

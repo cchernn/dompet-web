@@ -25,7 +25,7 @@ class App extends Component {
                     <Route path="/register" element={<Register />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/expenditures" element={<Expenditure />} />
-                    <Route path="/expenditures/:groupId/summary" element={<ExpenditureList />} />
+                    <Route path="/expenditures/:groupId/list" element={<ExpenditureList />} />
                 </Routes>
             </BrowserRouter>
         )

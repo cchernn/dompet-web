@@ -1,9 +1,9 @@
 import React, { Component } from "react"
-import { Container, Button, Row } from "react-bootstrap"
+import { Container, Button, Row, Pagination } from "react-bootstrap"
 import ExpenditureModal from "./ExpenditureModal"
 import { FiEdit, FiTrash2, FiPlusCircle, FiFile } from "react-icons/fi"
 import { useParams } from "react-router-dom"
-import API from "../Services/API"
+import API from "../Services/API"   
 
 class ExpenditureListClass extends Component {
     constructor(props) {
@@ -13,6 +13,9 @@ class ExpenditureListClass extends Component {
             expenditureList: [],
             show: false,
             groupId: groupId,
+            totalPageNo: 1,
+            activePageNo: 1,
+            pageSize: process.env.REACT_APP_PAGESIZE,
             activeItem: {
                 date: "",
                 name: "",
@@ -49,9 +52,14 @@ class ExpenditureListClass extends Component {
         await API.request(
             'get',
             `/expendituregroups/${groupId}/expenditures`,
-            {}
+            {
+                'page': this.state.activePageNo
+            }
         )
-        .then((res) => this.setState({ expenditureList: res.data }))
+        .then((res) => {
+            this.setState({ expenditureList: res.data.results })
+            this.calcTotalPageNo(res.data.count)
+        })
         .catch((err) => console.log(err))
     }
 
@@ -120,6 +128,15 @@ class ExpenditureListClass extends Component {
         .then((res) => this.refreshList())
     }
 
+    calcTotalPageNo = (count) => {
+        let totalPages = Math.ceil( count/this.state.pageSize )
+        this.setState({ totalPageNo: totalPages })
+    }
+
+    handlePageClick = (count) => {
+        this.setState({ activePageNo: count }, () => this.refreshList())
+    }
+
     renderTableHeaders = () => {
         const headers = Object.values(this.headers)
 
@@ -161,6 +178,35 @@ class ExpenditureListClass extends Component {
         )
     }
 
+    renderPaginationElement = () => {
+        const activePageNo = this.state.activePageNo
+        const totalPageNo = this.state.totalPageNo
+        
+        const lowerPageNo = Math.max(1, this.state.activePageNo - 2)
+        const upperPageNo = Math.min(totalPageNo, this.state.activePageNo + 2)
+
+        const pages = []
+        for (let count = lowerPageNo; count <= upperPageNo; count++ ) {
+            pages.push(
+                <Pagination.Item 
+                    key={count} 
+                    active={count === activePageNo}
+                    onClick={() => this.handlePageClick(count)}
+                >
+                    {count}
+                </Pagination.Item>
+            )
+        }
+
+        return (
+            <Pagination>
+                <Pagination.First onClick={() => this.handlePageClick(1)} />
+                {pages}
+                <Pagination.Last onClick={() => this.handlePageClick(this.state.totalPageNo)} />
+            </Pagination>
+        )
+    }
+
     render() {
         return (
             <Container>
@@ -174,6 +220,7 @@ class ExpenditureListClass extends Component {
                             </table>
                         </div>
                     </div>
+                    {this.renderPaginationElement()}
                 </Row>
                 <ExpenditureModal
                     activeItem = {this.state.activeItem}
