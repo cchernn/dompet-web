@@ -210,7 +210,7 @@ class ExpenditureListClass extends Component {
     render() {
         return (
             <Container>
-                <h1 className="text-black text-uppercase text-center my-4">Expenditure app</h1>
+                <h1 className="text-black text-uppercase text-center my-4">Expenditure List - {this.state.groupId}</h1>
                 <Row>
                     <div className="col-md-12 col-sm-10 mx-auto p-0">
                         <div className="card p-3">
