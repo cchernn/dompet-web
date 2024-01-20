@@ -72,7 +72,7 @@ class Contact extends Component {
                     <h1>Contact</h1>
                 </div>
                 <p className="text-black text-center my-4" style={{ fontSize: "1.25rem" }}>
-                    Feel free to contact me through the form below or email me at <a href="/contact">{process.env.REACT_APP_EMAIL}</a>.
+                    Feel free to contact me through the form below or email me <a href={`mailto:${process.env.REACT_APP_EMAIL}`}>here</a>.
                 </p>
                 <Form>
                     <Form.Group>
