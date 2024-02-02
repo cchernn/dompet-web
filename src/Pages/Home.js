@@ -1,5 +1,4 @@
 import React, { Component } from "react"
-import { Container } from "react-bootstrap"
 
 class Home extends Component {
     constructor(props) {
@@ -19,7 +18,7 @@ class Home extends Component {
             .then((text) => {
                 if (text !== null || text.trim() !== "") {
                     const home_text = (
-                        <p className="text-black text-center my-4" style={{ fontSize: "1.25rem" }}>
+                        <p>
                             {text}
                         </p>
                     )
@@ -37,7 +36,7 @@ class Home extends Component {
             .then((text) => {
                 if (text !== null || text.trim() !== "") {
                     const about_text = (
-                        <p className="text-black text-center my-4" style={{ fontSize: "1.25rem" }}>
+                        <p>
                             {text}
                         </p>
                     )
@@ -54,21 +53,21 @@ class Home extends Component {
 
     render() {  
         return (
-            <Container id="home">
+            <section className="container">
             { this.state.home_text &&
-                <section id="home" className="mt-5 text-center">
-                    <h1>Hello</h1>
+                <section>
+                    <h2>Hello</h2>
                     { this.state.home_text }
                 </section>
             }
 
             { this.state.about_text &&
-                <section id="about" className="mt-5 text-center">
-                    <h1>About</h1>
+                <section>
+                    <h2>About</h2>
                     { this.state.about_text }
                 </section>
             }
-            </Container>
+            </section>
         )
     }
 }

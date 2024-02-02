@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { Container, Form, Button } from "react-bootstrap"
+import { FaUser, FaLock } from "react-icons/fa";
 import API from "../Services/API"
 
 class Login extends Component {
@@ -32,7 +32,7 @@ class Login extends Component {
                 '/token',
                 payload
             )
-
+            console.log('data', data)
             localStorage.clear()
             localStorage.setItem('access_token', data.access)
             localStorage.setItem('refresh_token', data.refresh)
@@ -43,42 +43,51 @@ class Login extends Component {
         }
     }
 
-    handleResetPassword = () => {
-        window.location.href = "/reset-password"
-    }
-
     render() {
         return (
-            <Container>
-                <h1>Login</h1>
-                <Form>
-                    <Form.Group>
-                        <Form.Label>Username</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter Username Here"
-                            value={this.state.username}
-                            onChange={(resp => this.setUsername(resp.target.value))}
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control
-                            type="password"
-                            placeholder="Enter Password Here"
-                            value={this.state.password}
-                            onChange={(resp => this.setPassword(resp.target.value))}
-                            autoComplete="on"
-                        />
-                    </Form.Group>
-                </Form>
-                <Button variant="primary" type="submit" onClick={this.handleLogin}>
-                    Login
-                </Button>
-                <Button variant="secondary" type="submit" onClick={this.handleResetPassword}>
-                    Reset Password
-                </Button>
-            </Container>
+            <section id="login-box" className="container">
+                <div className="wrapper-login">
+                    <h2>Login</h2>
+                    <form>
+                        <div className="input-box">
+                            <input 
+                                type="text"
+                                id="username"
+                                placeholder="Username"
+                                value={this.state.username}
+                                onChange={(resp => this.setUsername(resp.target.value))}
+                            />
+                            <FaUser />
+                        </div>
+                        <div className="input-box">
+                            <input 
+                                type="password"
+                                id="password"
+                                placeholder="Password"
+                                value={this.state.password}
+                                onChange={(resp => this.setPassword(resp.target.value))}
+                                autoComplete="on"
+                            />
+                            <FaLock />
+                        </div>
+                        <div className="reset-password">
+                            <a href="/reset-password">Forgot Password?</a>
+                        </div>
+                        <button id="login-btn" type="button" onClick={this.handleLogin}>Login</button>
+                        {
+                            this.state.error && (
+                                <div className="error">
+                                    <p>Error: {this.state.error}</p>
+                                </div>
+                            )
+                        }
+                        <div className="register">
+                            <p>Don't have an account? <a href="/register">Register</a> here.</p>
+                            
+                        </div>
+                    </form>
+                </div>
+            </section>
         )
     }
 }

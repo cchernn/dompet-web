@@ -1,5 +1,4 @@
 import React, { Component } from "react"
-import { Container, Form, Button } from "react-bootstrap"
 import { useSearchParams } from "react-router-dom"
 import API from "../Services/API"
 
@@ -67,44 +66,44 @@ class ResetPasswordConfirmClass extends Component {
 
     render() {
         return (
-            <Container>
-                <h1>Reset Password</h1>
-                <Form>
-                    <Form.Group>
-                        <Form.Label>New Password</Form.Label>
-                        <Form.Control
-                            type="password"
-                            placeholder="Enter New Password Here"
-                            value={this.state.newPassword}
-                            onChange={(resp => this.setPassword(resp.target.value))}
-                            autoComplete="on"
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Confirm New Password</Form.Label>
-                        <Form.Control
-                            type="password"
-                            placeholder="Enter New Password Here"
-                            value={this.state.newPasswordConfirm}
-                            onChange={(resp => this.setPasswordConfirm(resp.target.value))}
-                            autoComplete="on"
-                        />
-                    </Form.Group>
-                </Form>
-                <Button variant="primary" type="submit" onClick={() => this.handleResetPassword(this.props.token)}>
-                    Reset Password
-                </Button>
-                {
-                    this.state.error && (
-                        <div className="text-danger">{this.state.error}</div>
-                    )
-                }
-                {
-                    this.state.resMessage && (
-                        <div className="text-primary">{this.state.resMessage}</div>
-                    )
-                }
-            </Container>
+            <section id="reset-password-box" className="container">
+                <div className="wrapper-reset-password">
+                    <h2>Reset Password</h2>
+                    <form>
+                        <div className="input-box">
+                            <input 
+                                type="password"
+                                id="new_password"
+                                placeholder="New Password"
+                                value={this.state.newPassword}
+                                onChange={(resp => this.setPassword(resp.target.value))}
+                                autoComplete="on"
+                            />
+                        </div>
+                        <div className="input-box">
+                            <input 
+                                type="password"
+                                id="new_password_confirm"
+                                placeholder="Confirm New Password"
+                                value={this.state.newPasswordConfirm}
+                                onChange={(resp => this.setPasswordConfirm(resp.target.value))}
+                                autoComplete="on"
+                            />
+                        </div>
+                    </form>
+                    <button id="reset-password-btn" type="button" onClick={() => this.handleResetPassword(this.props.token)}>Reset Password</button>
+                    {
+                        this.state.error && (
+                            <div>{this.state.error}</div>
+                        )
+                    }
+                    {
+                        this.state.resMessage && (
+                            <div>{this.state.resMessage}</div>
+                        )
+                    }
+                </div>
+            </section>
         )
     }
 }
@@ -114,9 +113,9 @@ const ResetPasswordConfirm = () => {
     const token = searchParams.get('token')
 
     return (
-      <Container>
+      <div>
         <ResetPasswordConfirmClass token={token} />
-      </Container>
+      </div>
     );
   };
 

@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { Container } from "react-bootstrap"
+import { FaRegFaceLaugh, FaRegFaceDizzy, FaRegFaceFrownOpen, FaRegFaceAngry, FaRegFaceGrimace, FaRegFaceMeh, FaRegFaceGrinTongueSquint, FaRegFaceRollingEyes } from "react-icons/fa6";
 import API from "../Services/API"
 
 class Profile extends Component {
@@ -11,12 +11,29 @@ class Profile extends Component {
                 email: "",
                 first_name: "",
                 last_name: ""
-            }
+            },
+            currentImage: <FaRegFaceLaugh />,
+            images: [
+                <FaRegFaceLaugh />,
+                <FaRegFaceDizzy />,
+                <FaRegFaceFrownOpen />,
+                <FaRegFaceAngry />,
+                <FaRegFaceGrimace />,
+                <FaRegFaceMeh />,
+                <FaRegFaceGrinTongueSquint />,
+                <FaRegFaceRollingEyes />,
+            ]
         }
     }
     
     componentDidMount() {
         this.getProfile()
+        this.intervalId = setInterval(() => {
+            const images = this.state.images;
+            this.setState({
+                currentImage: images[Math.floor(Math.random() * images.length)],
+            });
+        }, 2000);
     }
 
     getProfile = async () => {
@@ -29,19 +46,40 @@ class Profile extends Component {
         .catch((err) => console.log(err))
     }
 
+
     render() {
         const {username, email, first_name, last_name, is_superuser, group_names} = this.state.profileData
 
         return (
-            <Container>
-                <div className="text-center my-5">
-                    <p>Username: {username}</p>
-                    <p>Email: {email}</p>
-                    <p>First Name: {first_name}</p>
-                    <p>Last Name: {last_name}</p>
-                    <p>Modules: {is_superuser ? "All" : group_names}</p>
+            <section id="profile-box" className="container">
+                <div className="wrapper-profile">
+                    <div className="profile-image">{this.state.currentImage}</div>
+                    <div className="profile-details">
+                        <ul>
+                            <li>
+                                <div className="profile-detail">Username:</div>
+                                <div className="profile-detail">{username}</div>
+                            </li>
+                            <li>
+                                <div className="profile-detail">Email:</div>
+                                <div className="profile-detail">{email}</div>
+                            </li>
+                            <li>
+                                <div className="profile-detail">First Name:</div>
+                                <div className="profile-detail">{first_name}</div>
+                            </li>
+                            <li>
+                                <div className="profile-detail">Last Name:</div>
+                                <div className="profile-detail">{last_name}</div>
+                            </li>
+                            <li>
+                                <div className="profile-detail">Modules:</div>
+                                <div className="profile-detail">{is_superuser ? "All" : group_names}</div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </Container>
+            </section>
         )
     }
 }

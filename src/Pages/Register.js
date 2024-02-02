@@ -1,5 +1,4 @@
 import React, { Component } from "react"
-import { Container, Form, Button } from "react-bootstrap"
 import API from "../Services/API"
 
 class Register extends Component {
@@ -54,7 +53,7 @@ class Register extends Component {
             )
             .then((res) => {
                 if (res.status === 200) {
-                    window.location.href = "/"
+                    window.location.href = "/login"
                 } else {
                     console.log("error", res.response.status, res.message)
                 }
@@ -66,65 +65,67 @@ class Register extends Component {
 
     render() {
         return (
-            <Container>
-                <h1>Register</h1>
-                <Form>
-                    <Form.Group>
-                        <Form.Label>Username</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter Username Here"
-                            value={this.state.username}
-                            onChange={(resp => this.setUsername(resp.target.value))}
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control
-                            type="password"
-                            placeholder="Enter Password Here"
-                            value={this.state.password}
-                            onChange={(resp => this.setPassword(resp.target.value))}
-                            autoComplete="on"
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                            type="email"
-                            placeholder="Enter Email Here"
-                            value={this.state.email}
-                            onChange={(resp => this.setEmail(resp.target.value))}
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>First Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter First Name Here"
-                            value={this.state.first_name}
-                            onChange={(resp => this.setFirstName(resp.target.value))}
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Last Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter Last Name Here"
-                            value={this.state.last_name}
-                            onChange={(resp => this.setLastName(resp.target.value))}
-                        />
-                    </Form.Group>
-                    <Button variant="primary" type="submit" onClick={this.handleRegister}>
-                        Register
-                    </Button>
-                    {
-                        this.state.error && (
-                            <div className="text-danger">{this.state.error}</div>
-                        )
-                    }
-                </Form>
-            </Container>
+            <section id="register-box" className="container">
+                <div className="wrapper-register">
+                    <h2>Register</h2>
+                    <form>
+                        <div className="input-box">
+                            <input 
+                                type="text"
+                                id="username"
+                                placeholder="Username"
+                                value={this.state.username}
+                                onChange={(resp => this.setUsername(resp.target.value))}
+                            />
+                        </div>
+                        <div className="input-box">
+                            <input 
+                                type="password"
+                                id="password"
+                                placeholder="Password"
+                                value={this.state.password}
+                                onChange={(resp => this.setPassword(resp.target.value))}
+                                autoComplete="on"
+                            />
+                        </div>
+                        <div className="input-box">
+                            <input 
+                                type="email"
+                                id="email"
+                                placeholder="Email"
+                                value={this.state.email}
+                                onChange={(resp => this.setEmail(resp.target.value))}
+                            />
+                        </div>
+                        <div className="input-box">
+                            <input 
+                                type="text"
+                                id="first_name"
+                                placeholder="First Name"
+                                value={this.state.first_name}
+                                onChange={(resp => this.setFirstName(resp.target.value))}
+                            />
+                        </div>
+                        <div className="input-box">
+                            <input 
+                                type="text"
+                                id="last_name"
+                                placeholder="Last Name"
+                                value={this.state.last_name}
+                                onChange={(resp => this.setLastName(resp.target.value))}
+                            />
+                        </div>
+                        <button id="register-btn" type="button" onClick={this.handleRegister}>Register</button>
+                        {
+                            this.state.error && (
+                                <div className="error">
+                                    <p>Error: {this.state.error}</p>
+                                </div>
+                            )
+                        }
+                    </form>
+                </div>
+            </section>
         )
     }
 }

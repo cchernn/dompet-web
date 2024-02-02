@@ -1,7 +1,6 @@
 import React, { Component } from "react"
-import { Nav, Navbar, Container } from 'react-bootstrap'
-import Login from "../Auth/Login"
-import Logout from "../Auth/Logout"
+import { BsPerson, BsPersonAdd } from "react-icons/bs";
+import { FaDoorClosed } from "react-icons/fa6";
 
 class Navigation extends Component {
     constructor(props) {
@@ -19,34 +18,30 @@ class Navigation extends Component {
 
     render() {
         return (
-            <Navbar className="bg-body-tertiary">
-                <Container>
-                    <Navbar.Brand href="#home" ><img src="/logo192.png" height="45" alt="Hello" /></Navbar.Brand>
-                    <Navbar.Toggle aria-controls="navbar-toggle" />
-                    <Navbar.Collapse id="navbar-toggle">
-                        <Nav className="me-auto">
-                            <Nav.Link href="/">Home</Nav.Link>
-                            <Nav.Link href="/contact">Contact</Nav.Link>
-                            {this.state.isAuth ?
-                                <Nav.Link href="/expenditures">Expenditures</Nav.Link>
-                                : 
-                                null}
-                        </Nav>
-                        <Nav>
-                            {this.state.isAuth ? 
-                                <>
-                                    <Nav.Link href="/profile">Profile</Nav.Link>
-                                    <Logout /> 
-                                </>
-                                : 
-                                <>
-                                    <Nav.Link href="/register">Register</Nav.Link>
-                                    <Login />
-                                </>}
-                        </Nav>
-                    </Navbar.Collapse>
-                </Container>
-            </Navbar>
+            <header>
+                <nav>
+                    <div></div>
+                    <ul className="nav-links">
+                        <li className="nav-link"><a href="/">Home</a></li>
+                        <li className="nav-link"><a href="/contact">Contact</a></li>
+                        {this.state.isAuth ? 
+                            <li className="nav-link"><a href="/expenditures">Expenditures</a></li> :
+                            null
+                        }
+                    </ul>
+                    {this.state.isAuth ?
+                        <div className="nav-links">
+                            <a className="nav-btn" data-text="Profile" href="/profile"><BsPerson /></a>
+                            <a className="nav-btn" data-text="Logout" href="/logout"><FaDoorClosed /></a>
+                        </div>
+                        :
+                        <div className="nav-links">
+                            <a className="nav-btn" data-text="Register" href="/register"><BsPersonAdd /></a>
+                            <a className="nav-btn" data-text="Login" href="/login"><FaDoorClosed /></a>
+                        </div>
+                    }
+                </nav>
+            </header>
         )
     }
 }

@@ -1,5 +1,4 @@
 import React, { Component } from "react"
-import { Container, Form, Button } from "react-bootstrap"
 import Email from "../Services/EmailJS"
 
 class Contact extends Component {
@@ -37,7 +36,6 @@ class Contact extends Component {
             return 
         }
 
-        // You can add more complex email validation if needed
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(this.state.email)) {
             this.setState({
@@ -67,56 +65,60 @@ class Contact extends Component {
 
     render() {
         return (
-            <Container>
-                <div className="mt-5 text-center">
-                    <h1>Contact</h1>
+            <section id="contact-box" className="container">
+                <div className="wrapper-contact">
+                    <h2>Contact</h2>
+                    <div className="contact-desc">
+                        <p>
+                            Feel free to contact me through the form below or email me <a href={`mailto:${process.env.REACT_APP_EMAIL}`}>here</a>.
+                        </p>
+                    </div>
+                    <form>
+                        <div className="input-box">
+                            <input 
+                                type="text"
+                                id="name"
+                                placeholder="Name: eg. John Doe"
+                                value={this.state.name}
+                                onChange={(resp => this.setName(resp.target.value))}
+                            />
+                        </div>
+                        <div className="input-box">
+                            <input 
+                                type="email"
+                                id="email"
+                                placeholder="Email: eg. johndoe@gmail.com"
+                                value={this.state.email}
+                                onChange={(resp => this.setEmail(resp.target.value))}
+                            />
+                        </div>
+                        <div className="textarea-box">
+                            <textarea
+                                id="message"
+                                rows="5"
+                                placeholder="Message"
+                                value={this.state.message}
+                                onChange={(resp => this.setMessage(resp.target.value))}
+                            ></textarea>
+                        </div>
+                        <button id="contact-btn" type="button" onClick={this.handleSubmit}>Submit</button>
+                        {
+                            this.state.error && (
+                                <div className="error">
+                                    <p>{this.state.error}</p>
+                                </div>
+                            )
+                        }
+                        {
+                            this.state.resMessage && (
+                                <div className="success">
+                                    <p>{this.state.resMessage}</p>
+                                </div>
+                            )
+                        }
+                    </form>
                 </div>
-                <p className="text-black text-center my-4" style={{ fontSize: "1.25rem" }}>
-                    Feel free to contact me through the form below or email me <a href={`mailto:${process.env.REACT_APP_EMAIL}`}>here</a>.
-                </p>
-                <Form>
-                    <Form.Group>
-                        <Form.Label>Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="name"
-                            value={this.state.name}
-                            onChange={(resp => this.setName(resp.target.value))}
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                            type="email"
-                            placeholder="name@example.com"
-                            value={this.state.email}
-                            onChange={(resp => this.setEmail(resp.target.value))}
-                        />
-                    </Form.Group>
-                    <Form.Group>
-                        <Form.Label>Message</Form.Label>
-                        <Form.Control
-                            as="textarea"
-                            rows={5}
-                            value={this.state.message}
-                            onChange={(resp => this.setMessage(resp.target.value))}
-                        />
-                    </Form.Group>
-                    <Button variant="primary" type="submit" onClick={this.handleSubmit}>
-                        Submit
-                    </Button>
-                    {
-                        this.state.error && (
-                            <div className="text-danger">{this.state.error}</div>
-                        )
-                    }
-                    {
-                        this.state.resMessage && (
-                            <div className="text-primary">{this.state.resMessage}</div>
-                        )
-                    }
-                </Form>
-            </Container>
+            </section>
         )
     }
 }
