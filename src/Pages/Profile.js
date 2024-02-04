@@ -43,7 +43,9 @@ class Profile extends Component {
             {}
         )
         .then((res) => this.setState({ profileData: res.data }))
-        .catch((err) => console.log(err))
+        .catch((err) => {
+            console.log("error", err)
+        })
     }
 
 

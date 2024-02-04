@@ -21,7 +21,8 @@ class ExpenditureDetailClass extends Component {
                 category: "others",
                 attachment: "",
             },
-            errors: {}
+            errors: {},
+            error: "",
         }
         this.headers = {
             date: "Date",
@@ -52,10 +53,13 @@ class ExpenditureDetailClass extends Component {
         .then((res) => {
             this.setState({ activeItem: res.data })
         })
-        .catch((err) => console.log(err))
+        .catch((err) => {
+            console.log("error", err)
+        })
     }
 
     toggleEditMode = (value) => {
+        this.refreshItem()
         this.setState({ editMode: value })
     }
 
@@ -97,17 +101,28 @@ class ExpenditureDetailClass extends Component {
             this.setState(() => ({ errors: {} }))
             const groupId = this.state.groupId
 
-            if (item.id) {
-                await API.request(
-                    'put',
-                    `/expendituregroups/${groupId}/expenditures/${item.id}`,
-                    item
-                )
-                .then((res) => {
-                    this.toggleEditMode(false)
-                })
-                return
-            }
+            // if (item.id) {
+            //     await API.request(
+            //         'put',
+            //         `/expendituregroups/${groupId}/expenditures/${item.id}`,
+            //         item
+            //     )
+            //     .then((res) => {
+            //         this.toggleEditMode(false)
+            //     })
+            //     return
+            // }
+            await API.request(
+                'put',
+                `/expendituregroups/${groupId}/expenditures/${item.id}`,
+                item
+            )
+            .then((res) => {
+                this.toggleEditMode(false)
+            })
+            .catch((err) => {
+                console.log("error", err)
+            })
         } else {
             this.setState(() => ({
                 errors: {
@@ -129,6 +144,9 @@ class ExpenditureDetailClass extends Component {
         )
         .then((res) => {
             window.location.href = `/expenditures/${groupId}/list`
+        })
+        .catch((err) => {
+            console.log("error", err)
         })
     }
 

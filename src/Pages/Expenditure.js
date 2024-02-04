@@ -24,6 +24,9 @@ class Expenditure extends Component {
             {}
         )
         .then((res) => this.refreshList())
+        .catch((err) => {
+            this.setState({ error: err})
+        })
     }
 
     handleView = (item) => {
@@ -33,25 +36,6 @@ class Expenditure extends Component {
 
     handleCreate = () => {
         window.location.href = `/expenditures/create`
-    }
-
-    handleOpen = () => {
-        this.setState({ show: true})
-    }
-
-    handleClose = () => {
-        this.setState({ show: false})
-    }
-
-    handleSaveItem = async (item) => {
-        this.handleClose()
-
-        await API.request(
-            'post',
-            '/expendituregroups',
-            item
-        )
-        .then((res) => this.refreshList())
     }
 
     refreshList = async () => {

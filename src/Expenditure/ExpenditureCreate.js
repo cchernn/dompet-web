@@ -62,21 +62,15 @@ class ExpenditureCreateClass extends Component {
             this.setState(() => ({ errors: {} }))
             const groupId = this.state.groupId
 
-            if (item.id) {
-                await API.request(
-                    'put',
-                    `/expendituregroups/${groupId}/expenditures/${item.id}`,
-                    item
-                )
-                .then((res) => this.refreshList())
-                return
-            }
             await API.request(
                 'post',
                 `/expendituregroups/${groupId}/expenditures`,
                 item
             )
             .then((res) => window.location.href = `/expenditures/${groupId}/list`)
+            .catch((err) => {
+                console.log("error", err)
+            })
         } else {
             this.setState(() => ({
                 errors: {
@@ -94,13 +88,9 @@ class ExpenditureCreateClass extends Component {
             ...this.state.activeItem,   
             [id]: value 
         }})
-
-        console.log(this.state.activeItem)
-
     }
 
     render() {
-        console.log("init errors", this.state.errors)
         return (
             <section id="expenditure-create-box" className="container">
                 <div className="wrapper-expenditure-create">

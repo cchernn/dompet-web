@@ -58,7 +58,9 @@ class ExpenditureListClass extends Component {
             this.setState({ expenditureList: res.data.results })
             this.calcTotalPageNo(res.data.count)
         })
-        .catch((err) => console.log(err))
+        .catch((err) => {
+            console.log("error", err)
+        })
     }
 
     handleOpen = () => {
@@ -73,21 +75,31 @@ class ExpenditureListClass extends Component {
         const groupId = this.state.groupId
         this.handleClose()
 
-        if (item.id) {
-            await API.request(
-                'put',
-                `/expendituregroups/${groupId}/expenditures/${item.id}`,
-                item
-            )
-            .then((res) => this.refreshList())
-            return
-        }
         await API.request(
-            'post',
-            `/expendituregroups/${groupId}/expenditures`,
+            'put',
+            `/expendituregroups/${groupId}/expenditures/${item.id}`,
             item
         )
         .then((res) => this.refreshList())
+        .catch((err) => {
+            console.log("error", err)
+        })
+
+        // if (item.id) {
+        //     await API.request(
+        //         'put',
+        //         `/expendituregroups/${groupId}/expenditures/${item.id}`,
+        //         item
+        //     )
+        //     .then((res) => this.refreshList())
+        //     return
+        // }
+        // await API.request(
+        //     'post',
+        //     `/expendituregroups/${groupId}/expenditures`,
+        //     item
+        // )
+        // .then((res) => this.refreshList())
     }
 
     createItem = () => {

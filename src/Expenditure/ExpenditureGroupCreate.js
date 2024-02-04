@@ -33,6 +33,9 @@ class ExpenditureGroupCreate extends Component {
                 item
             )
             .then((res) => window.location.href = `/expenditures`)
+            .catch((err) => {
+                console.log("error", err)
+            })
         } else {
             this.setState(() => ({
                 errors: {
