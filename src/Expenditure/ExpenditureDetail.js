@@ -121,6 +121,9 @@ class ExpenditureDetailClass extends Component {
                 this.toggleEditMode(false)
             })
             .catch((err) => {
+                if (err.statusCode === 403) {
+                    this.setState({ error: "Wrong User." })
+                }
                 console.log("error", err)
             })
         } else {
@@ -337,6 +340,11 @@ class ExpenditureDetailClass extends Component {
                                 <button id="expenditure-detail-save-btn" type="button" onClick={() => this.handleSaveItem()}>Save</button>
                                 <button id="expenditure-detail-edit-exit-btn" type="button" onClick={() => this.toggleEditMode(false)}>Back</button>
                             </div>
+                            {
+                                this.state.error && (
+                                    <div className="error"><p>{this.state.error}</p></div>
+                                )
+                            }
                         </form>
                         </ul>
                         :
