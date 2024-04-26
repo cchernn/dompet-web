@@ -31,7 +31,7 @@ class Expenditure extends Component {
 
     handleView = (item) => {
         const id = item.id
-        window.location.href = `/expenditures/${id}/list`
+        window.location.href = `/expenditures/${id}/summary`
     }
 
     handleCreate = () => {

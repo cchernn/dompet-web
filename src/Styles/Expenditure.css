@@ -505,3 +505,71 @@
     font-size: 14.5px;
     color: #D02A25;
 }
+
+/*
+    ========================================
+    Expenditure Summary Page
+    ========================================
+*/
+
+#expenditure-summary-box button {
+    width: 10%;
+    height: 45px;
+    float: right;
+    border: none;
+    outline: none;
+    border-radius: 40px;
+    background-color: #00728F;
+    box-shadow: 0 0 5px #00000033;
+    cursor: pointer;
+    color: #F8F7FF;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 10px 50px 20px;
+}
+
+#expenditure-summary-box .expenditure-summary-cells {
+    display: grid;
+    grid-gap: 40px;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+#expenditure-summary-box .expenditure-summary-cell {
+    border: 2px solid #ffffff33;
+    background-color: #CAE3DD;
+    box-shadow: 0 0 10px #00000033;
+    border-radius: 10px;
+    padding: 0;
+    height: 125px;
+    width: 350px;
+    margin: 0;
+}
+
+#expenditure-summary-box .expenditure-summary-cell-header {
+    text-align: center;
+    padding: 10px 0;
+}
+
+#expenditure-summary-box .expenditure-summary-cell-header h3 {
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #008F88;
+    margin: 0;
+}
+
+#expenditure-summary-box .expenditure-summary-cell-content {
+    text-align: center;
+    padding: 10px;
+}
+
+#expenditure-summary-box .expenditure-summary-cell-footer {
+    text-align: center;
+    padding: 0px 0px;
+}
+
+#expenditure-summary-box .expenditure-summary-cell-footer p {
+    font-weight: 400;
+    font-style: italic;
+    font-size: 12.5px;
+    margin: 0;
+}
