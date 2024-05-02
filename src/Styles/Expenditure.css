@@ -532,44 +532,104 @@
     display: grid;
     grid-gap: 40px;
     grid-template-columns: 1fr 1fr 1fr;
+    padding: 10px;
 }
 
-#expenditure-summary-box .expenditure-summary-cell {
+#expenditure-summary-box .expenditure-summary-value-cell {
     border: 2px solid #ffffff33;
     background-color: #CAE3DD;
     box-shadow: 0 0 10px #00000033;
     border-radius: 10px;
     padding: 0;
     height: 125px;
-    width: 350px;
+    width: "100%";
     margin: 0;
 }
 
-#expenditure-summary-box .expenditure-summary-cell-header {
+#expenditure-summary-box .expenditure-summary-value-cell-header {
     text-align: center;
     padding: 10px 0;
 }
 
-#expenditure-summary-box .expenditure-summary-cell-header h3 {
+#expenditure-summary-box .expenditure-summary-value-cell-header h3 {
     text-transform: uppercase;
     font-weight: 600;
     color: #008F88;
     margin: 0;
 }
 
-#expenditure-summary-box .expenditure-summary-cell-content {
+#expenditure-summary-box .expenditure-summary-value-cell-content {
     text-align: center;
     padding: 10px;
 }
 
-#expenditure-summary-box .expenditure-summary-cell-footer {
+#expenditure-summary-box .expenditure-summary-value-cell-footer {
     text-align: center;
     padding: 0px 0px;
 }
 
-#expenditure-summary-box .expenditure-summary-cell-footer p {
+#expenditure-summary-box .expenditure-summary-value-cell-footer p {
     font-weight: 400;
     font-style: italic;
     font-size: 12.5px;
     margin: 0;
+}
+
+#expenditure-summary-box .expenditure-summary-chart-cells {
+    display: grid;
+    grid-gap: 40px;
+    grid-template-columns: 1fr 1fr;
+    padding: 10px;
+}
+
+#expenditure-summary-box .expenditure-summary-chart-cell {
+    border: 2px solid #ffffff33;
+    background-color: #CAE3DD;
+    box-shadow: 0 0 10px #00000033;
+    border-radius: 10px;
+    padding: 0;
+    height: 350px;
+    width: "100%";
+    margin: 0;
+}
+
+#expenditure-summary-box .expenditure-summary-chart-cell-header {
+    text-align: center;
+    padding: 10px 0;
+}
+
+#expenditure-summary-box .expenditure-summary-chart-cell-header h3 {
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #008F88;
+    margin: 0;
+}
+
+#expenditure-summary-box .expenditure-summary-chart-cell-table {
+    padding: 0 20px;
+    border-collapse: collapse;
+}
+
+#expenditure-summary-box .expenditure-summary-chart-cell-table table {
+    width: 100%;
+}
+
+
+#expenditure-summary-box .expenditure-summary-chart-cell-table table .column:first-child {
+    width: 50%;
+    text-align: left;
+}
+
+#expenditure-summary-box .expenditure-summary-chart-cell-table table .column:nth-child(2) {
+    width: 25%;
+    text-align: center;
+}
+
+#expenditure-summary-box .expenditure-summary-chart-cell-table table .column:last-child {
+    width: 25%;
+    text-align: center;
+}
+
+.recharts-layer {
+    outline: none !important
 }
