@@ -593,6 +593,14 @@
     margin: 0;
 }
 
+#expenditure-summary-box .expenditure-summary-chart-cell-no-data {
+    text-align: center;
+    height: 80%;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
 #expenditure-summary-box .expenditure-summary-chart-cell-header {
     text-align: center;
     padding: 10px 0;

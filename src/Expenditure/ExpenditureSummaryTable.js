@@ -25,8 +25,8 @@ class ExpenditureSummaryTable extends Component {
                 <div className="expenditure-summary-chart-cell-header">
                     <h3>{this.state.title} - {this.state.dimension}</h3>
                 </div>
-                <div className="expenditure-summary-chart-cell-table">
-                    { this.state.data && (
+                { this.state.data && (
+                    <div className="expenditure-summary-chart-cell-table">
                         <table>
                             <tbody>
                             { this.state.data.map((rowData, rowIndex) => (
@@ -35,12 +35,16 @@ class ExpenditureSummaryTable extends Component {
                                     <td className="column">{rowData['total_spend']}</td>
                                     <td className="column">{rowData['total_items']}</td>
                                 </tr>
-                            )
-                            )}
+                            ))}
                             </tbody>
                         </table>
-                    )}
-                </div>
+                    </div>
+                )} 
+                { !this.state.data && (
+                    <div className="expenditure-summary-chart-cell-no-data">
+                        <p>No Data</p>
+                    </div>
+                )}
             </>
         )
     }

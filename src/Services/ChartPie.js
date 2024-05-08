@@ -79,26 +79,34 @@ class ChartPie extends Component {
     }
 
     render() {
-        return (
-            <ResponsiveContainer className="w-100">
-                <PieChart>
-                    <Pie
-                        data={this.state.data}
-                        cx="50%"
-                        cy="40%"
-                        fill="#008F88"
-                        innerRadius={60}
-                        outerRadius={90}
-                        dataKey={this.state.dataKey}
-                        activeIndex={this.state.activeIndex}
-                        activeShape={(props) => renderActiveShape(props, this.state.groupKey)}
-                        onMouseEnter={this.onPieEnter}
-                        onClick={this.onPieSelect}
-                    >
-                    </Pie>
-                </PieChart>
-            </ResponsiveContainer>
-        )
+        if (this.state.data && this.state.data.length > 0) {
+            return (
+                <ResponsiveContainer className="w-100">
+                    <PieChart>
+                        <Pie
+                            data={this.state.data}
+                            cx="50%"
+                            cy="40%"
+                            fill="#008F88"
+                            innerRadius={60}
+                            outerRadius={90}
+                            dataKey={this.state.dataKey}
+                            activeIndex={this.state.activeIndex}
+                            activeShape={(props) => renderActiveShape(props, this.state.groupKey)}
+                            onMouseEnter={this.onPieEnter}
+                            onClick={this.onPieSelect}
+                        >
+                        </Pie>
+                    </PieChart>
+                </ResponsiveContainer>
+            )
+        } else {
+            return (
+                <div className="expenditure-summary-chart-cell-no-data">
+                    <p>No Data</p>
+                </div>
+            )
+        }
     }
 }
 

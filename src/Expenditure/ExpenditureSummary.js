@@ -13,6 +13,7 @@ class ExpenditureSummaryClass extends Component {
             groupId: groupId,
             categoryIndex: "",
             userIndex: "",
+            selectMode: "default",
             error: "",
         }
     }
@@ -54,7 +55,36 @@ class ExpenditureSummaryClass extends Component {
         }
     }
 
+    handleSelectMode = (value) => {
+        this.setState({ selectMode: value })
+    }
+
     render() {
+        let data_category
+        let data_category_breakdown
+        let data_user
+        let data_user_breakdown
+
+        switch (this.state.selectMode) {
+            case "mtd":
+                data_category = this.state.expenditureSummary.expenditure_by_category_mtd
+                data_category_breakdown = this.state.expenditureSummary.expenditure_by_category_breakdown_mtd
+                data_user = this.state.expenditureSummary.expenditure_by_user_mtd
+                data_user_breakdown = this.state.expenditureSummary.expenditure_by_user_breakdown_mtd
+                break
+            case "ytd":
+                data_category = this.state.expenditureSummary.expenditure_by_category_ytd
+                data_category_breakdown = this.state.expenditureSummary.expenditure_by_category_breakdown_ytd
+                data_user = this.state.expenditureSummary.expenditure_by_user_ytd
+                data_user_breakdown = this.state.expenditureSummary.expenditure_by_user_breakdown_ytd
+                break
+            default:
+                data_category = this.state.expenditureSummary.expenditure_by_category
+                data_category_breakdown = this.state.expenditureSummary.expenditure_by_category_breakdown
+                data_user = this.state.expenditureSummary.expenditure_by_user
+                data_user_breakdown = this.state.expenditureSummary.expenditure_by_user_breakdown
+        }
+
         return (
             <section id="expenditure-summary-box" className="container">
                 <h2>Expenditure Summary - {this.state.groupId}</h2>
@@ -62,7 +92,7 @@ class ExpenditureSummaryClass extends Component {
                     <button type="button" onClick={this.handleView}>List</button>
                 </div>
                 <div className="expenditure-summary-cells">
-                    <section className="expenditure-summary-value-cell">
+                    <section className="expenditure-summary-value-cell" onClick={() => this.handleSelectMode("default")}>
                         <div className="expenditure-summary-value-cell-header">
                             <h3>Expenditure Total</h3>
                         </div>
@@ -83,7 +113,7 @@ class ExpenditureSummaryClass extends Component {
                             }
                         </div>
                     </section>
-                    <section className="expenditure-summary-value-cell">
+                    <section className="expenditure-summary-value-cell" onClick={() => this.handleSelectMode("mtd")}>
                         <div className="expenditure-summary-value-cell-header">
                             <h3>Expenditure MTD</h3>
                         </div>
@@ -104,7 +134,7 @@ class ExpenditureSummaryClass extends Component {
                             }
                         </div>
                     </section>
-                    <section className="expenditure-summary-value-cell">
+                    <section className="expenditure-summary-value-cell" onClick={() => this.handleSelectMode("ytd")}>
                         <div className="expenditure-summary-value-cell-header">
                             <h3>Expenditure YTD</h3>
                         </div>
@@ -132,7 +162,7 @@ class ExpenditureSummaryClass extends Component {
                             <h3>Expenditure By Category</h3>
                         </div>
                         <ChartPie
-                            data={this.state.expenditureSummary.expenditure_by_category}
+                            data={data_category}
                             dataKey="total_spend"
                             groupKey="category"
                             onIndexChange={this.handleSelectIndex}
@@ -142,7 +172,7 @@ class ExpenditureSummaryClass extends Component {
                         <ExpenditureSummaryTable 
                             title="Expenditure by Category"
                             dimension={this.state.categoryIndex}
-                            data={this.state.expenditureSummary.expenditure_by_category_breakdown}
+                            data={data_category_breakdown}
                         />
                     </section>
                     <section className="expenditure-summary-chart-cell">
@@ -150,7 +180,7 @@ class ExpenditureSummaryClass extends Component {
                             <h3>Expenditure By User</h3>
                         </div>
                         <ChartPie
-                            data={this.state.expenditureSummary.expenditure_by_user}
+                            data={data_user}
                             dataKey="total_spend"
                             groupKey="user"
                             onIndexChange={this.handleSelectIndex}
@@ -160,7 +190,7 @@ class ExpenditureSummaryClass extends Component {
                         <ExpenditureSummaryTable 
                             title="Expenditure by User"
                             dimension={this.state.userIndex}
-                            data={this.state.expenditureSummary.expenditure_by_user_breakdown}
+                            data={data_user_breakdown}
                         />
                     </section>
                 </div>
