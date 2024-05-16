@@ -16,6 +16,7 @@ import ResetPasswordConfirm from "./Auth/ResetPasswordConfirm"
 import Navigation from './Components/Navigation'
 import ExpenditureList from './Expenditure/ExpenditureList'
 import ExpenditureSummary from './Expenditure/ExpenditureSummary'
+import ExpenditureHistorical from './Expenditure/ExpenditureHistorical'
 import ExpenditureCreate from './Expenditure/ExpenditureCreate'
 import ExpenditureGroupCreate from './Expenditure/ExpenditureGroupCreate'
 import ExpenditureDetail from './Expenditure/ExpenditureDetail'
@@ -37,6 +38,7 @@ class App extends Component {
                     <Route path="/expenditures" element={<Expenditure />} />
                     <Route path="/expenditures/create" element={<ExpenditureGroupCreate />} />
                     <Route path="/expenditures/:groupId/summary" element={<ExpenditureSummary />} />
+                    <Route path="/expenditures/:groupId/historical" element={<ExpenditureHistorical />} />
                     <Route path="/expenditures/:groupId/list" element={<ExpenditureList />} />
                     <Route path="/expenditures/:groupId/create" element={<ExpenditureCreate />} />
                     <Route path="/expenditures/:groupId/:expId" element={<ExpenditureDetail />} />

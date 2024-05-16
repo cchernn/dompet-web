@@ -165,10 +165,15 @@
     min-height: 50vh;
 }
 
-#expenditure-list-create-btn {
+.expenditure-list-btns {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#expenditure-list-btn {
     width: 10%;
     height: 45px;
-    float: right;
+    margin-left: auto;
     border: none;
     outline: none;
     border-radius: 40px;
@@ -178,7 +183,7 @@
     color: #F8F7FF;
     font-size: 16px;
     font-weight: 600;
-    margin: 10px 50px 20px;
+    margin: 10px 20px 20px;
 }
 
 #expenditure-list-box .table-container {
@@ -512,10 +517,23 @@
     ========================================
 */
 
+.expenditure-chart-cell-no-data {
+    text-align: center;
+    height: 80%;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.expenditure-summary-list {
+    display: flex;
+    justify-content: flex-end;
+}
+
 #expenditure-summary-box button {
     width: 10%;
     height: 45px;
-    float: right;
+    margin-left: auto;
     border: none;
     outline: none;
     border-radius: 40px;
@@ -525,7 +543,7 @@
     color: #F8F7FF;
     font-size: 16px;
     font-weight: 600;
-    margin: 10px 50px 20px;
+    margin: 10px 20px 20px;
 }
 
 #expenditure-summary-box .expenditure-summary-cells {
@@ -593,14 +611,6 @@
     margin: 0;
 }
 
-#expenditure-summary-box .expenditure-summary-chart-cell-no-data {
-    text-align: center;
-    height: 80%;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-}
-
 #expenditure-summary-box .expenditure-summary-chart-cell-header {
     text-align: center;
     padding: 10px 0;
@@ -640,4 +650,61 @@
 
 .recharts-layer {
     outline: none !important
+}
+
+/*
+    ========================================
+    Expenditure Historical Page
+    ========================================
+*/
+
+.expenditure-historical-list {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#expenditure-historical-box button {
+    width: 10%;
+    height: 45px;
+    margin-left: auto;
+    border: none;
+    outline: none;
+    border-radius: 40px;
+    background-color: #00728F;
+    box-shadow: 0 0 5px #00000033;
+    cursor: pointer;
+    color: #F8F7FF;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 10px 20px 20px;
+}
+
+#expenditure-historical-box .expenditure-historical-cells {
+    display: grid;
+    grid-gap: 40px;
+    grid-template-columns: 1fr;
+    padding: 10px;
+}
+
+#expenditure-historical-box .expenditure-historical-chart-cell {
+    border: 2px solid #ffffff33;
+    background-color: #CAE3DD;
+    box-shadow: 0 0 10px #00000033;
+    border-radius: 10px;
+    padding: 0;
+    height: 500px;
+    width: "100%";
+    margin: 0;
+}
+
+#expenditure-historical-box .expenditure-historical-chart-cell-header {
+    text-align: center;
+    padding: 10px 0;
+}
+
+#expenditure-historical-box .expenditure-historical-chart-cell-header h3 {
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #008F88;
+    margin: 0;
 }

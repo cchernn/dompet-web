@@ -132,6 +132,15 @@ class ExpenditureListClass extends Component {
         this.setState({ activePageNo: count }, () => this.refreshList())
     }
 
+    handleView = (value) => {
+        const groupId = this.state.groupId
+        if (value == "summary") {
+            window.location.href = `/expenditures/${groupId}/summary`
+        } else if (value == "historical") {
+            window.location.href = `/expenditures/${groupId}/historical`
+        }
+    }
+
     renderTableHeaders = () => {
         const headers = Object.values(this.headers)
 
@@ -199,8 +208,10 @@ class ExpenditureListClass extends Component {
         return (
             <section id="expenditure-list-box" className="container">
                 <h2>Expenditure List - {this.state.groupId}</h2>
-                <div className="expenditure-list-add">
-                    <button id="expenditure-list-create-btn" type="button" onClick={this.createItem}><FiPlusCircle /> New</button>
+                <div className="expenditure-list-btns">
+                    <button id="expenditure-list-btn" type="button" onClick={() => this.handleView("summary")}>Summary</button>
+                    <button id="expenditure-list-btn" type="button" onClick={() => this.handleView("historical")}>Historical</button>
+                    <button id="expenditure-list-btn" type="button" onClick={this.createItem}><FiPlusCircle /> New</button>
                 </div>
                 <div className="table-container">
                     <table className="table">

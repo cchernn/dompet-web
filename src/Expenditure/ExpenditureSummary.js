@@ -42,9 +42,14 @@ class ExpenditureSummaryClass extends Component {
         })
     }
 
-    handleView = () => {
+    handleView = (value) => {
         const groupId = this.state.groupId
-        window.location.href = `/expenditures/${groupId}/list`
+        if (value == "historical") {
+            window.location.href = `/expenditures/${groupId}/historical`
+        } else if (value == "list") {
+            window.location.href = `/expenditures/${groupId}/list`
+        }
+
     }
 
     handleSelectIndex = (index, dimension) => {
@@ -89,7 +94,8 @@ class ExpenditureSummaryClass extends Component {
             <section id="expenditure-summary-box" className="container">
                 <h2>Expenditure Summary - {this.state.groupId}</h2>
                 <div className="expenditure-summary-list">
-                    <button type="button" onClick={this.handleView}>List</button>
+                    <button type="button" onClick={() => this.handleView("historical")}>Historical</button>
+                    <button type="button" onClick={() => this.handleView("list")}>List</button>
                 </div>
                 <div className="expenditure-summary-cells">
                     <section className="expenditure-summary-value-cell" onClick={() => this.handleSelectMode("default")}>

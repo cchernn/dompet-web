@@ -102,7 +102,7 @@ class ChartPie extends Component {
             )
         } else {
             return (
-                <div className="expenditure-summary-chart-cell-no-data">
+                <div className="expenditure-chart-cell-no-data">
                     <p>No Data</p>
                 </div>
             )
