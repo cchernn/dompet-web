@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { ResponsiveContainer, ComposedChart, Line, Bar, XAxis,YAxis, CartesianGrid, Tooltip, Legend } from "recharts"
+import { ResponsiveContainer, ComposedChart, Line, Bar, XAxis,YAxis, Tooltip, Legend } from "recharts"
 
 class ChartComposed extends Component {
     constructor(props) {

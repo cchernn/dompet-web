@@ -134,9 +134,9 @@ class ExpenditureListClass extends Component {
 
     handleView = (value) => {
         const groupId = this.state.groupId
-        if (value == "summary") {
+        if (value === "summary") {
             window.location.href = `/expenditures/${groupId}/summary`
-        } else if (value == "historical") {
+        } else if (value === "historical") {
             window.location.href = `/expenditures/${groupId}/historical`
         }
     }
