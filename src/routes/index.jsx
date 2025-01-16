@@ -1,12 +1,12 @@
 import { useRoutes } from "react-router-dom"
-import LoginPage from "@/pages/auth/login"
+import SignInPage from "@/pages/auth/signin"
 import SignUpPage from "@/pages/auth/signup"
 import ConfirmPage from "@/pages/auth/confirm"
 
 function AppRouter() {
     const publicRoutes = [
         {
-            path: '/login',
+            path: '/signin',
             element: <LoginPage />
         },
         {
