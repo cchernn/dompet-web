@@ -14,6 +14,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import authService from "@/lib/auth"
 
 const formSchema = z.object({
     username: z.string()
@@ -35,6 +36,8 @@ const formSchema = z.object({
 )
 
 function SignUpPage() {
+    const navigate = useNavigate()
+
     const form = useForm({
         resolver: zodResolver(formSchema)
     })
@@ -44,10 +47,27 @@ function SignUpPage() {
     } = form
 
     const onSubmit = async(data) => {
-        console.log("onSubmit", data)
+        try {
+            const response = await authService.signUp({
+                username: data.username,
+                password: data.password,
+                attributes: {
+                    email: data.email,
+                }
+            })
+            console.log("Success", response)
+        } catch (error) {
+            console.log("SignUp Failed", error)
+        }
+        navigate("/confirm", { state: { username: data.username }})    
+    }
+    
+    const onBack = () => {
+        navigate(-1)
     }
 
     return (
+        <>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <FormField
@@ -109,6 +129,9 @@ function SignUpPage() {
                 <Button type="submit" disabled={isSubmitting}>Sign Up</Button>
             </form>
         </Form>
+        <Button type="button" onClick={onBack}>Back</Button>
+        </>
+        
     )
 }
 
