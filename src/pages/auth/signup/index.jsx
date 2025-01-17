@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,7 +38,13 @@ function SignUpPage() {
     const navigate = useNavigate()
 
     const form = useForm({
-        resolver: zodResolver(formSchema)
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            username: "",
+            email: "",
+            password: "",
+            cpassword: "",
+        }
     })
 
     const {
@@ -55,11 +60,10 @@ function SignUpPage() {
                     email: data.email,
                 }
             })
-            console.log("Success", response)
+            navigate("/confirm", { state: { username: data.username }})
         } catch (error) {
             console.log("SignUp Failed", error)
         }
-        navigate("/confirm", { state: { username: data.username }})    
     }
     
     const onBack = () => {
@@ -70,6 +74,7 @@ function SignUpPage() {
         <>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
+                {/* Username Field */}
                 <FormField
                     control={form.control}
                     name="username"
@@ -77,13 +82,15 @@ function SignUpPage() {
                     <FormItem>
                         <FormLabel>Username</FormLabel>
                         <FormControl>
-                        <Input placeholder="dumbdumb" {...field} />
+                        <Input placeholder="Enter Username" {...field} />
                         </FormControl>
                         <FormDescription />
-                        <FormMessage />
+                        <FormMessage>{errors.username?.message}</FormMessage>
                     </FormItem>
                     )}
                 />
+
+                {/* Email Field */}
                 <FormField
                     control={form.control}
                     name="email"
@@ -91,13 +98,15 @@ function SignUpPage() {
                     <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                        <Input type="email" placeholder="dumbdumb@email.com" {...field} />
+                        <Input type="email" placeholder="Enter Email" {...field} />
                         </FormControl>
                         <FormDescription />
-                        <FormMessage />
+                        <FormMessage>{errors.email?.message}</FormMessage>
                     </FormItem>
                     )}
                 />
+
+                {/* Password Field */}
                 <FormField
                     control={form.control}
                     name="password"
@@ -105,13 +114,15 @@ function SignUpPage() {
                     <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                        <Input type="password" placeholder="password" {...field} />
+                        <Input type="password" placeholder="Enter Password" {...field} />
                         </FormControl>
                         <FormDescription />
-                        <FormMessage />
+                        <FormMessage>{errors.password?.message}</FormMessage>
                     </FormItem>
                     )}
                 />
+
+                {/* COnfirm Password Field */}
                 <FormField
                     control={form.control}
                     name="cpassword"
@@ -119,10 +130,10 @@ function SignUpPage() {
                     <FormItem>
                         <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
-                        <Input type="password" placeholder="password" {...field} />
+                        <Input type="password" placeholder="Confirm Password" {...field} />
                         </FormControl>
                         <FormDescription />
-                        <FormMessage />
+                        <FormMessage>{errors.cpassword?.message}</FormMessage>
                     </FormItem>
                     )}
                 />
