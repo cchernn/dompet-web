@@ -13,7 +13,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import authService from "@/lib/auth"
+import authService from "@/lib/authService"
 
 const formSchema = z.object({
     username: z.string()
@@ -50,7 +50,7 @@ function SignInPage() {
                 password: data.password,
             })
             console.log("Success", response)
-            navigate("/home")
+            navigate("/")
         } catch (error) {
             console.log("SignIn Failed", error)
         }
@@ -91,7 +91,7 @@ function SignInPage() {
                     </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={isSubmitting}>Sign Up</Button>
+                <Button type="submit" disabled={isSubmitting}>Sign In</Button>
             </form>
         </Form>
         </>

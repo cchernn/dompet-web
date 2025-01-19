@@ -1,8 +1,10 @@
 import { useRoutes } from "react-router-dom"
+import AuthRoute from "@/lib/authRoute"
 import SignInPage from "@/pages/auth/signin"
 import SignUpPage from "@/pages/auth/signup"
 import SignOutPage from "@/pages/auth/signout"
 import ConfirmPage from "@/pages/auth/confirm"
+import HomePage from "@/pages/main/home"
 
 function AppRouter() {
     const publicRoutes = [
@@ -23,7 +25,15 @@ function AppRouter() {
             element: <ConfirmPage />
         }
     ]
-    const routes = useRoutes([...publicRoutes])
+    const authRoutes = [
+        {
+            path: '/',
+            element: <AuthRoute>
+                        <HomePage />
+                    </AuthRoute>
+        }
+    ]
+    const routes = useRoutes([...publicRoutes, ...authRoutes])
     return routes
 }
 

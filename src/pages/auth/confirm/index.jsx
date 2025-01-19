@@ -6,7 +6,7 @@ import {
     InputOTPGroup,
     InputOTPSlot,
 } from "@/components/ui/input-otp"
-import authService from "@/lib/auth"
+import authService from "@/lib/authService"
 
 function ConfirmPage() {
     const [passkey, setPasskey] = useState("")

@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import authService from "@/lib/auth"
+import authService from "@/lib/authService"
 
 function SignOutPage() {
     const navigate = useNavigate()
@@ -12,7 +12,7 @@ function SignOutPage() {
             } catch (error) {
                 console.error("SignOut Failed", error)
             } finally {
-                navigate("/home")
+                navigate("/signin")
             }
         }
         signOut()

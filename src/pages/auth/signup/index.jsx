@@ -13,7 +13,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import authService from "@/lib/auth"
+import authService from "@/lib/authService"
 
 const formSchema = z.object({
     username: z.string()
