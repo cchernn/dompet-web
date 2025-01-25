@@ -1,5 +1,6 @@
 import { useRoutes } from "react-router-dom"
 import AuthRoute from "@/lib/authRoute"
+import Layout from "@/lib/layout"
 import SignInPage from "@/pages/auth/signin"
 import SignUpPage from "@/pages/auth/signup"
 import SignOutPage from "@/pages/auth/signout"
@@ -29,7 +30,9 @@ function AppRouter() {
         {
             path: '/',
             element: <AuthRoute>
-                        <HomePage />
+                        <Layout>
+                            <HomePage />
+                        </Layout>
                     </AuthRoute>
         }
     ]
