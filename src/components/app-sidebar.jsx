@@ -1,6 +1,6 @@
 import {
-    Home,
-    Wallet
+    ChartColumn,
+    Wallet,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -18,22 +18,22 @@ import {
 
 const items = [
     {
-        title: "Home",
+        title: "Overview",
         url: "/",
-        icon: Home,
-    }
+        icon: ChartColumn,
+    },
 ]
 export function AppSidebar() {
     return (
-        <Sidebar>
+        <Sidebar collapsible="icon">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                        <a href="/">
+                        <span href="/">
                             <Wallet />
                             <span>Dompet</span>
-                        </a>
+                        </span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

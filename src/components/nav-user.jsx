@@ -1,7 +1,9 @@
+import { CircleUserRound } from "lucide-react"
 import {
-    LogOut
-} from "lucide-react"
-
+    Avatar, 
+    AvatarImage,
+    AvatarFallback
+} from "@/components/ui/avatar"
 import {
     SidebarMenu,
     SidebarMenuItem,
@@ -19,7 +21,10 @@ export function NavUser({
             <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                     <a href="/signout">
-                        <LogOut />
+                        <Avatar>
+                            <AvatarImage />
+                            <AvatarFallback><CircleUserRound /></AvatarFallback>
+                        </Avatar>
                         <span>Sign Out</span>
                     </a>
                 </SidebarMenuButton>
