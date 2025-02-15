@@ -1,5 +1,6 @@
 import { Amplify } from 'aws-amplify'
-import { signUp, confirmSignUp, signIn, signOut } from 'aws-amplify/auth'
+import { signUp, confirmSignUp, signIn, signOut, fetchAuthSession } from 'aws-amplify/auth'
+import { get } from "aws-amplify/api"
 
 Amplify.configure({
     Auth: {
@@ -8,8 +9,18 @@ Amplify.configure({
             userPoolId: import.meta.env.VITE_COGNITO_USERPOOLID,
             userPoolClientId: import.meta.env.VITE_COGNITO_CLIENTID,
         }
+    },
+    API: {
+        REST: {
+            dompet: {
+                endpoint: import.meta.env.VITE_API_BASE_URL,
+                region: import.meta.env.VITE_REGION,
+            }
+        }
     }
 })
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 const authService = {
     signUp: async ({username, password, attributes}) => {
@@ -50,6 +61,33 @@ const authService = {
     signOut: async () => {
         try {
             await signOut()
+        } catch (error) {
+            throw error
+        }
+    },
+
+    fetchData: async (endpoint, method="GET", body=null) => {
+        try {
+            const session = await fetchAuthSession()
+            const token = session.tokens?.accessToken?.toString()
+
+            const options = {
+                method,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                }
+            }
+
+            if (body) {
+                options.body = JSON.stringify(body)
+            }
+            console.log(options)
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+            // if (!response.ok) throw new Error(`HTTP Error: ${response.status}`)
+            console.log("response", response.json())
+            return await response.json()
         } catch (error) {
             throw error
         }
