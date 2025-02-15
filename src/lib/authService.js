@@ -82,11 +82,9 @@ const authService = {
             if (body) {
                 options.body = JSON.stringify(body)
             }
-            console.log(options)
 
             const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
             // if (!response.ok) throw new Error(`HTTP Error: ${response.status}`)
-            console.log("response", response.json())
             return await response.json()
         } catch (error) {
             throw error
