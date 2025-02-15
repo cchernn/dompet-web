@@ -1,5 +1,6 @@
 import {
     ChartColumn,
+    FileText,
     Wallet,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
@@ -21,6 +22,11 @@ const items = [
         title: "Overview",
         url: "/",
         icon: ChartColumn,
+    },
+    {
+        title: "Transactions",
+        url: "/transactions",
+        icon: FileText,
     },
 ]
 export function AppSidebar() {

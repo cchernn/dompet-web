@@ -6,6 +6,7 @@ import SignUpPage from "@/pages/auth/signup"
 import SignOutPage from "@/pages/auth/signout"
 import ConfirmPage from "@/pages/auth/confirm"
 import HomePage from "@/pages/main/home"
+import TransactionsPage from "@/pages/main/transactions"
 
 function AppRouter() {
     const publicRoutes = [
@@ -34,7 +35,15 @@ function AppRouter() {
                             <HomePage />
                         </Layout>
                     </AuthRoute>
-        }
+        },
+        {
+            path: '/transactions',
+            element: <AuthRoute>
+                        <Layout>
+                            <TransactionsPage />
+                        </Layout>
+                    </AuthRoute>
+        },
     ]
     const routes = useRoutes([...publicRoutes, ...authRoutes])
     return routes
