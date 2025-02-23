@@ -84,12 +84,31 @@ const authService = {
             }
 
             const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
-            // if (!response.ok) throw new Error(`HTTP Error: ${response.status}`)
             return await response.json()
         } catch (error) {
             throw error
         }
-    }
+    },
+
+    deleteData: async (endpoint, method="DELETE") => {
+        try {
+            const session = await fetchAuthSession()
+            const token = session.tokens?.accessToken?.toString()
+
+            const options = {
+                method,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                }
+            }
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+            return await response.json()
+        } catch (error) {
+            throw error
+        }
+    } 
 }
 
 export default authService

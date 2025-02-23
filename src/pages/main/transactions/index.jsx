@@ -1,4 +1,10 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import {
+    FilePenLine,
+    Trash2
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
     Table,
     TableCaption,
@@ -8,11 +14,13 @@ import {
     TableRow,
     TableCell,
 } from "@/components/ui/table"
+import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
 
 function TransactionsPage() {
     const [transactions, setTransactions] = useState([])
     const [loading, setLoading] = useState(true)
+    const navigate = useNavigate()
 
     useEffect(() => {
         fetchTransactions()
@@ -41,6 +49,25 @@ function TransactionsPage() {
         }))
     }
 
+    const handleEdit = async (id) => {
+        console.log("edit", id)
+        try {
+
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    const handleDelete = async (id) => {
+        console.log("delete", id)
+        try {
+            await authService.deleteData(`/transactions/${id}`)
+            window.location.reload()
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
 
     return (
         <>
@@ -57,6 +84,8 @@ function TransactionsPage() {
                             <TableHead>Amount</TableHead>
                             <TableHead>Payment Method</TableHead>
                             <TableHead>Category</TableHead>
+                            <TableHead></TableHead>
+                            <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -67,6 +96,13 @@ function TransactionsPage() {
                                 <TableCell>{tx.amount}</TableCell>
                                 <TableCell>{tx.payment_method}</TableCell>
                                 <TableCell>{tx.category}</TableCell>
+                                <TableCell><Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button></TableCell>
+                                <TableCell><Alert 
+                                    button_text={<Trash2 />}
+                                    title="Confirm Delete"
+                                    description="This action cannot be undone. This will permanently remove this transaction."
+                                    action={() => handleDelete(tx.id)}
+                                /></TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
