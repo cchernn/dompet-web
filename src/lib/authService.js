@@ -1,6 +1,5 @@
 import { Amplify } from 'aws-amplify'
 import { signUp, confirmSignUp, signIn, signOut, fetchAuthSession } from 'aws-amplify/auth'
-import { get } from "aws-amplify/api"
 
 Amplify.configure({
     Auth: {
@@ -66,7 +65,7 @@ const authService = {
         }
     },
 
-    fetchData: async (endpoint, method="GET", body=null) => {
+    fetchData: async (endpoint, body=null, method="GET") => {
         try {
             const session = await fetchAuthSession()
             const token = session.tokens?.accessToken?.toString()
@@ -76,11 +75,29 @@ const authService = {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json",
-                }
+                },
+                ...(body ? {body: JSON.stringify(body) } : {})
             }
 
-            if (body) {
-                options.body = JSON.stringify(body)
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+            return await response.json()
+        } catch (error) {
+            throw error
+        }
+    },
+
+    editData: async (endpoint, body=null, method="PUT") => {
+        try {
+            const session = await fetchAuthSession()
+            const token = session.tokens?.accessToken?.toString()
+
+            const options = {
+                method,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                ...(body ? {body: JSON.stringify(body) } : {})
             }
 
             const response = await fetch(`${API_BASE_URL}${endpoint}`, options)

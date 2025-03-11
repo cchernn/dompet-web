@@ -50,16 +50,14 @@ function TransactionsPage() {
     }
 
     const handleEdit = async (id) => {
-        console.log("edit", id)
         try {
-
+            navigate(`/transactions/${id}`)
         } catch (error) {
             console.error("Error", error)
         }
     }
 
     const handleDelete = async (id) => {
-        console.log("delete", id)
         try {
             await authService.deleteData(`/transactions/${id}`)
             window.location.reload()

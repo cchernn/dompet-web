@@ -44,6 +44,14 @@ function AppRouter() {
                         </Layout>
                     </AuthRoute>
         },
+        {
+            path: '/transactions/:transaction_id',
+            element: <AuthRoute>
+                        <Layout>
+                            <TransactionPage />
+                        </Layout>
+                    </AuthRoute>
+        },
     ]
     const routes = useRoutes([...publicRoutes, ...authRoutes])
     return routes
