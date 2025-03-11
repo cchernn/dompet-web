@@ -17,7 +17,7 @@ import {
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
 
-function TransactionsPage() {
+function TransactionListPage() {
     const [transactions, setTransactions] = useState([])
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
@@ -110,4 +110,4 @@ function TransactionsPage() {
     )
 }
 
-export default TransactionsPage
+export default TransactionListPage

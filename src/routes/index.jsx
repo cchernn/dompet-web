@@ -1,12 +1,17 @@
 import { useRoutes } from "react-router-dom"
 import AuthRoute from "@/lib/authRoute"
 import Layout from "@/lib/layout"
-import SignInPage from "@/pages/auth/signin"
-import SignUpPage from "@/pages/auth/signup"
-import SignOutPage from "@/pages/auth/signout"
-import ConfirmPage from "@/pages/auth/confirm"
+import {
+    ConfirmPage,
+    SignInPage,
+    SignOutPage,
+    SignUpPage, 
+} from "@/pages/auth"
 import HomePage from "@/pages/main/home"
-import TransactionsPage from "@/pages/main/transactions"
+import  {
+    TransactionListPage,
+    TransactionEditPage,
+} from "@/pages/main/transaction"
 
 function AppRouter() {
     const publicRoutes = [
@@ -40,7 +45,7 @@ function AppRouter() {
             path: '/transactions',
             element: <AuthRoute>
                         <Layout>
-                            <TransactionsPage />
+                            <TransactionListPage />
                         </Layout>
                     </AuthRoute>
         },
@@ -48,7 +53,7 @@ function AppRouter() {
             path: '/transactions/:transaction_id',
             element: <AuthRoute>
                         <Layout>
-                            <TransactionPage />
+                            <TransactionEditPage />
                         </Layout>
                     </AuthRoute>
         },
