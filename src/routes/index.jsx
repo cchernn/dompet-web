@@ -11,6 +11,7 @@ import HomePage from "@/pages/main/home"
 import  {
     TransactionListPage,
     TransactionEditPage,
+    TransactionAddPage,
 } from "@/pages/main/transaction"
 
 function AppRouter() {
@@ -54,6 +55,14 @@ function AppRouter() {
             element: <AuthRoute>
                         <Layout>
                             <TransactionEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/transactions/add',
+            element: <AuthRoute>
+                        <Layout>
+                            <TransactionAddPage />
                         </Layout>
                     </AuthRoute>
         },

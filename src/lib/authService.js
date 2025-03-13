@@ -86,6 +86,27 @@ const authService = {
         }
     },
 
+    addData: async (endpoint, body=null, method="POST") => {
+        try {
+            const session = await fetchAuthSession()
+            const token = session.tokens?.accessToken?.toString()
+
+            const options = {
+                method,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                ...(body ? {body: JSON.stringify(body) } : {})
+            }
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+            return await response.json()
+        } catch (error) {
+            throw error
+        }
+    },
+
     editData: async (endpoint, body=null, method="PUT") => {
         try {
             const session = await fetchAuthSession()
