@@ -99,7 +99,7 @@ function TransactionEditPage() {
     function setFormData(data) {
         return {
             ...data,
-            date: data.date ? data.date.toISOString().split('T')[0] : null,
+            date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
             name: data.name || null,
             amount: data.amount ? parseFloat(data.amount).toFixed(2) : 0,
             payment_method: data.payment_method || null,
