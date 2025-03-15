@@ -2,6 +2,7 @@ import {
     ChartColumn,
     FileText,
     Paperclip,
+    MapPin,
     Wallet,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
@@ -33,6 +34,11 @@ const items = [
         title: "Attachments",
         url: "/attachments",
         icon: Paperclip,
+    },
+    {
+        title: "Locations",
+        url: "/locations",
+        icon: MapPin,
     },
 ]
 export function AppSidebar() {

@@ -18,6 +18,11 @@ import {
     AttachmentEditPage,
     AttachmentAddPage,
 } from "@/pages/main/attachment"
+import {
+    LocationListPage,
+    LocationEditPage,
+    LocationAddPage,
+} from "@/pages/main/location"
 
 function AppRouter() {
     const publicRoutes = [
@@ -92,6 +97,30 @@ function AppRouter() {
             element: <AuthRoute>
                         <Layout>
                             <AttachmentAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/locations',
+            element: <AuthRoute>
+                        <Layout>
+                            <LocationListPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/locations/:location_id',
+            element: <AuthRoute>
+                        <Layout>
+                            <LocationEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/locations/add',
+            element: <AuthRoute>
+                        <Layout>
+                            <LocationAddPage />
                         </Layout>
                     </AuthRoute>
         },
