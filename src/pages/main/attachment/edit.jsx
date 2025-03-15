@@ -92,20 +92,20 @@ function AttachmentEditPage() {
         return {
             ...data,
             date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
-            name: data.name || null,
-            url: data.url || null,
-            filename: data.filename || null,
-            type: data.type || null,
+            name: data.name ?? null,
+            url: data.url ?? null,
+            filename: data.filename ?? null,
+            type: data.type ?? null,
         }
     }
 
     function resetForm(data)  {
         form.reset({
             date: data ? new Date(data.date) : null,
-            name: data ? data.name : null,
-            url: data ? data.url : null,
-            filename: data ? data.filename : null,
-            type: data ? data.type : null,
+            name: data.name ?? "",
+            url: data.url ?? "",
+            filename: data.filename ?? "",
+            type: data.type ?? "",
         })
     }
 

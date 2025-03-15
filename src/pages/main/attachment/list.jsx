@@ -109,8 +109,9 @@ function AttachmentListPage() {
                                 <TableRow key={tx.id}>
                                     <TableCell>{tx.date}</TableCell>
                                     <TableCell>{tx.name}</TableCell>
-                                    {/* <TableCell><a href={tx.url}><File />{tx.filename}</a></TableCell> */}
-                                    <TableCell><Button onClick={() => handleRedirect(tx.url)}><File />{tx.filename}</Button></TableCell>
+                                    <TableCell>{
+                                        tx.url ? <Button onClick={() => handleRedirect(tx.url)}><File />{tx.filename}</Button> : "NA"
+                                    }</TableCell>
                                     <TableCell>{tx.type}</TableCell>
                                     <TableCell><Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button></TableCell>
                                     <TableCell><Alert 

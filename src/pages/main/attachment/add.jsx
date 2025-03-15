@@ -10,13 +10,6 @@ import {
     FormDescription,
     FormMessage
 } from "@/components/ui/form"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
@@ -83,10 +76,10 @@ function AttachmentAddPage() {
         return {
             ...data,
             date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
-            name: data.name || null,
-            filename: data.filename || null,
-            url: data.url || null,
-            type: data.type || null,
+            name: data.name ?? null,
+            filename: data.filename ?? null,
+            url: data.url ?? null,
+            type: data.type ?? null,
         }
     }
 

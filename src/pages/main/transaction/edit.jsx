@@ -100,24 +100,24 @@ function TransactionEditPage() {
         return {
             ...data,
             date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
-            name: data.name || null,
+            name: data.name ?? null,
             amount: data.amount ? parseFloat(data.amount).toFixed(2) : 0,
-            payment_method: data.payment_method || null,
-            category: data.category || null,
-            currency: data.currency || null,
-            type: data.type || null,
+            payment_method: data.payment_method ?? null,
+            category: data.category ?? null,
+            currency: data.currency ?? null,
+            type: data.type ?? null,
         }
     }
 
     function resetForm(data)  {
         form.reset({
             date: data ? new Date(data.date) : null,
-            name: data ? data.name : null,
+            name: data.name ?? "",
             amount: data ? parseFloat(data.amount).toFixed(2) : 0,
-            payment_method: data ? data.payment_method : null,
-            category: data ? data.category : null,
-            currency: data ? data.currency : "MYR",
-            type: data ? data.type : "expenditure",
+            payment_method: data.payment_method ?? "",
+            category: data.category ?? "",
+            currency: data.currency ?? "MYR",
+            type: data.type ?? "expenditure",
         })
     }
 
