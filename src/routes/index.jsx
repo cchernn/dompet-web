@@ -13,6 +13,11 @@ import  {
     TransactionEditPage,
     TransactionAddPage,
 } from "@/pages/main/transaction"
+import {
+    AttachmentListPage,
+    AttachmentEditPage,
+    AttachmentAddPage,
+} from "@/pages/main/attachment"
 
 function AppRouter() {
     const publicRoutes = [
@@ -63,6 +68,30 @@ function AppRouter() {
             element: <AuthRoute>
                         <Layout>
                             <TransactionAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/attachments',
+            element: <AuthRoute>
+                        <Layout>
+                            <AttachmentListPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/attachments/:attachment_id',
+            element: <AuthRoute>
+                        <Layout>
+                            <AttachmentEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/attachments/add',
+            element: <AuthRoute>
+                        <Layout>
+                            <AttachmentAddPage />
                         </Layout>
                     </AuthRoute>
         },
