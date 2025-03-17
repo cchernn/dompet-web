@@ -15,6 +15,7 @@ import {
     TableRow,
     TableCell,
 } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
 
@@ -47,6 +48,9 @@ function TransactionListPage() {
             amount: tx.amount.toFixed(2),
             payment_method: tx.payment_method,
             category: tx.category,
+            location_name: tx.location_name,
+            groups: tx.groups,
+            attachments: tx.attachments,
         }))
     }
 
@@ -90,10 +94,12 @@ function TransactionListPage() {
                                 <TableHead>Date</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Amount</TableHead>
+                                <TableHead>Location</TableHead>
+                                <TableHead>Groups</TableHead>
+                                <TableHead>Attachments</TableHead>
                                 <TableHead>Payment Method</TableHead>
                                 <TableHead>Category</TableHead>
-                                <TableHead></TableHead>
-                                <TableHead></TableHead>
+                                <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -102,15 +108,28 @@ function TransactionListPage() {
                                     <TableCell>{tx.date}</TableCell>
                                     <TableCell>{tx.name}</TableCell>
                                     <TableCell>{tx.amount}</TableCell>
+                                    <TableCell>{tx.location_name}</TableCell>
+                                    <TableCell>{
+                                        tx.groups ? tx.groups.map((group) => 
+                                            <Badge variant="secondary">{group.name}</Badge>
+                                        ) : null}
+                                    </TableCell>
+                                    <TableCell>{
+                                        tx.attachments ? tx.attachments.map((attachment) => 
+                                            <Badge variant="secondary">{attachment.name}</Badge>
+                                        ) : ""}
+                                    </TableCell>
                                     <TableCell>{tx.payment_method}</TableCell>
                                     <TableCell>{tx.category}</TableCell>
-                                    <TableCell><Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button></TableCell>
-                                    <TableCell><Alert 
-                                        button_text={<Trash2 />}
-                                        title="Confirm Delete"
-                                        description="This action cannot be undone. This will permanently remove this transaction."
-                                        action={() => handleDelete(tx.id)}
-                                    /></TableCell>
+                                    <TableCell>
+                                        <Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button>
+                                        <Alert 
+                                            button_text={<Trash2 />}
+                                            title="Confirm Delete"
+                                            description="This action cannot be undone. This will permanently remove this transaction."
+                                            action={() => handleDelete(tx.id)}
+                                        />
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
