@@ -111,12 +111,12 @@ function TransactionListPage() {
                                     <TableCell>{tx.location_name}</TableCell>
                                     <TableCell>{
                                         tx.groups ? tx.groups.map((group) => 
-                                            <Badge variant="secondary">{group.name}</Badge>
+                                            <Badge key={group.id} variant="secondary">{group.name}</Badge>
                                         ) : null}
                                     </TableCell>
                                     <TableCell>{
                                         tx.attachments ? tx.attachments.map((attachment) => 
-                                            <Badge variant="secondary">{attachment.name}</Badge>
+                                            <Badge key={attachment.id} variant="secondary">{attachment.name}</Badge>
                                         ) : ""}
                                     </TableCell>
                                     <TableCell>{tx.payment_method}</TableCell>

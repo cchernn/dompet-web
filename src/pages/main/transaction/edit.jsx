@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
+import { Check, ChevronsUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -27,6 +28,14 @@ import {
     PopoverContent,
     PopoverTrigger,
   } from "@/components/ui/popover"
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -48,11 +57,13 @@ const formSchema = z.object({
         "income",
         "transfer",
     ]),
+    location: z.number().optional()
 })
 
 function TransactionEditPage() {
     const { transaction_id } = useParams()
     const [transaction, setTransaction] = useState({})
+    const [locations, setLocations] = useState([])
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -80,6 +91,7 @@ function TransactionEditPage() {
 
     useEffect(() => {
         fetchTransaction()
+        fetchLocations()
     }, [])
 
     async function fetchTransaction() {
@@ -106,6 +118,7 @@ function TransactionEditPage() {
             category: data.category ?? null,
             currency: data.currency ?? null,
             type: data.type ?? null,
+            location: data.location ?? null,
         }
     }
 
@@ -118,7 +131,32 @@ function TransactionEditPage() {
             category: data.category ?? "",
             currency: data.currency ?? "MYR",
             type: data.type ?? "expenditure",
+            location: data?.location ?? null,
         })
+    }
+
+    async function fetchLocations() {
+        try {
+            const response = await authService.fetchData("/locations")
+            const data = processLocations(response)
+            setLocations(data)
+        } catch (error) {
+            console.error("Error", error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    function processLocations(data) {
+        return data.map((tx) => ({
+            id: tx.id,
+            name: tx.name,
+            url: tx.url,
+            google_page_link: tx.google_page_link,
+            google_maps_link: tx.google_maps_link,
+            category: tx.category,
+            access_type: tx.access_type,
+        }))
     }
 
     return (
@@ -256,7 +294,7 @@ function TransactionEditPage() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select a transaction type." />
@@ -268,6 +306,63 @@ function TransactionEditPage() {
                                             <SelectItem value="transfer">Transfer</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <FormDescription />
+                                    <FormMessage>{errors.type?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Location Field */}
+                        <FormField
+                            control={form.control}
+                            name="location"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Location</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                >
+                                                    {field.value ?
+                                                        locations.find((location) =>
+                                                            location.id === field.value
+                                                        )?.name
+                                                        : "Select a location"
+                                                    }
+                                                    <ChevronsUpDown />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent>
+                                            <Command>
+                                                <CommandInput 
+                                                    placeholder="Search location"
+                                                />
+                                                <CommandList>
+                                                    <CommandEmpty>No Location Found</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {locations.map((location) => (
+                                                            <CommandItem
+                                                                value={location.id}
+                                                                key={location.id}
+                                                                onSelect={() =>
+                                                                    form.setValue("location", location.id)
+                                                                }
+                                                            >
+                                                                {location.name}
+                                                                <Check 
+                                                                    className={location.id===field.value ? "opacity-100" : "opacity-0"}
+                                                                />
+                                                            </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                     <FormDescription />
                                     <FormMessage>{errors.type?.message}</FormMessage>
                                 </FormItem>
