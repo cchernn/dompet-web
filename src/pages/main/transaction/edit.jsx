@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, CalendarIcon, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -21,7 +21,6 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import {
     Popover,
@@ -36,6 +35,15 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command"
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -57,13 +65,20 @@ const formSchema = z.object({
         "income",
         "transfer",
     ]),
-    location: z.number().optional()
+    location: z.number().nullable().optional(),
+    attachments: z.array(
+        z.object({
+            id: z.number(),
+            name: z.string(),
+        })
+    ).nullable().optional(),
 })
 
 function TransactionEditPage() {
     const { transaction_id } = useParams()
     const [transaction, setTransaction] = useState({})
     const [locations, setLocations] = useState([])
+    const [attachments, setAttachments] = useState([])
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -78,6 +93,7 @@ function TransactionEditPage() {
     const onSubmit = async(data) => {
         try {
             data = setFormData(data)
+            console.log("data", data)
             const response = await authService.editData(`/transactions/${transaction_id}`, data)
             navigate(`/transactions`)
         } catch (error) {
@@ -90,8 +106,9 @@ function TransactionEditPage() {
     }
 
     useEffect(() => {
-        fetchTransaction()
         fetchLocations()
+        fetchAttachments()
+        fetchTransaction()
     }, [])
 
     async function fetchTransaction() {
@@ -109,8 +126,9 @@ function TransactionEditPage() {
     }
 
     function setFormData(data) {
+        console.log("attachments", data.attachments)
         return {
-            ...data,
+            // ...data,
             date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
             name: data.name ?? null,
             amount: data.amount ? parseFloat(data.amount).toFixed(2) : 0,
@@ -119,6 +137,9 @@ function TransactionEditPage() {
             currency: data.currency ?? null,
             type: data.type ?? null,
             location: data.location ?? null,
+            attachment: data.attachments && Array.isArray(data.attachments) 
+                ? data.attachments.map((attachment) => attachment.id).join("|") 
+                : null,
         }
     }
 
@@ -129,9 +150,10 @@ function TransactionEditPage() {
             amount: data ? parseFloat(data.amount).toFixed(2) : 0,
             payment_method: data.payment_method ?? "",
             category: data.category ?? "",
-            currency: data.currency ?? "MYR",
-            type: data.type ?? "expenditure",
+            currency: data.currency ?? "",
+            type: data.type ?? "",
             location: data?.location ?? null,
+            attachments: data.attachments ?? null,
         })
     }
 
@@ -142,8 +164,6 @@ function TransactionEditPage() {
             setLocations(data)
         } catch (error) {
             console.error("Error", error)
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -156,6 +176,27 @@ function TransactionEditPage() {
             google_maps_link: tx.google_maps_link,
             category: tx.category,
             access_type: tx.access_type,
+        }))
+    }
+
+    async function fetchAttachments() {
+        try {
+            const response = await authService.fetchData("/attachments")
+            const data = processAttachments(response)
+            setAttachments(data)
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    function processAttachments(data) {
+        return data.map((tx) => ({
+            id: tx.id,
+            date: tx.date,
+            name: tx.name,
+            url: tx.url,
+            filename: tx.filename,
+            type: tx.type,
         }))
     }
 
@@ -365,6 +406,49 @@ function TransactionEditPage() {
                                     </Popover>
                                     <FormDescription />
                                     <FormMessage>{errors.type?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Attachments Field */}
+                        <FormField
+                            control={form.control}
+                            name="attachments"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Attachments</FormLabel>
+                                    <>
+                                        {(field.value || []).map((attachment) => {
+                                            return (<Badge key={attachment.id}>{attachment.name}</Badge>)
+                                        })}
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost"><MoreHorizontal /></Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                {attachments.map((attachment) => {
+                                                    const isChecked = (field.value || []).some((item) => item.id === attachment.id);
+                                                    
+                                                    return (
+                                                        <DropdownMenuCheckboxItem
+                                                            key={attachment.id}
+                                                            checked={isChecked}
+                                                            onCheckedChange={(checked) => {
+                                                                const updatedAttachments  = checked
+                                                                    ? [...(field.value || []), attachment]
+                                                                    : field.value.filter((item) => item.id !== attachment.id)
+                                                                field.onChange(updatedAttachments)
+                                                            }}
+                                                        >
+                                                            {attachment.name}
+                                                        </DropdownMenuCheckboxItem>
+                                                    );
+                                                })}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </>
+                                    <FormDescription />
+                                    <FormMessage>{errors.attachments?.message}</FormMessage>
                                 </FormItem>
                             )}
                         />
