@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { Check, ChevronsUpDown, CalendarIcon, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -18,13 +20,29 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
   } from "@/components/ui/popover"
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command"
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -46,10 +64,19 @@ const formSchema = z.object({
         "income",
         "transfer",
     ]),
+    location: z.number().nullable().optional(),
+    attachments: z.array(
+        z.object({
+            id: z.number(),
+            name: z.string(),
+        })
+    ).nullable().optional(),
 })
 
 function TransactionAddPage() {
     const navigate = useNavigate()
+    const [locations, setLocations] = useState([])
+    const [attachments, setAttachments] = useState([])
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -81,9 +108,14 @@ function TransactionAddPage() {
         navigate(-1)
     }
 
+    useEffect(() => {
+        fetchLocations()
+        fetchAttachments()
+    }, [])
+
     function setFormData(data) {
         return {
-            ...data,
+            // ...data,
             date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
             name: data.name ?? null,
             amount: data.amount ? parseFloat(data.amount).toFixed(2) : 0,
@@ -91,7 +123,54 @@ function TransactionAddPage() {
             category: data.category ?? null,
             currency: data.currency ?? null,
             type: data.type ?? null,
+            location: data.location ?? null,
+            attachment: data.attachments && Array.isArray(data.attachments) 
+                ? data.attachments.map((attachment) => attachment.id).join("|") 
+                : null,
         }
+    }
+
+    async function fetchLocations() {
+        try {
+            const response = await authService.fetchData("/locations")
+            const data = processLocations(response)
+            setLocations(data)
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    function processLocations(data) {
+        return data.map((tx) => ({
+            id: tx.id,
+            name: tx.name,
+            url: tx.url,
+            google_page_link: tx.google_page_link,
+            google_maps_link: tx.google_maps_link,
+            category: tx.category,
+            access_type: tx.access_type,
+        }))
+    }
+
+    async function fetchAttachments() {
+        try {
+            const response = await authService.fetchData("/attachments")
+            const data = processAttachments(response)
+            setAttachments(data)
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    function processAttachments(data) {
+        return data.map((tx) => ({
+            id: tx.id,
+            date: tx.date,
+            name: tx.name,
+            url: tx.url,
+            filename: tx.filename,
+            type: tx.type,
+        }))
     }
     
     return (
@@ -241,6 +320,106 @@ function TransactionAddPage() {
                                 </Select>
                                 <FormDescription />
                                 <FormMessage>{errors.type?.message}</FormMessage>
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Location Field */}
+                    <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Location</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                            >
+                                                {field.value ?
+                                                    locations.find((location) =>
+                                                        location.id === field.value
+                                                    )?.name
+                                                    : "Select a location"
+                                                }
+                                                <ChevronsUpDown />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <Command>
+                                            <CommandInput 
+                                                placeholder="Search location"
+                                            />
+                                            <CommandList>
+                                                <CommandEmpty>No Location Found</CommandEmpty>
+                                                <CommandGroup>
+                                                    {locations.map((location) => (
+                                                        <CommandItem
+                                                            value={location.id}
+                                                            key={location.id}
+                                                            onSelect={() =>
+                                                                form.setValue("location", location.id)
+                                                            }
+                                                        >
+                                                            {location.name}
+                                                            <Check 
+                                                                className={location.id===field.value ? "opacity-100" : "opacity-0"}
+                                                            />
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                                <FormDescription />
+                                <FormMessage>{errors.type?.message}</FormMessage>
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Attachments Field */}
+                    <FormField
+                        control={form.control}
+                        name="attachments"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Attachments</FormLabel>
+                                <>
+                                    {(field.value || []).map((attachment) => {
+                                        return (<Badge key={attachment.id}>{attachment.name}</Badge>)
+                                    })}
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost"><MoreHorizontal /></Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            {attachments.map((attachment) => {
+                                                const isChecked = (field.value || []).some((item) => item.id === attachment.id);
+                                                
+                                                return (
+                                                    <DropdownMenuCheckboxItem
+                                                        key={attachment.id}
+                                                        checked={isChecked}
+                                                        onCheckedChange={(checked) => {
+                                                            const updatedAttachments  = checked
+                                                                ? [...(field.value || []), attachment]
+                                                                : field.value.filter((item) => item.id !== attachment.id)
+                                                            field.onChange(updatedAttachments)
+                                                        }}
+                                                    >
+                                                        {attachment.name}
+                                                    </DropdownMenuCheckboxItem>
+                                                );
+                                            })}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </>
+                                <FormDescription />
+                                <FormMessage>{errors.attachments?.message}</FormMessage>
                             </FormItem>
                         )}
                     />
