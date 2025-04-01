@@ -91,7 +91,12 @@ function LocationListPage() {
         <>
             <h2>Locations</h2>
             { loading && (<p>Loading Locations</p>) }
-            { !loading && locations.length <= 0 && (<p>No Locations found</p>)}
+            { !loading && locations.length <= 0 && (
+                <>
+                    <Button onClick={handleAdd}><FilePlus />Add</Button>
+                    <p>No Locations found</p>
+                </>
+            )}
             { !loading && locations.length > 0 && 
                 <>
                     <Button onClick={handleAdd}><FilePlus />Add</Button>

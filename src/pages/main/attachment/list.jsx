@@ -88,7 +88,12 @@ function AttachmentListPage() {
         <>
             <h2>Attachments</h2>
             { loading && (<p>Loading Attachments</p>) }
-            { !loading && attachments.length <= 0 && (<p>No Attachments found</p>)}
+            { !loading && attachments.length <= 0 && (
+                <>
+                    <p>No Attachments found</p>
+                    <Button onClick={handleAdd}><FilePlus />Add</Button>
+                </>
+            )}
             { !loading && attachments.length > 0 && 
                 <>
                     <Button onClick={handleAdd}><FilePlus />Add</Button>

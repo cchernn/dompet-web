@@ -75,7 +75,12 @@ function GroupListPage() {
         <>
             <h2>Groups</h2>
             { loading && (<p>Loading Groups</p>) }
-            { !loading && groups.length <= 0 && (<p>No Groups found</p>)}
+            { !loading && groups.length <= 0 && (
+                <>
+                    <Button onClick={handleAdd}><FilePlus />Add</Button>
+                    <p>No Groups found</p>
+                </>
+            )}
             { !loading && groups.length > 0 && 
                 <>
                     <Button onClick={handleAdd}><FilePlus />Add</Button>

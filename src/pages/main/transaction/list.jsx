@@ -83,7 +83,12 @@ function TransactionListPage() {
         <>
             <h2>Transactions</h2>
             { loading && (<p>Loading Transactions</p>) }
-            { !loading && transactions.length <= 0 && (<p>No Transactions found</p>)}
+            { !loading && transactions.length <= 0 && (
+                <>
+                    <Button onClick={handleAdd}><FilePlus />Add</Button>
+                    <p>No Transactions found</p>
+                </>
+            )}
             { !loading && transactions.length > 0 && 
                 <>
                     <Button onClick={handleAdd}><FilePlus />Add</Button>
