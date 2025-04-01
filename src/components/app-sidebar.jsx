@@ -1,6 +1,7 @@
 import {
     ChartColumn,
     FileText,
+    Group,
     Paperclip,
     MapPin,
     Wallet,
@@ -29,6 +30,11 @@ const items = [
         title: "Transactions",
         url: "/transactions",
         icon: FileText,
+    },
+    {
+        title: "Groups",
+        url: "/transactions/groups",
+        icon: Group,
     },
     {
         title: "Attachments",

@@ -23,6 +23,11 @@ import {
     LocationEditPage,
     LocationAddPage,
 } from "@/pages/main/location"
+import {
+    GroupListPage,
+    GroupEditPage,
+    GroupAddPage,
+} from "@/pages/main/group"
 
 function AppRouter() {
     const publicRoutes = [
@@ -121,6 +126,30 @@ function AppRouter() {
             element: <AuthRoute>
                         <Layout>
                             <LocationAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/transactions/groups',
+            element: <AuthRoute>
+                        <Layout>
+                            <GroupListPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/transactions/groups/:group_id',
+            element: <AuthRoute>
+                        <Layout>
+                            <GroupEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/transactions/groups/add',
+            element: <AuthRoute>
+                        <Layout>
+                            <GroupAddPage />
                         </Layout>
                     </AuthRoute>
         },

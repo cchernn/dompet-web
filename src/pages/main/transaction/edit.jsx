@@ -72,6 +72,13 @@ const formSchema = z.object({
             name: z.string(),
         })
     ).nullable().optional(),
+    groups: z.array(
+        z.object({
+            id: z.number(),
+            name: z.string(),
+        })
+    ).nullable().optional(),
+    
 })
 
 function TransactionEditPage() {
@@ -79,6 +86,7 @@ function TransactionEditPage() {
     const [transaction, setTransaction] = useState({})
     const [locations, setLocations] = useState([])
     const [attachments, setAttachments] = useState([])
+    const [groups, setGroups] = useState([])
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -106,6 +114,7 @@ function TransactionEditPage() {
     }
 
     useEffect(() => {
+        fetchGroups()
         fetchLocations()
         fetchAttachments()
         fetchTransaction()
@@ -140,6 +149,9 @@ function TransactionEditPage() {
             attachment: data.attachments && Array.isArray(data.attachments) 
                 ? data.attachments.map((attachment) => attachment.id).join("|") 
                 : null,
+            group: data.groups && Array.isArray(data.groups) 
+                ? data.groups.map((group) => group.id).join("|") 
+                : null,
         }
     }
 
@@ -154,6 +166,7 @@ function TransactionEditPage() {
             type: data.type ?? "",
             location: data?.location ?? null,
             attachments: data.attachments ?? null,
+            groups: data.groups ?? null,
         })
     }
 
@@ -197,6 +210,23 @@ function TransactionEditPage() {
             url: tx.url,
             filename: tx.filename,
             type: tx.type,
+        }))
+    }
+
+    async function fetchGroups() {
+        try {
+            const response = await authService.fetchData("/transactions/groups")
+            const data = processGroups(response)
+            setGroups(data)
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    function processGroups(data) {
+        return data.map((tx) => ({
+            id: tx.id,
+            name: tx.name,
         }))
     }
 
@@ -449,6 +479,49 @@ function TransactionEditPage() {
                                     </>
                                     <FormDescription />
                                     <FormMessage>{errors.attachments?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Groups Field */}
+                        <FormField
+                            control={form.control}
+                            name="groups"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Groups</FormLabel>
+                                    <>
+                                        {(field.value || []).map((group) => {
+                                            return (<Badge key={group.id}>{group.name}</Badge>)
+                                        })}
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost"><MoreHorizontal /></Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                {groups.map((group) => {
+                                                    const isChecked = (field.value || []).some((item) => item.id === group.id);
+                                                    
+                                                    return (
+                                                        <DropdownMenuCheckboxItem
+                                                            key={group.id}
+                                                            checked={isChecked}
+                                                            onCheckedChange={(checked) => {
+                                                                const updatedGroups = checked
+                                                                    ? [...(field.value || []), group]
+                                                                    : field.value.filter((item) => item.id !== group.id)
+                                                                field.onChange(updatedGroups)
+                                                            }}
+                                                        >
+                                                            {group.name}
+                                                        </DropdownMenuCheckboxItem>
+                                                    );
+                                                })}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </>
+                                    <FormDescription />
+                                    <FormMessage>{errors.groups?.message}</FormMessage>
                                 </FormItem>
                             )}
                         />
