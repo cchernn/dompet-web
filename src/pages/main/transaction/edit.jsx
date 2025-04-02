@@ -146,10 +146,10 @@ function TransactionEditPage() {
             currency: data.currency ?? null,
             type: data.type ?? null,
             location: data.location ?? null,
-            attachment: data.attachments && Array.isArray(data.attachments) 
+            attachment: data.attachments && Array.isArray(data.attachments) && data.attachments.length > 0
                 ? data.attachments.map((attachment) => attachment.id).join("|") 
                 : null,
-            group: data.groups && Array.isArray(data.groups) 
+            group: data.groups && Array.isArray(data.groups) && data.groups.length > 0
                 ? data.groups.map((group) => group.id).join("|") 
                 : null,
         }

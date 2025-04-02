@@ -71,12 +71,19 @@ const formSchema = z.object({
             name: z.string(),
         })
     ).nullable().optional(),
+    groups: z.array(
+        z.object({
+            id: z.number(),
+            name: z.string(),
+        })
+    ).nullable().optional(),
 })
 
 function TransactionAddPage() {
     const navigate = useNavigate()
     const [locations, setLocations] = useState([])
     const [attachments, setAttachments] = useState([])
+    const [groups, setGroups] = useState([])
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -109,6 +116,7 @@ function TransactionAddPage() {
     }
 
     useEffect(() => {
+        fetchGroups()
         fetchLocations()
         fetchAttachments()
     }, [])
@@ -124,8 +132,11 @@ function TransactionAddPage() {
             currency: data.currency ?? null,
             type: data.type ?? null,
             location: data.location ?? null,
-            attachment: data.attachments && Array.isArray(data.attachments) 
+            attachment: data.attachments && Array.isArray(data.attachments) && data.attachments.length > 0
                 ? data.attachments.map((attachment) => attachment.id).join("|") 
+                : null,
+            group: data.groups && Array.isArray(data.groups) && data.groups.length > 0
+                ? data.groups.map((group) => group.id).join("|") 
                 : null,
         }
     }
@@ -170,6 +181,23 @@ function TransactionAddPage() {
             url: tx.url,
             filename: tx.filename,
             type: tx.type,
+        }))
+    }
+
+    async function fetchGroups() {
+        try {
+            const response = await authService.fetchData("/transactions/groups")
+            const data = processGroups(response)
+            setGroups(data)
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    function processGroups(data) {
+        return data.map((tx) => ({
+            id: tx.id,
+            name: tx.name,
         }))
     }
     
