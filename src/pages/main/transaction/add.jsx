@@ -452,6 +452,49 @@ function TransactionAddPage() {
                         )}
                     />
 
+                    {/* Groups Field */}
+                    <FormField
+                        control={form.control}
+                        name="groups"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Groups</FormLabel>
+                                <>
+                                    {(field.value || []).map((group) => {
+                                        return (<Badge key={group.id}>{group.name}</Badge>)
+                                    })}
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost"><MoreHorizontal /></Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            {groups.map((group) => {
+                                                const isChecked = (field.value || []).some((item) => item.id === group.id);
+                                                
+                                                return (
+                                                    <DropdownMenuCheckboxItem
+                                                        key={group.id}
+                                                        checked={isChecked}
+                                                        onCheckedChange={(checked) => {
+                                                            const updatedGroups = checked
+                                                                ? [...(field.value || []), group]
+                                                                : field.value.filter((item) => item.id !== group.id)
+                                                            field.onChange(updatedGroups)
+                                                        }}
+                                                    >
+                                                        {group.name}
+                                                    </DropdownMenuCheckboxItem>
+                                                );
+                                            })}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </>
+                                <FormDescription />
+                                <FormMessage>{errors.groups?.message}</FormMessage>
+                            </FormItem>
+                        )}
+                    />
+
                     <Button type="submit" disabled={isSubmitting}>Submit</Button>
                 </form>
             </Form>
