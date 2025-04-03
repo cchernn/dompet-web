@@ -92,7 +92,7 @@ function SignInPage() {
                                     <FormItem>
                                         <div className="flex items-center justify-between">
                                             <FormLabel>Password</FormLabel>
-                                            <a className="text-sm hover:underline hover:scale-105 hover:font-bold transition-all duration-300" href="#">Forgot Password?</a>
+                                            <a className="text-sm hover:underline hover:font-bold transition-all duration-300" href="#">Forgot Password?</a>
                                         </div>
                                         <FormControl>
                                         <Input type="password" placeholder="Enter Password" {...field} />
@@ -107,7 +107,7 @@ function SignInPage() {
 
                                 <div className="text-center text-sm">
                                     Don't have an account? {" "}
-                                    <a className="underline underline-offset-4" href="/signup">
+                                    <a className="underline underline-offset-4 hover:font-bold transition-all duration-300" href="/signup">
                                         Sign up
                                     </a>
                                 </div>
