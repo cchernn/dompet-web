@@ -10,6 +10,13 @@ import {
     FormDescription,
     FormMessage
 } from "@/components/ui/form"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -17,15 +24,10 @@ import authService from "@/lib/authService"
 
 const formSchema = z.object({
     username: z.string()
-    .min(1, {message: 'Username must be more than 1 character'})
-    .max(32, {message: 'Username must be less than 32 characters'}),
+    .min(1, {message: 'Email must not be empty'})
+    .email({message: 'Email must be a valid email address'}),
     password: z.string()
-    .min(8, {message: 'Password must be more than 8 characters'})
-    .max(32, {message: 'Password must be less than 32 characters'})
-    .regex(/[A-Z]/, { message: "Password must include at least one uppercase letter" })
-    .regex(/[a-z]/, { message: "Password must include at least one lowercase letter" })
-    .regex(/[0-9]/, { message: "Password must include at least one number" })
-    .regex(/[@$!%*?&#]/, { message: "Password must include at least one special character (@, $, !, %, *, ?, &, #)" }),
+    .min(1, {message: 'Password must not be empty'})
 })
 
 function SignInPage() {
@@ -57,44 +59,65 @@ function SignInPage() {
     }
     
     return (
-        <>
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-                {/* Username Field */}
-                <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                        <Input placeholder="Enter Username" {...field} />
-                        </FormControl>
-                        <FormDescription />
-                        <FormMessage>{errors.username?.message}</FormMessage>
-                    </FormItem>
-                    )}
-                />
+        <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
+            <div className="flex w-full max-w-sm flex-col gap-6">
+                <Card>
+                    <CardHeader className="text-center">
+                        <CardTitle className="text-2xl">Sign In</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)}>
+                                {/* Username Field */}
+                                <FormField
+                                    control={form.control}
+                                    name="username"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                        <Input type="email" placeholder="Enter Email" {...field} />
+                                        </FormControl>
+                                        <FormDescription />
+                                        <FormMessage>{errors.username?.message}</FormMessage>
+                                    </FormItem>
+                                    )}
+                                />
 
-                {/* Password Field */}
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                        <Input type="password" placeholder="Enter Password" {...field} />
-                        </FormControl>
-                        <FormDescription />
-                        <FormMessage>{errors.password?.message}</FormMessage>
-                    </FormItem>
-                    )}
-                />
-                <Button type="submit" disabled={isSubmitting}>Sign In</Button>
-            </form>
-        </Form>
-        </>
+                                {/* Password Field */}
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel>Password</FormLabel>
+                                            <a className="text-sm hover:underline hover:scale-105 hover:font-bold transition-all duration-300" href="#">Forgot Password?</a>
+                                        </div>
+                                        <FormControl>
+                                        <Input type="password" placeholder="Enter Password" {...field} />
+                                        </FormControl>
+                                        <FormDescription />
+                                        <FormMessage>{errors.password?.message}</FormMessage>
+                                    </FormItem>
+                                    )}
+                                />
+                                
+                                <Button className="w-full mt-6 mb-4" type="submit" disabled={isSubmitting}>Sign In</Button>
+
+                                <div className="text-center text-sm">
+                                    Don't have an account? {" "}
+                                    <a className="underline underline-offset-4" href="/signup">
+                                        Sign up
+                                    </a>
+                                </div>
+                                
+                            </form>
+                        </Form>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
     )
 }
 
