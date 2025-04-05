@@ -1,3 +1,4 @@
+import React from "react"
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -9,7 +10,6 @@ import {
 
 export function AppHeader({ route }) {
     const crumbs = route.split("_")
-    console.log(crumbs)
 
     return (
         <Breadcrumb>
@@ -19,13 +19,13 @@ export function AppHeader({ route }) {
                         dompet
                     </BreadcrumbLink>
                 </BreadcrumbItem>
-                {crumbs.map((crumb) => (
-                    <>
+                {crumbs.map((crumb, index) => (
+                    <React.Fragment key={index}>
                         <BreadcrumbSeparator className="hidden md:block" />
                         <BreadcrumbItem>
                             <BreadcrumbPage>{crumb}</BreadcrumbPage>
                         </BreadcrumbItem>
-                    </>
+                    </React.Fragment>
                 ))}
             </BreadcrumbList>
         </Breadcrumb>
