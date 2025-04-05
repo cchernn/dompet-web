@@ -47,17 +47,21 @@ const items = [
         icon: MapPin,
     },
 ]
-export function AppSidebar() {
+export function AppSidebar({ ...props }) {
     return (
-        <Sidebar collapsible="icon">
+        <Sidebar collapsible="icon" { ...props }>
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                        <span href="/">
-                            <Wallet />
-                            <span>Dompet</span>
-                        </span>
+                    <SidebarMenuButton size="lg" asChild>
+                        <div>
+                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-secondary-foreground border shadow-lg">
+                                <Wallet className="size-4" />
+                            </div>
+                            <div className="grid flex-1 text-left">
+                                <span className="truncate font-semibold">dompet</span>
+                            </div>
+                        </div>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

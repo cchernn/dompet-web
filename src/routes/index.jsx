@@ -52,7 +52,7 @@ function AppRouter() {
         {
             path: '/',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="overview">
                             <HomePage />
                         </Layout>
                     </AuthRoute>
@@ -60,7 +60,7 @@ function AppRouter() {
         {
             path: '/transactions',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="transactions">
                             <TransactionListPage />
                         </Layout>
                     </AuthRoute>
@@ -68,7 +68,7 @@ function AppRouter() {
         {
             path: '/transactions/:transaction_id',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="transactions_edit">
                             <TransactionEditPage />
                         </Layout>
                     </AuthRoute>
@@ -76,7 +76,7 @@ function AppRouter() {
         {
             path: '/transactions/add',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="transactions_add">
                             <TransactionAddPage />
                         </Layout>
                     </AuthRoute>
@@ -84,7 +84,7 @@ function AppRouter() {
         {
             path: '/attachments',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="attachments">
                             <AttachmentListPage />
                         </Layout>
                     </AuthRoute>
@@ -92,7 +92,7 @@ function AppRouter() {
         {
             path: '/attachments/:attachment_id',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="attachments_edit">
                             <AttachmentEditPage />
                         </Layout>
                     </AuthRoute>
@@ -100,7 +100,7 @@ function AppRouter() {
         {
             path: '/attachments/add',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="attachments_add">
                             <AttachmentAddPage />
                         </Layout>
                     </AuthRoute>
@@ -108,7 +108,7 @@ function AppRouter() {
         {
             path: '/locations',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="locations">
                             <LocationListPage />
                         </Layout>
                     </AuthRoute>
@@ -116,7 +116,7 @@ function AppRouter() {
         {
             path: '/locations/:location_id',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="locations_edit">
                             <LocationEditPage />
                         </Layout>
                     </AuthRoute>
@@ -124,7 +124,7 @@ function AppRouter() {
         {
             path: '/locations/add',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="locations_add">
                             <LocationAddPage />
                         </Layout>
                     </AuthRoute>
@@ -132,7 +132,7 @@ function AppRouter() {
         {
             path: '/transactions/groups',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="groups">
                             <GroupListPage />
                         </Layout>
                     </AuthRoute>
@@ -140,7 +140,7 @@ function AppRouter() {
         {
             path: '/transactions/groups/:group_id',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="groups_edit">
                             <GroupEditPage />
                         </Layout>
                     </AuthRoute>
@@ -148,7 +148,7 @@ function AppRouter() {
         {
             path: '/transactions/groups/add',
             element: <AuthRoute>
-                        <Layout>
+                        <Layout route="groups_add">
                             <GroupAddPage />
                         </Layout>
                     </AuthRoute>
