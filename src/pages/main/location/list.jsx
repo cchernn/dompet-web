@@ -18,6 +18,9 @@ import {
     TableRow,
     TableCell,
 } from "@/components/ui/table"
+import {
+    Card,
+} from "@/components/ui/card"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
 
@@ -89,52 +92,56 @@ function LocationListPage() {
 
     return (
         <>
-            <h2>Locations</h2>
             { loading && (<p>Loading Locations</p>) }
             { !loading && locations.length <= 0 && (
-                <>
-                    <Button onClick={handleAdd}><FilePlus />Add</Button>
+                <div>
+                    <Button className="w-36 m-2" onClick={handleAdd}><FilePlus />Add</Button>
                     <p>No Locations found</p>
-                </>
+                </div>
             )}
             { !loading && locations.length > 0 && 
-                <>
-                    <Button onClick={handleAdd}><FilePlus />Add</Button>
-                    <Table>
-                        <TableCaption>List of locations</TableCaption>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>URL</TableHead>
-                                <TableHead>Google Page Link</TableHead>
-                                <TableHead>Google Maps Link</TableHead>
-                                <TableHead>Category</TableHead>
-                                <TableHead>Access Type</TableHead>
-                                <TableHead></TableHead>
-                                <TableHead></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {locations.map((tx) => (
-                                <TableRow key={tx.id}>
-                                    <TableCell>{tx.name}</TableCell>
-                                    <TableCell>{tx.url ? <Button onClick={() => handleRedirect(tx.url)}><Link />{tx.url}</Button> : "NA"}</TableCell>
-                                    <TableCell>{tx.google_page_link ? <Button onClick={() => handleRedirect(tx.google_page_link)}><StickyNote />{tx.google_page_link}</Button> : "NA"}</TableCell>
-                                    <TableCell>{tx.google_maps_link ? <Button onClick={() => handleRedirect(tx.google_maps_link)}><Map />{tx.google_maps_link}</Button> : "NA"}</TableCell>
-                                    <TableCell>{tx.category}</TableCell>
-                                    <TableCell>{tx.access_type}</TableCell>
-                                    <TableCell><Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button></TableCell>
-                                    <TableCell><Alert 
-                                        button_text={<Trash2 />}
-                                        title="Confirm Delete"
-                                        description="This action cannot be undone. This will permanently remove this attachment."
-                                        action={() => handleDelete(tx.id)}
-                                    /></TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </>
+                <div>
+                    <Button className="w-36 m-2" onClick={handleAdd}><FilePlus />Add</Button>
+                    <div className="min-h-svh m-2">
+                        <Card className="flex p-6 items-center justify-center">
+                            <Table>
+                                <TableCaption>List of locations</TableCaption>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>URL</TableHead>
+                                        <TableHead>Google Page Link</TableHead>
+                                        <TableHead>Google Maps Link</TableHead>
+                                        <TableHead>Category</TableHead>
+                                        <TableHead>Access Type</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {locations.map((tx) => (
+                                        <TableRow key={tx.id}>
+                                            <TableCell>{tx.name}</TableCell>
+                                            <TableCell>{tx.url ? <Button onClick={() => handleRedirect(tx.url)}><Link /><span className="hidden xl:inline">{tx.url}</span></Button> : ""}</TableCell>
+                                            <TableCell>{tx.google_page_link ? <Button onClick={() => handleRedirect(tx.google_page_link)}><StickyNote /><span className="hidden xl:inline">{tx.google_page_link}</span></Button> : "NA"}</TableCell>
+                                            <TableCell>{tx.google_maps_link ? <Button onClick={() => handleRedirect(tx.google_maps_link)}><Map /><span className="hidden xl:inline">{tx.google_maps_link}</span></Button> : "NA"}</TableCell>
+                                            <TableCell>{tx.category}</TableCell>
+                                            <TableCell>{tx.access_type}</TableCell>
+                                            <TableCell className="flex justify-end">
+                                                <Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button>
+                                                <Alert 
+                                                    button_text={<Trash2 />}
+                                                    title="Confirm Delete"
+                                                    description="This action cannot be undone. This will permanently remove this attachment."
+                                                    action={() => handleDelete(tx.id)}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Card>
+                    </div>
+                </div>
             }
         </>
     )

@@ -15,6 +15,9 @@ import {
     TableRow,
     TableCell,
 } from "@/components/ui/table"
+import {
+    Card,
+} from "@/components/ui/card"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
 
@@ -73,42 +76,46 @@ function GroupListPage() {
 
     return (
         <>
-            <h2>Groups</h2>
             { loading && (<p>Loading Groups</p>) }
             { !loading && groups.length <= 0 && (
-                <>
-                    <Button onClick={handleAdd}><FilePlus />Add</Button>
+                <div>
+                    <Button className="w-36 m-2" onClick={handleAdd}><FilePlus />Add</Button>
                     <p>No Groups found</p>
-                </>
+                </div>
             )}
             { !loading && groups.length > 0 && 
-                <>
-                    <Button onClick={handleAdd}><FilePlus />Add</Button>
-                    <Table>
-                        <TableCaption>List of groups</TableCaption>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead></TableHead>
-                                <TableHead></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {groups.map((tx) => (
-                                <TableRow key={tx.id}>
-                                    <TableCell>{tx.name}</TableCell>
-                                    <TableCell><Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button></TableCell>
-                                    <TableCell><Alert 
-                                        button_text={<Trash2 />}
-                                        title="Confirm Delete"
-                                        description="This action cannot be undone. This will permanently remove this attachment."
-                                        action={() => handleDelete(tx.id)}
-                                    /></TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </>
+                <div>
+                    <Button className="w-36 m-2" onClick={handleAdd}><FilePlus />Add</Button>
+                    <div className="min-h-svh m-2">
+                        <Card className="flex p-6 items-center justify-center">
+                            <Table>
+                                <TableCaption>List of groups</TableCaption>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {groups.map((tx) => (
+                                        <TableRow key={tx.id}>
+                                            <TableCell>{tx.name}</TableCell>
+                                            <TableCell className="flex justify-end">
+                                                <Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button>
+                                                <Alert 
+                                                    button_text={<Trash2 />}
+                                                    title="Confirm Delete"
+                                                    description="This action cannot be undone. This will permanently remove this attachment."
+                                                    action={() => handleDelete(tx.id)}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Card>
+                    </div>
+                </div>
             }
         </>
     )

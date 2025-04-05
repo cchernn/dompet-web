@@ -16,6 +16,9 @@ import {
     TableRow,
     TableCell,
 } from "@/components/ui/table"
+import {
+    Card,
+} from "@/components/ui/card"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
 
@@ -86,50 +89,54 @@ function AttachmentListPage() {
 
     return (
         <>
-            <h2>Attachments</h2>
             { loading && (<p>Loading Attachments</p>) }
             { !loading && attachments.length <= 0 && (
-                <>
+                <div>
+                    <Button className="w-36 m-2" onClick={handleAdd}><FilePlus />Add</Button>
                     <p>No Attachments found</p>
-                    <Button onClick={handleAdd}><FilePlus />Add</Button>
-                </>
+                </div>
             )}
             { !loading && attachments.length > 0 && 
-                <>
-                    <Button onClick={handleAdd}><FilePlus />Add</Button>
-                    <Table>
-                        <TableCaption>List of attachments to latest date</TableCaption>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>File</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead></TableHead>
-                                <TableHead></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {attachments.map((tx) => (
-                                <TableRow key={tx.id}>
-                                    <TableCell>{tx.date}</TableCell>
-                                    <TableCell>{tx.name}</TableCell>
-                                    <TableCell>{
-                                        tx.url ? <Button onClick={() => handleRedirect(tx.url)}><File />{tx.filename}</Button> : "NA"
-                                    }</TableCell>
-                                    <TableCell>{tx.type}</TableCell>
-                                    <TableCell><Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button></TableCell>
-                                    <TableCell><Alert 
-                                        button_text={<Trash2 />}
-                                        title="Confirm Delete"
-                                        description="This action cannot be undone. This will permanently remove this attachment."
-                                        action={() => handleDelete(tx.id)}
-                                    /></TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </>
+                <div>
+                    <Button className="w-36 m-2" onClick={handleAdd}><FilePlus />Add</Button>
+                    <div className="min-h-svh m-2">
+                        <Card className="flex p-6 items-center justify-center">
+                            <Table>
+                                <TableCaption>List of attachments to latest date</TableCaption>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>File</TableHead>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {attachments.map((tx) => (
+                                        <TableRow key={tx.id}>
+                                            <TableCell>{tx.date}</TableCell>
+                                            <TableCell>{tx.name}</TableCell>
+                                            <TableCell>{
+                                                tx.url ? <Button onClick={() => handleRedirect(tx.url)}><File /><span className="hidden xl:inline">{tx.filename}</span></Button> : ""
+                                            }</TableCell>
+                                            <TableCell>{tx.type}</TableCell>
+                                            <TableCell className="flex justify-end">
+                                                <Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button>
+                                                <Alert 
+                                                    button_text={<Trash2 />}
+                                                    title="Confirm Delete"
+                                                    description="This action cannot be undone. This will permanently remove this attachment."
+                                                    action={() => handleDelete(tx.id)}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Card>
+                    </div>
+                </div>
             }
         </>
     )
