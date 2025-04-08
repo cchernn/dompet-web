@@ -10,6 +10,9 @@ import {
     FormDescription,
     FormMessage
 } from "@/components/ui/form"
+import {
+    Card
+} from "@/components/ui/card"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -56,31 +59,34 @@ function GroupAddPage() {
     }
 
     return (
-        <>
-            <h2>New Group</h2>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
-                    {/* Name Field */}
-                    <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Name</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Group Name" {...field} />
-                                </FormControl>
-                                <FormDescription />
-                                <FormMessage>{errors.name?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+        <div className="min-h-svh m-2 items-center justify-center">
+            <Card className="flex flex-col p-6 items-start justify-start">
+                <Form  {...form}>
+                    <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
+                        {/* Name Field */}
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Name</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Group Name" {...field} />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage>{errors.name?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
-                    <Button type="submit" disabled={isSubmitting}>Submit</Button>
-                </form>
-            </Form>
-            <Button type="button" onClick={onBack}>Back</Button>
-        </>
+                        <div className="flex flex-col gap-2 w-full max-w-xs">
+                            <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                            <Button type="button" onClick={onBack}>Back</Button>
+                        </div>
+                    </form>
+                </Form>
+            </Card>
+        </div>
     )
 }
 

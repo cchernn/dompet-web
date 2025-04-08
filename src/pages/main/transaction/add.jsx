@@ -42,6 +42,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    Card
+} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -202,10 +205,10 @@ function TransactionAddPage() {
     }
     
     return (
-        <>
-            <h2>New Transaction</h2>
+        <div className="min-h-svh m-2 items-center justify-center">
+            <Card className="flex flex-col p-6 items-start justify-start">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
+                <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                     {/* Date Field */}
                     <FormField 
                         control={form.control}
@@ -495,11 +498,14 @@ function TransactionAddPage() {
                         )}
                     />
 
-                    <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                    <div className="flex flex-col gap-2 w-full max-w-xs">
+                        <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                        <Button type="button" onClick={onBack}>Back</Button>
+                    </div>
                 </form>
             </Form>
-            <Button type="button" onClick={onBack}>Back</Button>
-        </>
+            </Card>
+        </div>
     )
 }
 

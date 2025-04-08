@@ -17,7 +17,10 @@ import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-  } from "@/components/ui/popover"
+} from "@/components/ui/popover"
+import {
+    Card
+} from "@/components/ui/card"  
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -88,123 +91,126 @@ function LocationAddPage() {
     }
 
     return (
-        <>
-            <h2>New Location</h2>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
-                    {/* Name Field */}
-                    <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Name</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Location Name" {...field} />
-                                </FormControl>
-                                <FormDescription />
-                                <FormMessage>{errors.name?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+        <div className="min-h-svh m-2 items-center justify-center">
+            <Card className="flex flex-col p-6 items-start justify-start">
+                <Form {...form}>
+                    <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
+                        {/* Name Field */}
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Name</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Location Name" {...field} />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage>{errors.name?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
-                    {/* URL Field */}
-                    <FormField
-                        control={form.control}
-                        name="url"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>URL</FormLabel>
-                                <FormControl>
-                                    <Input 
-                                        type="url"
-                                        placeholder="Location URL" 
-                                        {...field} 
-                                    />
-                                </FormControl>
-                                <FormDescription />
-                                <FormMessage>{errors.url?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+                        {/* URL Field */}
+                        <FormField
+                            control={form.control}
+                            name="url"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>URL</FormLabel>
+                                    <FormControl>
+                                        <Input 
+                                            type="url"
+                                            placeholder="Location URL" 
+                                            {...field} 
+                                        />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage>{errors.url?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
-                    {/* Google Page Link Field */}
-                    <FormField
-                        control={form.control}
-                        name="google_page_link"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Google Page Link</FormLabel>
-                                <FormControl>
-                                    <Input 
-                                        type="url"
-                                        placeholder="Location Google Page Link" 
-                                        {...field} 
-                                    />
-                                </FormControl>
-                                <FormDescription />
-                                <FormMessage>{errors.google_page_link?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+                        {/* Google Page Link Field */}
+                        <FormField
+                            control={form.control}
+                            name="google_page_link"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Google Page Link</FormLabel>
+                                    <FormControl>
+                                        <Input 
+                                            type="url"
+                                            placeholder="Location Google Page Link" 
+                                            {...field} 
+                                        />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage>{errors.google_page_link?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
-                    {/* Google Maps Link Field */}
-                    <FormField
-                        control={form.control}
-                        name="google_maps_link"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Google Maps Link</FormLabel>
-                                <FormControl>
-                                    <Input 
-                                        type="url"
-                                        placeholder="Location Google Maps Link" 
-                                        {...field} 
-                                    />
-                                </FormControl>
-                                <FormDescription />
-                                <FormMessage>{errors.google_maps_link?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+                        {/* Google Maps Link Field */}
+                        <FormField
+                            control={form.control}
+                            name="google_maps_link"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Google Maps Link</FormLabel>
+                                    <FormControl>
+                                        <Input 
+                                            type="url"
+                                            placeholder="Location Google Maps Link" 
+                                            {...field} 
+                                        />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage>{errors.google_maps_link?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
-                    {/* Category Field */}
-                    <FormField
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Category</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Location Category" {...field} />
-                                </FormControl>
-                                <FormDescription />
-                                <FormMessage>{errors.category?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+                        {/* Category Field */}
+                        <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Category</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Location Category" {...field} />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage>{errors.category?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
-                    {/* Access Type Field */}
-                    <FormField
-                        control={form.control}
-                        name="access_type"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Access Type</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Location Access Type" {...field} />
-                                </FormControl>
-                                <FormDescription />
-                                <FormMessage>{errors.access_type?.message}</FormMessage>
-                            </FormItem>
-                        )}
-                    />
+                        {/* Access Type Field */}
+                        <FormField
+                            control={form.control}
+                            name="access_type"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Access Type</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Location Access Type" {...field} />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage>{errors.access_type?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
-                    <Button type="submit" disabled={isSubmitting}>Submit</Button>
-                </form>
-            </Form>
-            <Button type="button" onClick={onBack}>Back</Button>
-        </>
+                        <div className="flex flex-col gap-2 w-full max-w-xs">
+                            <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                            <Button type="button" onClick={onBack}>Back</Button>
+                        </div>
+                    </form>
+                </Form>
+            </Card>
+        </div>
     )
 }
 

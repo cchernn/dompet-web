@@ -20,6 +20,11 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -110,12 +115,15 @@ function AttachmentEditPage() {
     }
 
     return (
-        <>
-            <h2>Attachment: {attachment_id}</h2>
+        <div className="min-h-svh m-2 items-center justify-center">
+            <Card className="flex flex-col p-6 items-start justify-start">
+            <CardHeader className="pt-0 pb-4">
+                <CardTitle>Attachment: {attachment_id}</CardTitle>
+            </CardHeader>
             { loading && (<p>Loading Attachments</p>) }
             { !loading &&
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                         {/* Date Field */}
                         <FormField 
                             control={form.control}
@@ -231,12 +239,15 @@ function AttachmentEditPage() {
                             )}
                         />
 
-                        <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                        <div className="flex flex-col gap-2 w-full max-w-xs">
+                            <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                            <Button type="button" onClick={onBack}>Back</Button>
+                        </div>
                     </form>
                 </Form>
             }
-            <Button type="button" onClick={onBack}>Back</Button>
-        </>
+            </Card>
+        </div>
     )
 }
 

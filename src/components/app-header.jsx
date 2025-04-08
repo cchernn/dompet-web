@@ -14,14 +14,14 @@ export function AppHeader({ route }) {
     return (
         <Breadcrumb>
             <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbItem>
                     <BreadcrumbLink href="/">
                         dompet
                     </BreadcrumbLink>
                 </BreadcrumbItem>
                 {crumbs.map((crumb, index) => (
                     <React.Fragment key={index}>
-                        <BreadcrumbSeparator className="hidden md:block" />
+                        <BreadcrumbSeparator />
                         <BreadcrumbItem>
                             <BreadcrumbPage>{crumb}</BreadcrumbPage>
                         </BreadcrumbItem>
