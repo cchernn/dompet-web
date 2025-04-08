@@ -122,8 +122,8 @@ function LocationListPage() {
                                         <TableRow key={tx.id}>
                                             <TableCell>{tx.name}</TableCell>
                                             <TableCell>{tx.url ? <Button onClick={() => handleRedirect(tx.url)}><Link /><span className="hidden xl:inline">{tx.url}</span></Button> : ""}</TableCell>
-                                            <TableCell>{tx.google_page_link ? <Button onClick={() => handleRedirect(tx.google_page_link)}><StickyNote /><span className="hidden xl:inline">{tx.google_page_link}</span></Button> : "NA"}</TableCell>
-                                            <TableCell>{tx.google_maps_link ? <Button onClick={() => handleRedirect(tx.google_maps_link)}><Map /><span className="hidden xl:inline">{tx.google_maps_link}</span></Button> : "NA"}</TableCell>
+                                            <TableCell>{tx.google_page_link ? <Button onClick={() => handleRedirect(tx.google_page_link)}><StickyNote /><span className="hidden xl:inline">{tx.google_page_link}</span></Button> : ""}</TableCell>
+                                            <TableCell>{tx.google_maps_link ? <Button onClick={() => handleRedirect(tx.google_maps_link)}><Map /><span className="hidden xl:inline">{tx.google_maps_link}</span></Button> : ""}</TableCell>
                                             <TableCell>{tx.category}</TableCell>
                                             <TableCell>{tx.access_type}</TableCell>
                                             <TableCell className="flex justify-end">
