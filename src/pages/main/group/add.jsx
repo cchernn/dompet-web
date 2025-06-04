@@ -41,8 +41,8 @@ function GroupAddPage() {
     const onSubmit = async(data) => {
         try {
             data = setFormData(data)
-            const response = await authService.addData(`/transactions/groups`, data)
-            navigate(`/transactions/groups`)
+            const response = await authService.addData(`/groups`, data)
+            navigate(`/groups`)
         } catch (error) {
             console.error("Error", error)
         }

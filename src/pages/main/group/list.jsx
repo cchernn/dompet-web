@@ -32,7 +32,7 @@ function GroupListPage() {
 
     async function fetchGroups() {
         try {
-            const response = await authService.fetchData("/transactions/groups")
+            const response = await authService.fetchData("/groups")
             const data = processGroups(response)
             setGroups(data)
         } catch (error) {
@@ -51,7 +51,7 @@ function GroupListPage() {
 
     const handleEdit = async (id) => {
         try {
-            navigate(`/transactions/groups/${id}`)
+            navigate(`/groups/${id}`)
         } catch (error) {
             console.error("Error", error)
         }
@@ -59,7 +59,7 @@ function GroupListPage() {
 
     const handleDelete = async (id) => {
         try {
-            await authService.deleteData(`/transactions/groups/${id}`)
+            await authService.deleteData(`/groups/${id}`)
             window.location.reload()
         } catch (error) {
             console.error("Error", error)
@@ -68,7 +68,7 @@ function GroupListPage() {
 
     const handleAdd = async (id) => {
         try {
-            navigate(`/transactions/groups/add`)
+            navigate(`/groups/add`)
         } catch (error) {
             console.error("Error", error)
         }

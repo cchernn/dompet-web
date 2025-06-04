@@ -130,7 +130,7 @@ function AppRouter() {
                     </AuthRoute>
         },
         {
-            path: '/transactions/groups',
+            path: '/groups',
             element: <AuthRoute>
                         <Layout route="groups">
                             <GroupListPage />
@@ -138,7 +138,7 @@ function AppRouter() {
                     </AuthRoute>
         },
         {
-            path: '/transactions/groups/:group_id',
+            path: '/groups/:group_id',
             element: <AuthRoute>
                         <Layout route="groups_edit">
                             <GroupEditPage />
@@ -146,7 +146,7 @@ function AppRouter() {
                     </AuthRoute>
         },
         {
-            path: '/transactions/groups/add',
+            path: '/groups/add',
             element: <AuthRoute>
                         <Layout route="groups_add">
                             <GroupAddPage />

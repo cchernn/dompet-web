@@ -189,7 +189,7 @@ function TransactionAddPage() {
 
     async function fetchGroups() {
         try {
-            const response = await authService.fetchData("/transactions/groups")
+            const response = await authService.fetchData("/groups")
             const data = processGroups(response)
             setGroups(data)
         } catch (error) {

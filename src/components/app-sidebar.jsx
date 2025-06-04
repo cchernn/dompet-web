@@ -33,7 +33,7 @@ const items = [
     },
     {
         title: "Groups",
-        url: "/transactions/groups",
+        url: "/groups",
         icon: Group,
     },
     {
