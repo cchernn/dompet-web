@@ -33,7 +33,7 @@ function GroupListPage() {
     async function fetchGroups() {
         try {
             const response = await authService.fetchData("/groups")
-            const data = processGroups(response)
+            const data = processGroups(response.data)
             setGroups(data)
         } catch (error) {
             console.error("Error", error)

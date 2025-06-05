@@ -21,11 +21,9 @@ function ConfirmPage() {
     const location = useLocation()
 
     const username = location.state?.username
-    console.log(username)
 
     const onSubmit = async (data) => {
         try {
-            console.log("payload", username, passkey)
             const response = await authService.confirmSignUp({
                 username: username,
                 code: passkey,

@@ -44,10 +44,8 @@ function GroupEditPage() {
 
     const onSubmit = async(data) => {
             try {
-                console.log("data", data)
                 data = setFormData(data)
                 const response = await authService.editData(`/groups/${group_id}`, data)
-                console.log(response, data)
                 navigate(`/groups`)
             } catch (error) {
                 console.error("Error", error)
@@ -65,7 +63,7 @@ function GroupEditPage() {
     async function fetchGroup() {
         try {
             const response = await authService.fetchData(`/groups/${group_id}`)
-            const data = response
+            const data = response.data
             setGroup(data)
             resetForm(data)
         } catch (error) {

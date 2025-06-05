@@ -83,7 +83,7 @@ function AttachmentEditPage() {
     async function fetchAttachment() {
         try {
             const response = await authService.fetchData(`/attachments/${attachment_id}`)
-            const data = response
+            const data = response.data
             setAttachment(data)
             resetForm(data)
         } catch (error) {

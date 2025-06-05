@@ -34,7 +34,7 @@ function AttachmentListPage() {
     async function fetchAttachments() {
         try {
             const response = await authService.fetchData("/attachments")
-            const data = processAttachments(response)
+            const data = processAttachments(response.data)
             setAttachments(data)
         } catch (error) {
             console.error("Error", error)
@@ -46,7 +46,7 @@ function AttachmentListPage() {
     function processAttachments(data) {
         return data.map((tx) => ({
             id: tx.id,
-            date: tx.date,
+            date: new Date(tx.date).toLocaleDateString("en-CA", {timeZone: "Asia/Kuala_Lumpur"}),
             name: tx.name,
             url: tx.url,
             filename: tx.filename,

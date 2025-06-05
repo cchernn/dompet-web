@@ -31,10 +31,10 @@ function TransactionListPage() {
         fetchTransactions()
     }, [])
 
-    async function fetchTransactions() {
+    async function fetchTransactions(page=1) {
         try {
-            const response = await authService.fetchData("/transactions")
-            const data = processTransactions(response)
+            const response = await authService.fetchData("/transactions", {"page": page})
+            const data = processTransactions(response.data)
             setTransactions(data)
         } catch (error) {
             console.error("Error", error)
@@ -46,7 +46,7 @@ function TransactionListPage() {
     function processTransactions(data) {
         return data.map((tx) => ({
             id: tx.id,
-            date: tx.date,
+            date: new Date(tx.date).toLocaleDateString("en-CA", {timeZone: "Asia/Kuala_Lumpur"}), 
             name: tx.name,
             amount: tx.amount.toFixed(2),
             payment_method: tx.payment_method,

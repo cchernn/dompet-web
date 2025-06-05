@@ -57,10 +57,8 @@ function LocationEditPage() {
 
     const onSubmit = async(data) => {
             try {
-                console.log("data", data)
                 data = setFormData(data)
                 const response = await authService.editData(`/locations/${location_id}`, data)
-                console.log(response, data)
                 navigate(`/locations`)
             } catch (error) {
                 console.error("Error", error)
@@ -78,7 +76,7 @@ function LocationEditPage() {
     async function fetchLocation() {
         try {
             const response = await authService.fetchData(`/locations/${location_id}`)
-            const data = response
+            const data = response.data
             setLocation(data)
             resetForm(data)
         } catch (error) {

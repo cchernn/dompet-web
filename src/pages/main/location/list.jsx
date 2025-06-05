@@ -36,7 +36,7 @@ function LocationListPage() {
     async function fetchLocations() {
         try {
             const response = await authService.fetchData("/locations")
-            const data = processLocations(response)
+            const data = processLocations(response.data)
             setLocations(data)
         } catch (error) {
             console.error("Error", error)

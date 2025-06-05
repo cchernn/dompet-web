@@ -37,7 +37,6 @@ const authService = {
 
     confirmSignUp: async ({username, code}) => {
         try {
-            console.log("input", username, code)
             const response = await confirmSignUp({
                 username: username,
                 confirmationCode: code
@@ -65,11 +64,10 @@ const authService = {
         }
     },
 
-    fetchData: async (endpoint, body=null, method="GET") => {
+    fetchData: async (endpoint, params=null, body=null, method="GET") => {
         try {
             const session = await fetchAuthSession()
             const token = session.tokens?.accessToken?.toString()
-
             const options = {
                 method,
                 headers: {
@@ -78,8 +76,13 @@ const authService = {
                 },
                 ...(body ? {body: JSON.stringify(body) } : {})
             }
+            let url = `${API_BASE_URL}${endpoint}`
+            if (params) {
+                const queryString = new URLSearchParams(params).toString()
+                url += `?${queryString}`
+            }
 
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+            const response = await fetch(url, options)
             return await response.json()
         } catch (error) {
             throw error
@@ -90,7 +93,6 @@ const authService = {
         try {
             const session = await fetchAuthSession()
             const token = session.tokens?.accessToken?.toString()
-
             const options = {
                 method,
                 headers: {
@@ -99,8 +101,9 @@ const authService = {
                 },
                 ...(body ? {body: JSON.stringify(body) } : {})
             }
+            let url = `${API_BASE_URL}${endpoint}`
 
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+            const response = await fetch(url, options)
             return await response.json()
         } catch (error) {
             throw error
@@ -111,7 +114,6 @@ const authService = {
         try {
             const session = await fetchAuthSession()
             const token = session.tokens?.accessToken?.toString()
-
             const options = {
                 method,
                 headers: {
@@ -120,8 +122,9 @@ const authService = {
                 },
                 ...(body ? {body: JSON.stringify(body) } : {})
             }
+            let url = `${API_BASE_URL}${endpoint}`
 
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+            const response = await fetch(url, options)
             return await response.json()
         } catch (error) {
             throw error
@@ -132,7 +135,6 @@ const authService = {
         try {
             const session = await fetchAuthSession()
             const token = session.tokens?.accessToken?.toString()
-
             const options = {
                 method,
                 headers: {
@@ -140,8 +142,9 @@ const authService = {
                     "Content-Type": "application/json",
                 }
             }
+            let url = `${API_BASE_URL}${endpoint}`
 
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+            const response = await fetch(url, options)
             return await response.json()
         } catch (error) {
             throw error

@@ -106,7 +106,6 @@ function TransactionEditPage() {
     const onSubmit = async(data) => {
         try {
             data = setFormData(data)
-            console.log("data", data)
             const response = await authService.editData(`/transactions/${transaction_id}`, data)
             navigate(`/transactions`)
         } catch (error) {
@@ -128,7 +127,7 @@ function TransactionEditPage() {
     async function fetchTransaction() {
         try {
             const response = await authService.fetchData(`/transactions/${transaction_id}`)
-            const data = response
+            const data = response.data
             setTransaction(data)
             resetForm(data)
 
@@ -140,9 +139,7 @@ function TransactionEditPage() {
     }
 
     function setFormData(data) {
-        console.log("attachments", data.attachments)
         return {
-            // ...data,
             date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
             name: data.name ?? null,
             amount: data.amount ? parseFloat(data.amount).toFixed(2) : 0,
@@ -178,7 +175,7 @@ function TransactionEditPage() {
     async function fetchLocations() {
         try {
             const response = await authService.fetchData("/locations")
-            const data = processLocations(response)
+            const data = processLocations(response.data)
             setLocations(data)
         } catch (error) {
             console.error("Error", error)
@@ -200,7 +197,7 @@ function TransactionEditPage() {
     async function fetchAttachments() {
         try {
             const response = await authService.fetchData("/attachments")
-            const data = processAttachments(response)
+            const data = processAttachments(response.data)
             setAttachments(data)
         } catch (error) {
             console.error("Error", error)
@@ -221,7 +218,7 @@ function TransactionEditPage() {
     async function fetchGroups() {
         try {
             const response = await authService.fetchData("/groups")
-            const data = processGroups(response)
+            const data = processGroups(response.data)
             setGroups(data)
         } catch (error) {
             console.error("Error", error)

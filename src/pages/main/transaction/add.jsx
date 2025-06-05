@@ -126,7 +126,6 @@ function TransactionAddPage() {
 
     function setFormData(data) {
         return {
-            // ...data,
             date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
             name: data.name ?? null,
             amount: data.amount ? parseFloat(data.amount).toFixed(2) : 0,
@@ -147,7 +146,7 @@ function TransactionAddPage() {
     async function fetchLocations() {
         try {
             const response = await authService.fetchData("/locations")
-            const data = processLocations(response)
+            const data = processLocations(response.data)
             setLocations(data)
         } catch (error) {
             console.error("Error", error)
@@ -169,7 +168,7 @@ function TransactionAddPage() {
     async function fetchAttachments() {
         try {
             const response = await authService.fetchData("/attachments")
-            const data = processAttachments(response)
+            const data = processAttachments(response.data)
             setAttachments(data)
         } catch (error) {
             console.error("Error", error)
@@ -190,7 +189,7 @@ function TransactionAddPage() {
     async function fetchGroups() {
         try {
             const response = await authService.fetchData("/groups")
-            const data = processGroups(response)
+            const data = processGroups(response.data)
             setGroups(data)
         } catch (error) {
             console.error("Error", error)
