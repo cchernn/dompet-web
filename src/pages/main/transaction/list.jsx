@@ -18,6 +18,15 @@ import {
 import {
     Card,
 } from "@/components/ui/card"
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
@@ -84,6 +93,24 @@ function TransactionListPage() {
         }
     }
 
+    const handlePreviousPage = () => {
+        try {
+            if (page > 1) {
+                setPage(page - 1)
+            }
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    const handleNextPage = () => {
+        try {
+            setPage(page + 1)
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
     return (
         <>
             { loading && (<p>Loading Transactions</p>) }
@@ -99,7 +126,29 @@ function TransactionListPage() {
                     <div className="min-h-svh m-2">
                         <Card className="flex p-6 items-center justify-center">
                             <Table>
-                                <TableCaption>List of transactions to latest date</TableCaption>
+                                <TableCaption>
+                                    <Pagination>
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <PaginationPrevious 
+                                                    onClick={handlePreviousPage} 
+                                                    className={page === 1 ? "pointer-events-none opacity-50" : ""}
+                                                />
+                                            </PaginationItem>
+                                            <PaginationItem>
+                                                <PaginationLink 
+                                                    href="#" 
+                                                    className="font-bold text-primary"
+                                                >{page}</PaginationLink>
+                                            </PaginationItem>
+                                            <PaginationItem>
+                                                <PaginationNext 
+                                                    onClick={handleNextPage} 
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
+                                </TableCaption>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Date</TableHead>
