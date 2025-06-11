@@ -64,6 +64,16 @@ const authService = {
         }
     },
 
+    getUser: async () => {
+        try {
+            const session = await fetchAuthSession()
+            const user = session.userSub?.toString()
+            return user
+        } catch (error) {
+            throw error
+        }
+    },
+
     fetchData: async (endpoint, params=null, body=null, method="GET") => {
         try {
             const session = await fetchAuthSession()

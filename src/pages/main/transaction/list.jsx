@@ -25,15 +25,17 @@ import authService from "@/lib/authService"
 function TransactionListPage() {
     const [transactions, setTransactions] = useState([])
     const [loading, setLoading] = useState(true)
+    const [page, setPage] = useState(1)
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetchTransactions()
-    }, [])
+        fetchTransactions(page)
+    }, [page])
 
     async function fetchTransactions(page=1) {
         try {
-            const response = await authService.fetchData("/transactions", {"page": page})
+            const user = await authService.getUser()
+            const response = await authService.fetchData("/transactions", {"page": page, "user": user})
             const data = processTransactions(response.data)
             setTransactions(data)
         } catch (error) {
