@@ -48,6 +48,9 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import { 
+    Skeleton 
+} from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -58,7 +61,7 @@ const formSchema = z.object({
     date: z.date(),
     name: z.string()
     .min(1, {message: "Name is required"})
-    .max(32, {message: 'Name must be less than 32 characters'}),
+    .max(128, {message: 'Name must be less than 128 characters'}),
     amount: z.coerce.number()
     .transform((val) => parseFloat(val.toFixed(2))),
     payment_method: z.string(),
@@ -234,12 +237,17 @@ function TransactionEditPage() {
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">
-            <Card className="flex flex-col p-6 items-start justify-start">
+            <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
             <CardHeader className="pt-0 pb-4">
-                <CardTitle>Transaction: {transaction_id}</CardTitle>
+                <CardTitle>Transaction ID: {transaction_id}</CardTitle>
             </CardHeader>
-            { loading && (<p>Loading Transactions</p>) }
-            { !loading && 
+            { 
+                loading ? 
+                    <div>
+                        <Skeleton className="h-6 w-full my-2" />
+                        <Skeleton className="h-6 w-full my-2" />
+                    </div>
+                :
                 <Form {...form}>
                     <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                         {/* Date Field */}

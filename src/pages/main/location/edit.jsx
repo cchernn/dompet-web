@@ -17,6 +17,16 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { 
+    Skeleton 
+} from "@/components/ui/skeleton"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -25,7 +35,7 @@ import authService from "@/lib/authService"
 const formSchema = z.object({
     name: z.string()
     .min(1, {message: "Name is required"})
-    .max(32, {message: 'Name must be less than 32 characters'}),
+    .max(128, {message: 'Name must be less than 128 characters'}),
     url: z.string()
     // .url({message: "Invalid URL format"})
     .optional().nullable(),
@@ -36,9 +46,9 @@ const formSchema = z.object({
     // .url({message: "Invalid URL format"})
     .optional().nullable(),
     category: z.string()
-    .max(32, {message: 'Category must be less than 32 characters'}),
+    .max(128, {message: 'Category must be less than 128 characters'}),
     access_type: z.string()
-    .max(32, {message: 'Access Type must be less than 32 characters'}),
+    .max(128, {message: 'Access Type must be less than 128 characters'}),
 })
 
 function LocationEditPage() {
@@ -111,12 +121,17 @@ function LocationEditPage() {
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">
-            <Card className="flex flex-col p-6 items-start justify-start">
+            <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
             <CardHeader className="pt-0 pb-4">
-                <CardTitle>Location: {location_id}</CardTitle>
+                <CardTitle>Location ID: {location_id}</CardTitle>
             </CardHeader>
-            { loading && (<p>Loading Locations</p>) }
-            { !loading &&
+            { 
+                loading ? 
+                    <div>
+                        <Skeleton className="h-6 w-full my-2" />
+                        <Skeleton className="h-6 w-full my-2" />
+                    </div>
+                :
                 <Form {...form}>
                     <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                         {/* Name Field */}
@@ -217,12 +232,21 @@ function LocationEditPage() {
                             name="access_type"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Access Type</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Location Access Type" {...field} />
-                                    </FormControl>
+                                    <FormLabel>Type</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a location type." />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="onsite">Onsite</SelectItem>
+                                            <SelectItem value="online">Online</SelectItem>
+                                            <SelectItem value="others">Others</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     <FormDescription />
-                                    <FormMessage>{errors.access_type?.message}</FormMessage>
+                                    <FormMessage>{errors.type?.message}</FormMessage>
                                 </FormItem>
                             )}
                         />

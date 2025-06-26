@@ -21,10 +21,20 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import {
     Card,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import { 
+    Skeleton 
+} from "@/components/ui/skeleton"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -34,10 +44,10 @@ const formSchema = z.object({
     date: z.date(),
     name: z.string()
     .min(1, {message: "Name is required"})
-    .max(32, {message: 'Name must be less than 32 characters'}),
+    .max(128, {message: 'Name must be less than 128 characters'}),
     filename: z.string()
     .min(1, {message: "Filename is required"})
-    .max(32, {message: 'Filename must be less than 32 characters'}),
+    .max(128, {message: 'Filename must be less than 128 characters'}),
     url: z.string()
     .url({message: "Invalid URL format"}),
     type: z.enum([
@@ -116,12 +126,17 @@ function AttachmentEditPage() {
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">
-            <Card className="flex flex-col p-6 items-start justify-start">
+            <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
             <CardHeader className="pt-0 pb-4">
-                <CardTitle>Attachment: {attachment_id}</CardTitle>
+                <CardTitle>Attachment ID: {attachment_id}</CardTitle>
             </CardHeader>
-            { loading && (<p>Loading Attachments</p>) }
-            { !loading &&
+            { 
+                loading ? 
+                    <div>
+                        <Skeleton className="h-6 w-full my-2" />
+                        <Skeleton className="h-6 w-full my-2" />
+                    </div>
+                :
                 <Form {...form}>
                     <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                         {/* Date Field */}
@@ -227,12 +242,19 @@ function AttachmentEditPage() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Type</FormLabel>
-                                    <FormControl>
-                                        <Input 
-                                            placeholder="Attachment Type" 
-                                            {...field} 
-                                        />
-                                    </FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a attachment type." />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="pdf">pdf</SelectItem>
+                                            <SelectItem value="jpeg">jpeg</SelectItem>
+                                            <SelectItem value="png">png</SelectItem>
+                                            <SelectItem value="xlsx">xlsx</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     <FormDescription />
                                     <FormMessage>{errors.type?.message}</FormMessage>
                                 </FormItem>

@@ -11,7 +11,9 @@ import {
     FormMessage
 } from "@/components/ui/form"
 import {
-    Card
+    Card,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -21,7 +23,7 @@ import authService from "@/lib/authService"
 const formSchema = z.object({
     name: z.string()
     .min(1, {message: "Name is required"})
-    .max(32, {message: 'Name must be less than 32 characters'}),
+    .max(128, {message: 'Name must be less than 128 characters'}),
 })
 
 function GroupAddPage() {
@@ -60,7 +62,10 @@ function GroupAddPage() {
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">
-            <Card className="flex flex-col p-6 items-start justify-start">
+            <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
+                <CardHeader className="pt-0 pb-4">
+                    <CardTitle>New Group</CardTitle>
+                </CardHeader>
                 <Form  {...form}>
                     <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                         {/* Name Field */}

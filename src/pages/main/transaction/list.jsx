@@ -27,6 +27,9 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import { 
+    Skeleton 
+} from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
@@ -113,37 +116,41 @@ function TransactionListPage() {
 
     return (
         <>
-            { loading && (<p>Loading Transactions</p>) }
-            { !loading && transactions.length <= 0 && (
-                <div>
-                    <Button className="w-36 m-2" onClick={handleAdd}><FilePlus />Add</Button>
-                    <p>No Transactions found</p>
-                </div>
-            )}
-            { !loading && transactions.length > 0 && 
-                <div>
-                    <Button className="w-36 m-2" onClick={handleAdd}><FilePlus />Add</Button>
-                    <div className="min-h-svh m-2">
-                        <Card className="flex p-6 items-center justify-center">
-                            <Table>
+            <div className="min-h-svh m-2">
+                <Button className="min-w-[12rem] m-2" onClick={handleAdd}><FilePlus />Add</Button>
+                <Card className="p-6 rounded-2xl shadow-md border">
+                    <div className="overflow-x-auto w-full">
+                        {   
+                            loading ? 
+                                <div>
+                                    <Skeleton className="h-6 w-full my-2" />
+                                    <Skeleton className="h-6 w-full my-2" />
+                                </div> 
+                            :
+                            transactions.length === 0 ?
+                                <div className="h-20 flex text-center items-center justify-center w-full">
+                                    <h2>No Transactions Available</h2>
+                                </div>
+                            :
+                            <Table className="min-w-full">
                                 <TableCaption>
                                     <Pagination>
                                         <PaginationContent>
                                             <PaginationItem>
                                                 <PaginationPrevious 
                                                     onClick={handlePreviousPage} 
-                                                    className={page === 1 ? "pointer-events-none opacity-50" : ""}
+                                                    className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                                                 />
                                             </PaginationItem>
                                             <PaginationItem>
                                                 <PaginationLink 
-                                                    href="#" 
-                                                    className="font-bold text-primary"
+                                                    className="font-bold text-primary cursor-default"
                                                 >{page}</PaginationLink>
                                             </PaginationItem>
                                             <PaginationItem>
                                                 <PaginationNext 
                                                     onClick={handleNextPage} 
+                                                    className="cursor-pointer"
                                                 />
                                             </PaginationItem>
                                         </PaginationContent>
@@ -151,37 +158,39 @@ function TransactionListPage() {
                                 </TableCaption>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Amount</TableHead>
-                                        <TableHead>Location</TableHead>
-                                        <TableHead>Groups</TableHead>
-                                        <TableHead>Attachments</TableHead>
-                                        <TableHead>Payment Method</TableHead>
-                                        <TableHead>Category</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Date</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Amount</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Location</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Groups</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Attachments</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Payment Method</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Category</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {transactions.map((tx) => (
                                         <TableRow key={tx.id}>
-                                            <TableCell>{tx.date}</TableCell>
-                                            <TableCell>{tx.name}</TableCell>
-                                            <TableCell>{tx.amount}</TableCell>
-                                            <TableCell>{tx.location_name}</TableCell>
-                                            <TableCell>{
-                                                tx.groups ? tx.groups.map((group) => 
-                                                    <Badge key={group.id} variant="secondary">{group.name}</Badge>
-                                                ) : null}
+                                            <TableCell className="text-sm">{tx.date}</TableCell>
+                                            <TableCell className="text-sm">{tx.name}</TableCell>
+                                            <TableCell className="text-sm">{tx.amount}</TableCell>
+                                            <TableCell className="text-sm">{tx.location_name}</TableCell>
+                                            <TableCell className="text-sm">
+                                                <div className="flex flex-wrap gap-1">{
+                                                tx.groups.map((group) => 
+                                                    <Badge className="truncate max-w-[120px] inline-block px-2" title={group.name} key={group.id} variant="secondary">{group.name}</Badge>
+                                                )}</div>
                                             </TableCell>
-                                            <TableCell>{
-                                                tx.attachments ? tx.attachments.map((attachment) => 
-                                                    <Badge key={attachment.id} variant="secondary">{attachment.name}</Badge>
-                                                ) : ""}
+                                            <TableCell className="text-sm">
+                                                <div className="flex flex-wrap gap-1">{
+                                                tx.attachments.map((attachment) => 
+                                                    <Badge className="truncate max-w-[120px] inline-block px-2" title={attachment.name} key={attachment.id} variant="secondary">{attachment.name}</Badge>
+                                                )}</div>
                                             </TableCell>
-                                            <TableCell>{tx.payment_method}</TableCell>
-                                            <TableCell>{tx.category}</TableCell>
-                                            <TableCell className="flex justify-end">
+                                            <TableCell className="text-sm">{tx.payment_method}</TableCell>
+                                            <TableCell className="text-sm">{tx.category}</TableCell>
+                                            <TableCell className="flex justify-center items-center gap-1">
                                                 <Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button>
                                                 <Alert 
                                                     button_text={<Trash2 />}
@@ -194,10 +203,10 @@ function TransactionListPage() {
                                     ))}
                                 </TableBody>
                             </Table>
-                        </Card>
+                        }
                     </div>
-                </div>
-            }
+                </Card>
+            </div>
         </>
     )
 }
