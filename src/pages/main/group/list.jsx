@@ -40,12 +40,12 @@ function GroupListPage() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetchGroups()
-    }, [])
+        fetchGroups(page)
+    }, [page])
 
-    async function fetchGroups() {
+    async function fetchGroups(page) {
         try {
-            const response = await authService.fetchData("/groups")
+            const response = await authService.fetchData("/groups", {"page": page})
             const data = processGroups(response.data)
             setGroups(data)
         } catch (error) {

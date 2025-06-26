@@ -43,12 +43,12 @@ function LocationListPage() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetchLocations()
-    }, [])
+        fetchLocations(page)
+    }, [page])
 
-    async function fetchLocations() {
+    async function fetchLocations(page) {
         try {
-            const response = await authService.fetchData("/locations")
+            const response = await authService.fetchData("/locations", {"page": page})
             const data = processLocations(response.data)
             setLocations(data)
         } catch (error) {

@@ -41,12 +41,12 @@ function AttachmentListPage() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetchAttachments()
-    }, [])
+        fetchAttachments(page)
+    }, [page])
 
-    async function fetchAttachments() {
+    async function fetchAttachments(page) {
         try {
-            const response = await authService.fetchData("/attachments")
+            const response = await authService.fetchData("/attachments", {"page": page})
             const data = processAttachments(response.data)
             setAttachments(data)
         } catch (error) {
