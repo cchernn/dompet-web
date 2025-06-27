@@ -4,6 +4,7 @@ import {
     FilePenLine,
     Trash2,
     FilePlus,
+    X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,16 +39,25 @@ function TransactionListPage() {
     const [transactions, setTransactions] = useState([])
     const [loading, setLoading] = useState(true)
     const [page, setPage] = useState(1)
+    const [filters, setFilters] = useState({"page": page})
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetchTransactions(page)
-    }, [page])
-
-    async function fetchTransactions(page=1) {
-        try {
+        const init = async () => {
             const user = await authService.getUser()
-            const response = await authService.fetchData("/transactions", {"page": page, "user": user})
+            setFilters({ page: 1, user })
+        }
+        init()
+    }, [])
+
+    useEffect(() => {
+        if (!filters.user) return 
+        fetchTransactions(filters)
+    }, [filters])
+
+    async function fetchTransactions(filters) {
+        try {
+            const response = await authService.fetchData("/transactions", filters)
             const data = processTransactions(response.data)
             setTransactions(data)
         } catch (error) {
@@ -65,6 +75,7 @@ function TransactionListPage() {
             amount: tx.amount.toFixed(2),
             payment_method: tx.payment_method,
             category: tx.category,
+            location: tx.location,
             location_name: tx.location_name,
             groups: tx.groups,
             attachments: tx.attachments,
@@ -96,19 +107,43 @@ function TransactionListPage() {
         }
     }
 
-    const handlePreviousPage = () => {
+    const handlePreviousPage = async () => {
         try {
             if (page > 1) {
-                setPage(page - 1)
+                const newPage = page - 1
+                setPage(newPage)
+                setFilters((prev) => ({ ...prev, page: newPage}))
             }
         } catch (error) {
             console.error("Error", error)
         }
     }
 
-    const handleNextPage = () => {
+    const handleNextPage = async () => {
         try {
-            setPage(page + 1)
+            const newPage = page + 1
+            setPage(newPage)
+            setFilters((prev) => ({ ...prev, page: newPage}))
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    const handleFilter = async (var_key, var_value) => {
+        try {
+            setFilters((prev) => ({ ...prev, [var_key]: var_value }))
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    const removeFilter = async (key) => {
+        try {
+            setFilters((prev) => {
+                const updated = { ...prev }
+                delete updated[key]
+                return { ...updated, page: 1 } // Reset to page 1 on filter change
+            })
         } catch (error) {
             console.error("Error", error)
         }
@@ -118,6 +153,23 @@ function TransactionListPage() {
         <>
             <div className="min-h-svh m-2">
                 <Button className="min-w-[12rem] m-2" onClick={handleAdd}><FilePlus />Add</Button>
+                {Object.entries(filters).map( ([key, value]) => {
+                    if (!value || key === "page" || key === "user") return null
+                    return (
+                        <Badge
+                            key={key}
+                            className="m-1 inline-flex items-center gap-2 px-2 py-1 text-sm bg-muted text-muted-foreground hover:bg-muted/80"
+                        >
+                            {key}: {String(value)}
+                            <button
+                                className="ml-1 text-muted-foreground hover:text-destructive"
+                                onClick={() => removeFilter(key)}
+                            >
+                                <X />
+                            </button>
+                        </Badge>
+                    )
+                })}
                 <Card className="p-6 rounded-2xl shadow-md border">
                     <div className="overflow-x-auto w-full">
                         {   
@@ -172,24 +224,34 @@ function TransactionListPage() {
                                 <TableBody>
                                     {transactions.map((tx) => (
                                         <TableRow key={tx.id}>
-                                            <TableCell className="text-sm">{tx.date}</TableCell>
-                                            <TableCell className="text-sm">{tx.name}</TableCell>
+                                            <TableCell className="text-sm">
+                                                { tx.date && <Badge onClick={() => handleFilter("date", tx.date)} className="inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={tx.date} variant="secondary">{tx.date}</Badge> }
+                                            </TableCell>
+                                            <TableCell className="text-sm">
+                                                { tx.name && <Badge onClick={() => handleFilter("name", tx.name)} className="inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={tx.name} variant="secondary">{tx.name}</Badge> }
+                                            </TableCell>
                                             <TableCell className="text-sm">{tx.amount}</TableCell>
-                                            <TableCell className="text-sm">{tx.location_name}</TableCell>
+                                            <TableCell className="text-sm">
+                                                { tx.location && <Badge onClick={() => handleFilter("location", tx.location)} className="truncate max-w-[120px] inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={tx.location_name} variant="secondary">{tx.location_name}</Badge> }
+                                            </TableCell>
                                             <TableCell className="text-sm">
                                                 <div className="flex flex-wrap gap-1">{
                                                 tx.groups.map((group) => 
-                                                    <Badge className="truncate max-w-[120px] inline-block px-2" title={group.name} key={group.id} variant="secondary">{group.name}</Badge>
+                                                    <Badge onClick={() => handleFilter("group", group.id)} className="truncate max-w-[120px] inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={group.name} key={group.id} variant="secondary">{group.name}</Badge>
                                                 )}</div>
                                             </TableCell>
                                             <TableCell className="text-sm">
                                                 <div className="flex flex-wrap gap-1">{
                                                 tx.attachments.map((attachment) => 
-                                                    <Badge className="truncate max-w-[120px] inline-block px-2" title={attachment.name} key={attachment.id} variant="secondary">{attachment.name}</Badge>
+                                                    <Badge className="truncate max-w-[120px] inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={attachment.name} key={attachment.id} variant="secondary">{attachment.name}</Badge>
                                                 )}</div>
                                             </TableCell>
-                                            <TableCell className="text-sm">{tx.payment_method}</TableCell>
-                                            <TableCell className="text-sm">{tx.category}</TableCell>
+                                            <TableCell className="text-sm">
+                                                { tx.payment_method && <Badge onClick={() => handleFilter("payment_method", tx.payment_method)} className="inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={tx.payment_method} variant="secondary">{tx.payment_method}</Badge> }
+                                            </TableCell>
+                                            <TableCell className="text-sm">
+                                                { tx.category && <Badge onClick={() => handleFilter("category", tx.category)} className="inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={tx.category} variant="secondary">{tx.category}</Badge> }
+                                            </TableCell>
                                             <TableCell className="flex justify-center items-center gap-1">
                                                 <Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button>
                                                 <Alert 

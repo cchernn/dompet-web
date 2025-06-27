@@ -7,6 +7,7 @@ import {
     Link,
     Map,
     StickyNote,
+    X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,6 +34,7 @@ import {
 import { 
     Skeleton 
 } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
 
@@ -40,15 +42,23 @@ function LocationListPage() {
     const [locations, setLocations] = useState([])
     const [loading, setLoading] = useState(true)
     const [page, setPage] = useState(1)
+    const [filters, setFilters] = useState({"page": page})
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetchLocations(page)
-    }, [page])
+        const init = async () => {
+            setFilters({ page: 1 })
+        }
+        init()
+    }, [])
 
-    async function fetchLocations(page) {
+    useEffect(() => {
+        fetchLocations(filters)
+    }, [filters])
+
+    async function fetchLocations(filters) {
         try {
-            const response = await authService.fetchData("/locations", {"page": page})
+            const response = await authService.fetchData("/locations", filters)
             const data = processLocations(response.data)
             setLocations(data)
         } catch (error) {
@@ -106,7 +116,9 @@ function LocationListPage() {
     const handlePreviousPage = () => {
         try {
             if (page > 1) {
-                setPage(page - 1)
+                const newPage = page - 1
+                setPage(newPage)
+                setFilters((prev) => ({ ...prev, page: newPage}))
             }
         } catch (error) {
             console.error("Error", error)
@@ -115,7 +127,29 @@ function LocationListPage() {
 
     const handleNextPage = () => {
         try {
-            setPage(page + 1)
+            const newPage = page + 1
+            setPage(newPage)
+            setFilters((prev) => ({ ...prev, page: newPage}))
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    const handleFilter = async (var_key, var_value) => {
+        try {
+            setFilters((prev) => ({ ...prev, [var_key]: var_value }))
+        } catch (error) {
+            console.error("Error", error)
+        }
+    }
+
+    const removeFilter = async (key) => {
+        try {
+            setFilters((prev) => {
+                const updated = { ...prev }
+                delete updated[key]
+                return { ...updated, page: 1 } // Reset to page 1 on filter change
+            })
         } catch (error) {
             console.error("Error", error)
         }
@@ -125,6 +159,23 @@ function LocationListPage() {
         <>
             <div className="min-h-svh m-2">
                 <Button className="min-w-[12rem] m-2" onClick={handleAdd}><FilePlus />Add</Button>
+                {Object.entries(filters).map( ([key, value]) => {
+                    if (!value || key === "page") return null
+                    return (
+                        <Badge
+                            key={key}
+                            className="m-1 inline-flex items-center gap-2 px-2 py-1 text-sm bg-muted text-muted-foreground hover:bg-muted/80"
+                        >
+                            {key}: {String(value)}
+                            <button
+                                className="ml-1 text-muted-foreground hover:text-destructive"
+                                onClick={() => removeFilter(key)}
+                            >
+                                <X />
+                            </button>
+                        </Badge>
+                    )
+                })}
                 <Card className="p-6 rounded-2xl shadow-md border">
                     <div className="overflow-x-auto w-full">
                         {   
@@ -187,8 +238,12 @@ function LocationListPage() {
                                             <TableCell className="text-sm">{
                                                 tx.google_maps_link ? <Button title={tx.google_maps_link} onClick={() => handleRedirect(tx.google_maps_link)}><Map /><span className="truncate max-w-[120px] hidden xl:inline">{tx.google_maps_link}</span></Button> : ""}
                                             </TableCell>
-                                            <TableCell className="text-sm">{tx.category}</TableCell>
-                                            <TableCell className="text-sm">{tx.access_type}</TableCell>
+                                            <TableCell className="text-sm">
+                                                { tx.category && <Badge onClick={() => handleFilter("category", tx.category)} className="inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={tx.category} variant="secondary">{tx.category}</Badge> }
+                                            </TableCell>
+                                            <TableCell className="text-sm">
+                                                { tx.access_type && <Badge onClick={() => handleFilter("access_type", tx.access_type)} className="inline-block px-2 hover:bg-primary hover:text-primary-foreground" title={tx.access_type} variant="secondary">{tx.access_type}</Badge> }
+                                            </TableCell>
                                             <TableCell className="flex justify-center items-center gap-1">
                                                 <Button onClick={() => handleEdit(tx.id)}><FilePenLine /></Button>
                                                 <Alert 
