@@ -52,7 +52,7 @@ function AppRouter() {
         {
             path: '/',
             element: <AuthRoute>
-                        <Layout route="overview">
+                        <Layout route="overview" paths={['/']}>
                             <HomePage />
                         </Layout>
                     </AuthRoute>
@@ -60,7 +60,7 @@ function AppRouter() {
         {
             path: '/transactions',
             element: <AuthRoute>
-                        <Layout route="transactions">
+                        <Layout route="transactions" paths={['/transactions']}>
                             <TransactionListPage />
                         </Layout>
                     </AuthRoute>
@@ -68,7 +68,7 @@ function AppRouter() {
         {
             path: '/transactions/:transaction_id',
             element: <AuthRoute>
-                        <Layout route="transactions_edit">
+                        <Layout route="transactions_edit" paths={['/transactions']}>
                             <TransactionEditPage />
                         </Layout>
                     </AuthRoute>
@@ -76,7 +76,7 @@ function AppRouter() {
         {
             path: '/transactions/add',
             element: <AuthRoute>
-                        <Layout route="transactions_add">
+                        <Layout route="transactions_add" paths={['/transactions']}>
                             <TransactionAddPage />
                         </Layout>
                     </AuthRoute>
@@ -84,7 +84,7 @@ function AppRouter() {
         {
             path: '/attachments',
             element: <AuthRoute>
-                        <Layout route="attachments">
+                        <Layout route="attachments" paths={['/attachments']}>
                             <AttachmentListPage />
                         </Layout>
                     </AuthRoute>
@@ -92,7 +92,7 @@ function AppRouter() {
         {
             path: '/attachments/:attachment_id',
             element: <AuthRoute>
-                        <Layout route="attachments_edit">
+                        <Layout route="attachments_edit" paths={['/attachments']}>
                             <AttachmentEditPage />
                         </Layout>
                     </AuthRoute>
@@ -100,7 +100,7 @@ function AppRouter() {
         {
             path: '/attachments/add',
             element: <AuthRoute>
-                        <Layout route="attachments_add">
+                        <Layout route="attachments_add" paths={['/attachments']}>
                             <AttachmentAddPage />
                         </Layout>
                     </AuthRoute>
@@ -108,7 +108,7 @@ function AppRouter() {
         {
             path: '/locations',
             element: <AuthRoute>
-                        <Layout route="locations">
+                        <Layout route="locations" paths={['/locations']}>
                             <LocationListPage />
                         </Layout>
                     </AuthRoute>
@@ -116,7 +116,7 @@ function AppRouter() {
         {
             path: '/locations/:location_id',
             element: <AuthRoute>
-                        <Layout route="locations_edit">
+                        <Layout route="locations_edit" paths={['/locations']}>
                             <LocationEditPage />
                         </Layout>
                     </AuthRoute>
@@ -124,7 +124,7 @@ function AppRouter() {
         {
             path: '/locations/add',
             element: <AuthRoute>
-                        <Layout route="locations_add">
+                        <Layout route="locations_add" paths={['/locations']}>
                             <LocationAddPage />
                         </Layout>
                     </AuthRoute>
@@ -132,7 +132,7 @@ function AppRouter() {
         {
             path: '/groups',
             element: <AuthRoute>
-                        <Layout route="groups">
+                        <Layout route="groups" paths={['/groups']}>
                             <GroupListPage />
                         </Layout>
                     </AuthRoute>
@@ -140,7 +140,7 @@ function AppRouter() {
         {
             path: '/groups/:group_id',
             element: <AuthRoute>
-                        <Layout route="groups_edit">
+                        <Layout route="groups_edit" paths={['/groups']}>
                             <GroupEditPage />
                         </Layout>
                     </AuthRoute>
@@ -148,7 +148,7 @@ function AppRouter() {
         {
             path: '/groups/add',
             element: <AuthRoute>
-                        <Layout route="groups_add">
+                        <Layout route="groups_add" paths={['/groups']}>
                             <GroupAddPage />
                         </Layout>
                     </AuthRoute>

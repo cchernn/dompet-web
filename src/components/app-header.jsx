@@ -8,7 +8,7 @@ import {
     BreadcrumbSeparator,
   } from "@/components/ui/breadcrumb"
 
-export function AppHeader({ route }) {
+export function AppHeader({ route, paths }) {
     const crumbs = route.split("_")
 
     return (
@@ -19,14 +19,18 @@ export function AppHeader({ route }) {
                         dompet
                     </BreadcrumbLink>
                 </BreadcrumbItem>
-                {crumbs.map((crumb, index) => (
-                    <React.Fragment key={index}>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbPage>{crumb}</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </React.Fragment>
-                ))}
+                {crumbs.map((crumb, index) => {
+                    const href = index < paths.length ? paths[index] : "#"
+                    
+                    return (
+                        <React.Fragment key={index}>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href={href}>{crumb}</BreadcrumbLink>
+                            </BreadcrumbItem>
+                        </React.Fragment>
+                    )
+                })}
             </BreadcrumbList>
         </Breadcrumb>
     )
