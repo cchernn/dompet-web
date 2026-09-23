@@ -1,10 +1,13 @@
 import {
     ChartColumn,
     FileText,
-    Group,
+    Landmark,
+    Tag,
+    Shapes,
     Paperclip,
     MapPin,
     Wallet,
+    PiggyBank,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -32,9 +35,19 @@ const items = [
         icon: FileText,
     },
     {
-        title: "Groups",
-        url: "/groups",
-        icon: Group,
+        title: "Accounts",
+        url: "/accounts",
+        icon: Landmark,
+    },
+    {
+        title: "Categories",
+        url: "/categories",
+        icon: Shapes,
+    },
+    {
+        title: "Tags",
+        url: "/tags",
+        icon: Tag,
     },
     {
         title: "Attachments",
@@ -45,6 +58,11 @@ const items = [
         title: "Locations",
         url: "/locations",
         icon: MapPin,
+    },
+    {
+        title: "Budgets",
+        url: "/budgets",
+        icon: PiggyBank,
     },
 ]
 export function AppSidebar({ ...props }) {

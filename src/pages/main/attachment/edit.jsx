@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
-import { useNavigate } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
+import { Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -10,264 +10,144 @@ import {
     FormLabel,
     FormControl,
     FormDescription,
-    FormMessage
+    FormMessage,
 } from "@/components/ui/form"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import {
     Card,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { 
-    Skeleton 
-} from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import authService from "@/lib/authService"
+import { toast } from "sonner"
+import { getAttachment, updateAttachment } from "@/api/attachments"
 
 const formSchema = z.object({
-    date: z.date(),
-    name: z.string()
-    .min(1, {message: "Name is required"})
-    .max(128, {message: 'Name must be less than 128 characters'}),
     filename: z.string()
-    .min(1, {message: "Filename is required"})
-    .max(128, {message: 'Filename must be less than 128 characters'}),
-    url: z.string()
-    .url({message: "Invalid URL format"}),
-    type: z.enum([
-        "pdf",
-        "jpeg",
-        "png",
-        "xlsx",
-    ])
+        .min(1, { message: "Filename is required" })
+        .max(255, { message: "Filename must be less than 255 characters" }),
 })
+
+function formatSize(bytes) {
+    if (bytes === null || bytes === undefined) return "—"
+    const units = ["B", "KB", "MB", "GB"]
+    let value = bytes
+    let unitIndex = 0
+    while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024
+        unitIndex += 1
+    }
+    return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
+}
 
 function AttachmentEditPage() {
     const { attachment_id } = useParams()
-    const [attachment, setAttachment] = useState({})
+    const [attachment, setAttachment] = useState(null)
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
     const form = useForm({
-        resolver: zodResolver(formSchema)
+        resolver: zodResolver(formSchema),
     })
 
     const {
-        formState: {errors, isSubmitting}
+        formState: { errors, isSubmitting },
     } = form
-
-    const onSubmit = async(data) => {
-            try {
-                data = setFormData(data)
-                const response = await authService.editData(`/attachments/${attachment_id}`, data)
-                navigate(`/attachments`)
-            } catch (error) {
-                console.error("Error", error)
-            }
-        }
-    
-    const onBack = () => {
-        navigate(-1)
-    }
 
     useEffect(() => {
         fetchAttachment()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     async function fetchAttachment() {
         try {
-            const response = await authService.fetchData(`/attachments/${attachment_id}`)
-            const data = response.data
+            const { data } = await getAttachment(attachment_id)
             setAttachment(data)
-            resetForm(data)
+            form.reset({ filename: data.filename ?? "" })
         } catch (error) {
-            console.log("Error", error)
+            toast.error(error.message)
         } finally {
             setLoading(false)
         }
     }
 
-    function setFormData(data) {
-        return {
-            ...data,
-            date: data.date ? data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }) : null,
-            name: data.name ?? null,
-            url: data.url ?? null,
-            filename: data.filename ?? null,
-            type: data.type ?? null,
+    const onSubmit = async (values) => {
+        const filename = values.filename?.trim()
+        if (!filename || filename === attachment?.filename) {
+            toast.info("Nothing to update")
+            navigate("/attachments")
+            return
+        }
+        try {
+            await updateAttachment(attachment_id, { filename })
+            toast.success("Attachment updated")
+            navigate("/attachments")
+        } catch (error) {
+            toast.error(error.message)
         }
     }
 
-    function resetForm(data)  {
-        form.reset({
-            date: data ? new Date(data.date) : null,
-            name: data.name ?? "",
-            url: data.url ?? "",
-            filename: data.filename ?? "",
-            type: data.type ?? "",
-        })
-    }
+    const onBack = () => navigate(-1)
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">
             <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
-            <CardHeader className="pt-0 pb-4">
-                <CardTitle>Attachment ID: {attachment_id}</CardTitle>
-            </CardHeader>
-            { 
-                loading ? 
-                    <div>
+                <CardHeader className="pt-0 pb-4">
+                    <CardTitle>Attachment ID: {attachment_id}</CardTitle>
+                </CardHeader>
+                {loading ? (
+                    <div className="w-full">
                         <Skeleton className="h-6 w-full my-2" />
                         <Skeleton className="h-6 w-full my-2" />
                     </div>
-                :
-                <Form {...form}>
-                    <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
-                        {/* Date Field */}
-                        <FormField 
-                            control={form.control}
-                            name="date"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Date</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button 
-                                                    variant={"outline"}
-                                                >
-                                                    {field.value ? (
-                                                        format(field.value, "PPP")
-                                                    ) : (
-                                                        <span>Pick a date</span>
-                                                    )}
-                                                    <CalendarIcon />
-                                                </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) => 
-                                                    date > new Date() || date < new Date("1900-01-01")
-                                                }
-                                                defaultMonth={field.value}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormDescription />
-                                    <FormMessage>{errors.date?.message}</FormMessage>
-                                </FormItem>
+                ) : (
+                    <>
+                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                            <Badge variant="secondary">{attachment?.content_type || "unknown type"}</Badge>
+                            <Badge variant="secondary">{formatSize(attachment?.size_bytes)}</Badge>
+                            <Badge variant={attachment?.is_active ? "secondary" : "outline"}>
+                                {attachment?.is_active ? "Active" : "Deleted"}
+                            </Badge>
+                            {attachment?.download_url && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => window.open(attachment.download_url, "_blank", "noreferrer")}
+                                >
+                                    <Download />Download
+                                </Button>
                             )}
-                        />
-
-                        {/* Name Field */}
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Name</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Attachment Name" {...field} />
-                                    </FormControl>
-                                    <FormDescription />
-                                    <FormMessage>{errors.name?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* URL Field */}
-                        <FormField
-                            control={form.control}
-                            name="url"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>URL</FormLabel>
-                                    <FormControl>
-                                        <Input 
-                                            type="url"
-                                            placeholder="Attachment URL" 
-                                            {...field} 
-                                        />
-                                    </FormControl>
-                                    <FormDescription />
-                                    <FormMessage>{errors.url?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Filename Field */}
-                        <FormField
-                            control={form.control}
-                            name="filename"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Filename</FormLabel>
-                                    <FormControl>
-                                        <Input 
-                                            placeholder="Attachment Filename" 
-                                            {...field} 
-                                        />
-                                    </FormControl>
-                                    <FormDescription />
-                                    <FormMessage>{errors.filename?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Type Field */}
-                        <FormField
-                            control={form.control}
-                            name="type"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Type</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a attachment type." />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="pdf">pdf</SelectItem>
-                                            <SelectItem value="jpeg">jpeg</SelectItem>
-                                            <SelectItem value="png">png</SelectItem>
-                                            <SelectItem value="xlsx">xlsx</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormDescription />
-                                    <FormMessage>{errors.type?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="flex flex-col gap-2 w-full max-w-xs">
-                            <Button type="submit" disabled={isSubmitting}>Submit</Button>
-                            <Button type="button" onClick={onBack}>Back</Button>
                         </div>
-                    </form>
-                </Form>
-            }
+                        <Form {...form}>
+                            <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
+                                <FormField
+                                    control={form.control}
+                                    name="filename"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Filename</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Filename" {...field} />
+                                            </FormControl>
+                                            <FormDescription>
+                                                Renames the attachment&apos;s metadata only. To replace the file itself, upload a new attachment.
+                                            </FormDescription>
+                                            <FormMessage>{errors.filename?.message}</FormMessage>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <div className="flex flex-col gap-2 w-full max-w-xs">
+                                    <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                                    <Button type="button" onClick={onBack}>Back</Button>
+                                </div>
+                            </form>
+                        </Form>
+                    </>
+                )}
             </Card>
         </div>
     )

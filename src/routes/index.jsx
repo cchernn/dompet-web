@@ -5,29 +5,44 @@ import {
     ConfirmPage,
     SignInPage,
     SignOutPage,
-    SignUpPage, 
+    SignUpPage,
 } from "@/pages/auth"
 import HomePage from "@/pages/main/home"
-import  {
+import {
     TransactionListPage,
     TransactionEditPage,
     TransactionAddPage,
 } from "@/pages/main/transaction"
 import {
-    AttachmentListPage,
-    AttachmentEditPage,
-    AttachmentAddPage,
-} from "@/pages/main/attachment"
+    AccountListPage,
+    AccountEditPage,
+    AccountAddPage,
+} from "@/pages/main/account"
+import {
+    CategoryListPage,
+    CategoryEditPage,
+    CategoryAddPage,
+} from "@/pages/main/category"
 import {
     LocationListPage,
     LocationEditPage,
     LocationAddPage,
 } from "@/pages/main/location"
 import {
-    GroupListPage,
-    GroupEditPage,
-    GroupAddPage,
-} from "@/pages/main/group"
+    TagListPage,
+    TagEditPage,
+    TagAddPage,
+} from "@/pages/main/tag"
+import {
+    AttachmentListPage,
+    AttachmentEditPage,
+    AttachmentAddPage,
+} from "@/pages/main/attachment"
+import {
+    BudgetListPage,
+    BudgetEditPage,
+    BudgetAddPage,
+} from "@/pages/main/budget"
 
 function AppRouter() {
     const publicRoutes = [
@@ -82,26 +97,50 @@ function AppRouter() {
                     </AuthRoute>
         },
         {
-            path: '/attachments',
+            path: '/accounts',
             element: <AuthRoute>
-                        <Layout route="attachments" paths={['/attachments']}>
-                            <AttachmentListPage />
+                        <Layout route="accounts" paths={['/accounts']}>
+                            <AccountListPage />
                         </Layout>
                     </AuthRoute>
         },
         {
-            path: '/attachments/:attachment_id',
+            path: '/accounts/:account_id',
             element: <AuthRoute>
-                        <Layout route="attachments_edit" paths={['/attachments']}>
-                            <AttachmentEditPage />
+                        <Layout route="accounts_edit" paths={['/accounts']}>
+                            <AccountEditPage />
                         </Layout>
                     </AuthRoute>
         },
         {
-            path: '/attachments/add',
+            path: '/accounts/add',
             element: <AuthRoute>
-                        <Layout route="attachments_add" paths={['/attachments']}>
-                            <AttachmentAddPage />
+                        <Layout route="accounts_add" paths={['/accounts']}>
+                            <AccountAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/categories',
+            element: <AuthRoute>
+                        <Layout route="categories" paths={['/categories']}>
+                            <CategoryListPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/categories/:category_id',
+            element: <AuthRoute>
+                        <Layout route="categories_edit" paths={['/categories']}>
+                            <CategoryEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/categories/add',
+            element: <AuthRoute>
+                        <Layout route="categories_add" paths={['/categories']}>
+                            <CategoryAddPage />
                         </Layout>
                     </AuthRoute>
         },
@@ -130,26 +169,74 @@ function AppRouter() {
                     </AuthRoute>
         },
         {
-            path: '/groups',
+            path: '/tags',
             element: <AuthRoute>
-                        <Layout route="groups" paths={['/groups']}>
-                            <GroupListPage />
+                        <Layout route="tags" paths={['/tags']}>
+                            <TagListPage />
                         </Layout>
                     </AuthRoute>
         },
         {
-            path: '/groups/:group_id',
+            path: '/tags/:tag_id',
             element: <AuthRoute>
-                        <Layout route="groups_edit" paths={['/groups']}>
-                            <GroupEditPage />
+                        <Layout route="tags_edit" paths={['/tags']}>
+                            <TagEditPage />
                         </Layout>
                     </AuthRoute>
         },
         {
-            path: '/groups/add',
+            path: '/tags/add',
             element: <AuthRoute>
-                        <Layout route="groups_add" paths={['/groups']}>
-                            <GroupAddPage />
+                        <Layout route="tags_add" paths={['/tags']}>
+                            <TagAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/attachments',
+            element: <AuthRoute>
+                        <Layout route="attachments" paths={['/attachments']}>
+                            <AttachmentListPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/attachments/:attachment_id',
+            element: <AuthRoute>
+                        <Layout route="attachments_edit" paths={['/attachments']}>
+                            <AttachmentEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/attachments/add',
+            element: <AuthRoute>
+                        <Layout route="attachments_add" paths={['/attachments']}>
+                            <AttachmentAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/budgets',
+            element: <AuthRoute>
+                        <Layout route="budgets" paths={['/budgets']}>
+                            <BudgetListPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/budgets/:budget_id',
+            element: <AuthRoute>
+                        <Layout route="budgets_edit" paths={['/budgets']}>
+                            <BudgetEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/budgets/add',
+            element: <AuthRoute>
+                        <Layout route="budgets_add" paths={['/budgets']}>
+                            <BudgetAddPage />
                         </Layout>
                     </AuthRoute>
         },

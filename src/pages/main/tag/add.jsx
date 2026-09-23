@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -8,67 +9,50 @@ import {
     FormLabel,
     FormControl,
     FormDescription,
-    FormMessage
+    FormMessage,
 } from "@/components/ui/form"
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import authService from "@/lib/authService"
+import { createTag } from "@/api/tags"
 
 const formSchema = z.object({
-    name: z.string()
-    .min(1, {message: "Name is required"})
-    .max(128, {message: 'Name must be less than 128 characters'}),
+    name: z.string().min(1, { message: "Name is required" }).max(255, { message: "Name must be less than 255 characters" }),
 })
 
-function GroupAddPage() {
+function TagAddPage() {
     const navigate = useNavigate()
-    
+
     const form = useForm({
-            resolver: zodResolver(formSchema),
-            defaultValues: {
-                name: "",
-            }
-        })
-    
+        resolver: zodResolver(formSchema),
+        defaultValues: { name: "" },
+    })
+
     const {
-        formState: {errors, isSubmitting}
+        formState: { errors, isSubmitting },
     } = form
 
-    const onSubmit = async(data) => {
+    const onSubmit = async (data) => {
         try {
-            data = setFormData(data)
-            const response = await authService.addData(`/groups`, data)
-            navigate(`/groups`)
+            await createTag({ name: data.name })
+            toast.success("Tag created")
+            navigate("/tags")
         } catch (error) {
-            console.error("Error", error)
+            toast.error(error.message)
         }
     }
 
-    const onBack = () => {
-        navigate(-1)
-    }
-
-    function setFormData(data) {
-        return {
-            name: data.name ?? null,
-        }
-    }
+    const onBack = () => navigate(-1)
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">
             <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
                 <CardHeader className="pt-0 pb-4">
-                    <CardTitle>New Group</CardTitle>
+                    <CardTitle>New Tag</CardTitle>
                 </CardHeader>
-                <Form  {...form}>
+                <Form {...form}>
                     <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
-                        {/* Name Field */}
                         <FormField
                             control={form.control}
                             name="name"
@@ -76,7 +60,7 @@ function GroupAddPage() {
                                 <FormItem>
                                     <FormLabel>Name</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Group Name" {...field} />
+                                        <Input placeholder="Tag Name" {...field} />
                                     </FormControl>
                                     <FormDescription />
                                     <FormMessage>{errors.name?.message}</FormMessage>
@@ -95,4 +79,4 @@ function GroupAddPage() {
     )
 }
 
-export default GroupAddPage
+export default TagAddPage

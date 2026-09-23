@@ -1,9 +1,8 @@
 import { useNavigate } from "react-router-dom"
 import {
-    FilePenLine,
+    Users,
     Trash2,
     FilePlus,
-    Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,40 +27,28 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import { toast } from "sonner"
-import { listAttachments, deleteAttachment } from "@/api/attachments"
+import { listBudgets, deleteBudget } from "@/api/budgets"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 
-function formatSize(bytes) {
-    if (bytes === null || bytes === undefined) return "—"
-    const units = ["B", "KB", "MB", "GB"]
-    let value = bytes
-    let unitIndex = 0
-    while (value >= 1024 && unitIndex < units.length - 1) {
-        value /= 1024
-        unitIndex += 1
-    }
-    return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
-}
-
-function AttachmentListPage() {
+function BudgetListPage() {
     const navigate = useNavigate()
     const {
-        items: attachments,
+        items: budgets,
         loading,
         page,
         totalPages,
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listAttachments({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => listBudgets({ page, pageSize }))
 
-    const handleEdit = (id) => navigate(`/attachments/${id}`)
-    const handleAdd = () => navigate(`/attachments/add`)
+    const handleManage = (id) => navigate(`/budgets/${id}`)
+    const handleAdd = () => navigate(`/budgets/add`)
 
     const handleDelete = async (id) => {
         try {
-            await deleteAttachment(id)
-            toast.success("Attachment deleted")
+            await deleteBudget(id)
+            toast.success("Budget deleted")
             reload()
         } catch (error) {
             toast.error(error.message)
@@ -78,9 +65,9 @@ function AttachmentListPage() {
                             <Skeleton className="h-6 w-full my-2" />
                             <Skeleton className="h-6 w-full my-2" />
                         </div>
-                    ) : attachments.length === 0 ? (
+                    ) : budgets.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
-                            <h2>No Attachments Available</h2>
+                            <h2>No Budgets Available</h2>
                         </div>
                     ) : (
                         <Table className="min-w-full">
@@ -109,36 +96,27 @@ function AttachmentListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Filename</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Size</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Type</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {attachments.map((attachment) => (
-                                    <TableRow key={attachment.id}>
-                                        <TableCell className="text-sm">{attachment.filename}</TableCell>
-                                        <TableCell className="text-sm">{formatSize(attachment.size_bytes)}</TableCell>
-                                        <TableCell className="text-sm">{attachment.content_type || "—"}</TableCell>
+                                {budgets.map((budget) => (
+                                    <TableRow key={budget.id}>
+                                        <TableCell className="text-sm">{budget.name}</TableCell>
                                         <TableCell className="text-sm">
-                                            <Badge variant={attachment.is_active ? "secondary" : "outline"}>
-                                                {attachment.is_active ? "Active" : "Deleted"}
+                                            <Badge variant={budget.is_active ? "secondary" : "outline"}>
+                                                {budget.is_active ? "Active" : "Deleted"}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="flex justify-center items-center gap-1">
-                                            {attachment.download_url && (
-                                                <Button variant="outline" onClick={() => window.open(attachment.download_url, "_blank", "noreferrer")}>
-                                                    <Download />
-                                                </Button>
-                                            )}
-                                            <Button onClick={() => handleEdit(attachment.id)}><FilePenLine /></Button>
+                                            <Button onClick={() => handleManage(budget.id)}><Users />Manage</Button>
                                             <Alert
                                                 button_text={<Trash2 />}
                                                 title="Confirm Delete"
-                                                description="This action cannot be undone. Deleted attachments cannot be restored from this app."
-                                                action={() => handleDelete(attachment.id)}
+                                                description="This action cannot be undone. Deleted budgets cannot be restored from this app."
+                                                action={() => handleDelete(budget.id)}
                                             />
                                         </TableCell>
                                     </TableRow>
@@ -152,4 +130,4 @@ function AttachmentListPage() {
     )
 }
 
-export default AttachmentListPage
+export default BudgetListPage

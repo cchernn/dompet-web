@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { FilePenLine, Trash2, FilePlus, Link } from "lucide-react"
+import { FilePenLine, FilePlus, Ban, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Table,
@@ -24,12 +24,12 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import Alert from "@/lib/alertDialog"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
-import { listLocations, deleteLocation } from "@/api/locations"
+import { listAccounts, deactivateAccount, reactivateAccount } from "@/api/accounts"
 
-function LocationListPage() {
+function AccountListPage() {
     const navigate = useNavigate()
     const {
-        items: locations,
+        items: accounts,
         page,
         totalPages,
         totalCount,
@@ -37,35 +37,41 @@ function LocationListPage() {
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listLocations({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => listAccounts({ page, pageSize }))
 
     const handleEdit = (id) => {
-        navigate(`/locations/${id}`)
+        navigate(`/accounts/${id}`)
     }
 
     const handleAdd = () => {
-        navigate(`/locations/add`)
+        navigate(`/accounts/add`)
     }
 
-    const handleDelete = async (id) => {
+    const handleDeactivate = async (id) => {
         try {
-            await deleteLocation(id)
-            toast.success("Location deleted.")
+            await deactivateAccount(id)
+            toast.success("Account deactivated.")
             reload()
         } catch (error) {
             toast.error(error.message)
         }
     }
 
-    const handleOpenUrl = (url) => {
-        window.open(url, "_blank", "noopener,noreferrer")
+    const handleReactivate = async (id) => {
+        try {
+            await reactivateAccount(id)
+            toast.success("Account reactivated.")
+            reload()
+        } catch (error) {
+            toast.error(error.message)
+        }
     }
 
     return (
         <div className="min-h-svh m-2">
             <div className="flex items-center gap-3 m-2">
                 <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add</Button>
-                {!loading && <span className="text-sm text-muted-foreground">{totalCount} location{totalCount === 1 ? "" : "s"}</span>}
+                {!loading && <span className="text-sm text-muted-foreground">{totalCount} account{totalCount === 1 ? "" : "s"}</span>}
             </div>
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
@@ -76,9 +82,9 @@ function LocationListPage() {
                                 <Skeleton className="h-6 w-full my-2" />
                             </div>
                         :
-                        locations.length === 0 ?
+                        accounts.length === 0 ?
                             <div className="h-20 flex text-center items-center justify-center w-full">
-                                <h2>No Locations Available</h2>
+                                <h2>No Accounts Available</h2>
                             </div>
                         :
                         <Table className="min-w-full">
@@ -107,46 +113,44 @@ function LocationListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Type</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Code</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Link</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Description</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {locations.map((location) => {
-                                    const url = location.type === "physical" ? location.google_maps_url : location.url
-                                    return (
-                                        <TableRow key={location.id}>
-                                            <TableCell className="text-sm">
-                                                <Badge variant="secondary">{location.type}</Badge>
-                                            </TableCell>
-                                            <TableCell className="text-sm">{location.name}</TableCell>
-                                            <TableCell className="text-sm">
-                                                {url ? (
-                                                    <Button title={url} onClick={() => handleOpenUrl(url)}>
-                                                        <Link /><span className="truncate max-w-[160px] hidden xl:inline">{url}</span>
-                                                    </Button>
-                                                ) : ""}
-                                            </TableCell>
-                                            <TableCell className="text-sm">
-                                                <Badge variant={location.is_active ? "secondary" : "outline"}>
-                                                    {location.is_active ? "Active" : "Inactive"}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="flex justify-center items-center gap-1">
-                                                <Button onClick={() => handleEdit(location.id)}><FilePenLine /></Button>
+                                {accounts.map((account) => (
+                                    <TableRow key={account.id}>
+                                        <TableCell className="text-sm">{account.code}</TableCell>
+                                        <TableCell className="text-sm">{account.name}</TableCell>
+                                        <TableCell className="text-sm truncate max-w-[240px]" title={account.description}>{account.description}</TableCell>
+                                        <TableCell className="text-sm">
+                                            <Badge variant={account.is_active ? "secondary" : "outline"}>
+                                                {account.is_active ? "Active" : "Inactive"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="flex justify-center items-center gap-1">
+                                            <Button onClick={() => handleEdit(account.id)}><FilePenLine /></Button>
+                                            {account.is_active ? (
                                                 <Alert
-                                                    button_text={<Trash2 />}
-                                                    title="Confirm Delete"
-                                                    description="This action cannot be undone and cannot be reversed from this app."
-                                                    action={() => handleDelete(location.id)}
+                                                    button_text={<Ban />}
+                                                    title="Confirm Deactivate"
+                                                    description="This account will be marked inactive. You can reactivate it later."
+                                                    action={() => handleDeactivate(account.id)}
                                                 />
-                                            </TableCell>
-                                        </TableRow>
-                                    )
-                                })}
+                                            ) : (
+                                                <Alert
+                                                    button_text={<RotateCcw />}
+                                                    title="Confirm Reactivate"
+                                                    description="This account will be marked active again."
+                                                    action={() => handleReactivate(account.id)}
+                                                />
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
                             </TableBody>
                         </Table>
                     }
@@ -156,4 +160,4 @@ function LocationListPage() {
     )
 }
 
-export default LocationListPage
+export default AccountListPage

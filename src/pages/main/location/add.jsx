@@ -10,14 +10,6 @@ import {
     FormDescription,
     FormMessage
 } from "@/components/ui/form"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
 import {
     Select,
     SelectContent,
@@ -29,57 +21,55 @@ import {
     Card,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"  
+} from "@/components/ui/card"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import authService from "@/lib/authService"
+import { toast } from "sonner"
+import { createLocation } from "@/api/locations"
 
 const formSchema = z.object({
+    type: z.enum(["physical", "online"]),
     name: z.string()
-    .min(1, {message: "Name is required"})
-    .max(128, {message: 'Name must be less than 128 characters'}),
-    url: z.string()
-    // .url({message: "Invalid URL format"})
-    .optional().nullable(),
-    google_page_link: z.string()
-    // .url({message: "Invalid URL format"})
-    .optional().nullable(),
-    google_maps_link: z.string()
-    // .url({message: "Invalid URL format"})
-    .optional().nullable(),
-    category: z.string()
-    .max(128, {message: 'Category must be less than 128 characters'}),
-    access_type: z.string()
-    .max(128, {message: 'Access Type must be less than 128 characters'}),
+        .min(1, { message: "Name is required" })
+        .max(255, { message: "Name must be less than 255 characters" }),
+    google_maps_url: z.string().optional(),
+    url: z.string().optional(),
 })
 
 function LocationAddPage() {
     const navigate = useNavigate()
-    
+
     const form = useForm({
-            resolver: zodResolver(formSchema),
-            defaultValues: {
-                name: "",
-                url: "",
-                google_page_link: "",
-                google_maps_link: "",
-                category: "",
-                access_type: "",
-            }
-        })
-    
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            type: "physical",
+            name: "",
+            google_maps_url: "",
+            url: "",
+        }
+    })
+
     const {
-        formState: {errors, isSubmitting}
+        formState: { errors, isSubmitting }
     } = form
 
-    const onSubmit = async(data) => {
+    const type = form.watch("type")
+
+    const onSubmit = async (data) => {
         try {
-            data = setFormData(data)
-            const response = await authService.addData(`/locations`, data)
+            const body = {
+                type: data.type,
+                name: data.name,
+                ...(data.type === "physical"
+                    ? { google_maps_url: data.google_maps_url || undefined }
+                    : { url: data.url || undefined }),
+            }
+            await createLocation(body)
+            toast.success("Location created.")
             navigate(`/locations`)
         } catch (error) {
-            console.error("Error", error)
+            toast.error(error.message)
         }
     }
 
@@ -87,26 +77,38 @@ function LocationAddPage() {
         navigate(-1)
     }
 
-    function setFormData(data) {
-        return {
-            ...data,
-            name: data.name ?? null,
-            url: data.url ?? null,
-            google_page_link: data.google_page_link ?? null,
-            google_maps_link: data.google_maps_link ?? null,
-            category: data.category ?? null,
-            access_type: data.access_type ?? null,
-        }
-    }
-
     return (
         <div className="min-h-svh m-2 items-center justify-center">
             <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
-            <CardHeader className="pt-0 pb-4">
-                <CardTitle>New Location</CardTitle>
-            </CardHeader>
+                <CardHeader className="pt-0 pb-4">
+                    <CardTitle>New Location</CardTitle>
+                </CardHeader>
                 <Form {...form}>
                     <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
+                        {/* Type Field */}
+                        <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a location type." />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="physical">Physical</SelectItem>
+                                            <SelectItem value="online">Online</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormDescription />
+                                    <FormMessage>{errors.type?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+
                         {/* Name Field */}
                         <FormField
                             control={form.control}
@@ -123,106 +125,38 @@ function LocationAddPage() {
                             )}
                         />
 
-                        {/* URL Field */}
-                        <FormField
-                            control={form.control}
-                            name="url"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>URL</FormLabel>
-                                    <FormControl>
-                                        <Input 
-                                            type="url"
-                                            placeholder="Location URL" 
-                                            {...field} 
-                                        />
-                                    </FormControl>
-                                    <FormDescription />
-                                    <FormMessage>{errors.url?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Google Page Link Field */}
-                        <FormField
-                            control={form.control}
-                            name="google_page_link"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Google Page Link</FormLabel>
-                                    <FormControl>
-                                        <Input 
-                                            type="url"
-                                            placeholder="Location Google Page Link" 
-                                            {...field} 
-                                        />
-                                    </FormControl>
-                                    <FormDescription />
-                                    <FormMessage>{errors.google_page_link?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Google Maps Link Field */}
-                        <FormField
-                            control={form.control}
-                            name="google_maps_link"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Google Maps Link</FormLabel>
-                                    <FormControl>
-                                        <Input 
-                                            type="url"
-                                            placeholder="Location Google Maps Link" 
-                                            {...field} 
-                                        />
-                                    </FormControl>
-                                    <FormDescription />
-                                    <FormMessage>{errors.google_maps_link?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Category Field */}
-                        <FormField
-                            control={form.control}
-                            name="category"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Category</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Location Category" {...field} />
-                                    </FormControl>
-                                    <FormDescription />
-                                    <FormMessage>{errors.category?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Access Type Field */}
-                        <FormField
-                            control={form.control}
-                            name="access_type"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Type</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                        {/* Conditional URL field, based on type */}
+                        {type === "physical" ? (
+                            <FormField
+                                control={form.control}
+                                name="google_maps_url"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Google Maps URL</FormLabel>
                                         <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a location type." />
-                                            </SelectTrigger>
+                                            <Input type="url" placeholder="Google Maps URL" {...field} />
                                         </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="onsite">Onsite</SelectItem>
-                                            <SelectItem value="online">Online</SelectItem>
-                                            <SelectItem value="others">Others</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormDescription />
-                                    <FormMessage>{errors.type?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
+                                        <FormDescription />
+                                        <FormMessage>{errors.google_maps_url?.message}</FormMessage>
+                                    </FormItem>
+                                )}
+                            />
+                        ) : (
+                            <FormField
+                                control={form.control}
+                                name="url"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Site URL</FormLabel>
+                                        <FormControl>
+                                            <Input type="url" placeholder="Site URL" {...field} />
+                                        </FormControl>
+                                        <FormDescription />
+                                        <FormMessage>{errors.url?.message}</FormMessage>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
 
                         <div className="flex flex-col gap-2 w-full max-w-xs">
                             <Button type="submit" disabled={isSubmitting}>Submit</Button>

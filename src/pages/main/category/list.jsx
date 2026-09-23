@@ -1,10 +1,6 @@
 import { useNavigate } from "react-router-dom"
-import {
-    FilePenLine,
-    Trash2,
-    FilePlus,
-    Download,
-} from "lucide-react"
+import { FilePenLine, Trash2, FilePlus } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
     Table,
@@ -27,41 +23,33 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
-import { toast } from "sonner"
-import { listAttachments, deleteAttachment } from "@/api/attachments"
+import { listCategories, deleteCategory } from "@/api/categories"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 
-function formatSize(bytes) {
-    if (bytes === null || bytes === undefined) return "—"
-    const units = ["B", "KB", "MB", "GB"]
-    let value = bytes
-    let unitIndex = 0
-    while (value >= 1024 && unitIndex < units.length - 1) {
-        value /= 1024
-        unitIndex += 1
-    }
-    return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
-}
-
-function AttachmentListPage() {
+function CategoryListPage() {
     const navigate = useNavigate()
     const {
-        items: attachments,
-        loading,
+        items: categories,
         page,
         totalPages,
+        loading,
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listAttachments({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => listCategories({ page, pageSize }))
 
-    const handleEdit = (id) => navigate(`/attachments/${id}`)
-    const handleAdd = () => navigate(`/attachments/add`)
+    const parentName = (parentId) => categories.find((c) => c.id === parentId)?.name ?? "—"
+
+    const handleAdd = () => navigate("/categories/add")
+
+    const handleEdit = (category) => {
+        navigate(`/categories/${category.id}`, { state: { category } })
+    }
 
     const handleDelete = async (id) => {
         try {
-            await deleteAttachment(id)
-            toast.success("Attachment deleted")
+            await deleteCategory(id)
+            toast.success("Category deleted")
             reload()
         } catch (error) {
             toast.error(error.message)
@@ -78,9 +66,9 @@ function AttachmentListPage() {
                             <Skeleton className="h-6 w-full my-2" />
                             <Skeleton className="h-6 w-full my-2" />
                         </div>
-                    ) : attachments.length === 0 ? (
+                    ) : categories.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
-                            <h2>No Attachments Available</h2>
+                            <h2>No Categories Available</h2>
                         </div>
                     ) : (
                         <Table className="min-w-full">
@@ -109,40 +97,40 @@ function AttachmentListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Filename</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Size</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Type</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Parent</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Owner</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Active</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {attachments.map((attachment) => (
-                                    <TableRow key={attachment.id}>
-                                        <TableCell className="text-sm">{attachment.filename}</TableCell>
-                                        <TableCell className="text-sm">{formatSize(attachment.size_bytes)}</TableCell>
-                                        <TableCell className="text-sm">{attachment.content_type || "—"}</TableCell>
-                                        <TableCell className="text-sm">
-                                            <Badge variant={attachment.is_active ? "secondary" : "outline"}>
-                                                {attachment.is_active ? "Active" : "Deleted"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="flex justify-center items-center gap-1">
-                                            {attachment.download_url && (
-                                                <Button variant="outline" onClick={() => window.open(attachment.download_url, "_blank", "noreferrer")}>
-                                                    <Download />
-                                                </Button>
-                                            )}
-                                            <Button onClick={() => handleEdit(attachment.id)}><FilePenLine /></Button>
-                                            <Alert
-                                                button_text={<Trash2 />}
-                                                title="Confirm Delete"
-                                                description="This action cannot be undone. Deleted attachments cannot be restored from this app."
-                                                action={() => handleDelete(attachment.id)}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {categories.map((category) => {
+                                    const isGlobal = category.user_id === null || category.user_id === undefined
+                                    return (
+                                        <TableRow key={category.id}>
+                                            <TableCell className="text-sm">{category.name}</TableCell>
+                                            <TableCell className="text-sm">{category.parent_id ? parentName(category.parent_id) : "—"}</TableCell>
+                                            <TableCell className="text-sm">
+                                                <Badge variant="secondary">{isGlobal ? "Global" : "Mine"}</Badge>
+                                            </TableCell>
+                                            <TableCell className="text-sm">{category.is_active ? "Yes" : "No"}</TableCell>
+                                            <TableCell className="flex justify-center items-center gap-1">
+                                                {!isGlobal && (
+                                                    <>
+                                                        <Button onClick={() => handleEdit(category)}><FilePenLine /></Button>
+                                                        <Alert
+                                                            button_text={<Trash2 />}
+                                                            title="Confirm Delete"
+                                                            description="This action cannot be undone. This will permanently deactivate this category."
+                                                            action={() => handleDelete(category.id)}
+                                                        />
+                                                    </>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
                     )}
@@ -152,4 +140,4 @@ function AttachmentListPage() {
     )
 }
 
-export default AttachmentListPage
+export default CategoryListPage
