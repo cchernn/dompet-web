@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
     FilePenLine, FilePlus, Ban, X, ArrowUp, ArrowDown, ArrowUpDown, Paperclip,
-    Tag, Plus, Minus, ArrowLeftRight, ArrowRight, SlidersHorizontal, CalendarIcon,
+    Tag, ArrowRight, SlidersHorizontal, CalendarIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 import { format, parse } from "date-fns"
@@ -48,7 +48,7 @@ import { Badge } from "@/components/ui/badge"
 import { Combobox } from "@/components/ui/combobox"
 import Alert from "@/lib/alertDialog"
 import { cn } from "@/lib/utils"
-import { CURRENCIES } from "@/lib/currencies"
+import { AmountDisplay } from "@/components/amount-display"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { searchTransactions, deactivateTransaction } from "@/api/transactions"
 import { listCategories } from "@/api/categories"
@@ -75,27 +75,6 @@ function formatDateRangeLabel(from, to) {
     }
     if (fromDate) return `From ${format(fromDate, "d MMM yyyy")}`
     return `Until ${format(toDate, "d MMM yyyy")}`
-}
-
-const AMOUNT_META = {
-    expenditure: { Icon: Minus, color: "text-red-600" },
-    income: { Icon: Plus, color: "text-green-600" },
-    transfer: { Icon: ArrowLeftRight, color: "text-blue-600" },
-}
-
-function AmountDisplay({ transaction, className }) {
-    const meta = AMOUNT_META[transaction.type] ?? { Icon: ArrowLeftRight, color: "text-muted-foreground" }
-    const symbol = CURRENCIES.find((c) => c.code === transaction.currency)?.symbol ?? transaction.currency
-    const amount = Number(transaction.amount).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    })
-    return (
-        <span className={cn("inline-flex items-center gap-1 font-medium tabular-nums", meta.color, className)}>
-            <meta.Icon className="size-3.5" />
-            {symbol} {amount}
-        </span>
-    )
 }
 
 // Sorts only the rows already on the current page — the backend has no sort
