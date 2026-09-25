@@ -36,7 +36,7 @@ import { listAccounts } from "@/api/accounts"
 import { listCategories } from "@/api/categories"
 import { listTags } from "@/api/tags"
 import { listTransactionTags, linkTag, unlinkTag } from "@/api/transactionTags"
-import { listAttachments } from "@/api/attachments"
+import { listAttachments, getAttachment } from "@/api/attachments"
 import { listTransactionAttachments, linkAttachment, unlinkAttachment } from "@/api/transactionAttachments"
 import { listBudgets } from "@/api/budgets"
 import { listTransactionBudgets, linkBudget, unlinkBudget } from "@/api/transactionBudgets"
@@ -44,6 +44,7 @@ import { CURRENCIES } from "@/lib/currencies"
 
 const formSchema = z.object({
     date: z.date({ required_error: "Date is required" }),
+    time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, { message: "Use HH:MM (24-hour)" }),
     name: z.string()
         .min(1, { message: "Name is required" })
         .max(255, { message: "Name must be less than 255 characters" }),
@@ -142,8 +143,15 @@ function TransactionEditPage() {
         try {
             const { data } = await getTransaction(transaction_id)
             setTransaction(data)
+            const dt = new Date(data.datetime)
             form.reset({
-                date: new Date(data.date),
+                date: dt,
+                time: dt.toLocaleTimeString("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                    timeZone: "Asia/Kuala_Lumpur",
+                }),
                 name: data.name ?? "",
                 type: data.type,
                 amount: parseFloat(data.amount),
@@ -214,8 +222,9 @@ function TransactionEditPage() {
 
     const onSubmit = async (data) => {
         try {
+            const datePart = data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" })
             const patch = {
-                date: data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }),
+                datetime: `${datePart}T${data.time}:00`,
                 type: data.type,
                 amount: data.amount,
                 currency_code: data.currency_code,
@@ -236,6 +245,20 @@ function TransactionEditPage() {
     }
 
     const onBack = () => navigate(-1)
+
+    const handleOpenAttachment = async (attachmentId) => {
+        // Linked-attachment listings no longer carry a download_url (listing
+        // many attachments shouldn't pay for an S3 presigned-URL generation
+        // per row) — fetch one on demand for the attachment being opened.
+        const newTab = window.open("", "_blank")
+        try {
+            const { data } = await getAttachment(attachmentId)
+            if (newTab) newTab.location.href = data.download_url
+        } catch (error) {
+            if (newTab) newTab.close()
+            toast.error(error.message)
+        }
+    }
 
     const handleToggleActive = async () => {
         try {
@@ -322,6 +345,22 @@ function TransactionEditPage() {
                                         </Popover>
                                         <FormDescription />
                                         <FormMessage>{errors.date?.message}</FormMessage>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Time Field */}
+                            <FormField
+                                control={form.control}
+                                name="time"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Time</FormLabel>
+                                        <FormControl>
+                                            <Input type="time" className="w-40" {...field} />
+                                        </FormControl>
+                                        <FormDescription />
+                                        <FormMessage>{errors.time?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />
@@ -515,13 +554,15 @@ function TransactionEditPage() {
                             options={attachmentOptions}
                             comboboxPlaceholder="Select an attachment to link"
                             renderItemLabel={(attachment) => attachment.filename}
-                            renderItemExtra={(attachment) =>
-                                attachment.download_url && (
-                                    <a href={attachment.download_url} target="_blank" rel="noreferrer" title="Download">
-                                        <Download className="size-3" />
-                                    </a>
-                                )
-                            }
+                            renderItemExtra={(attachment) => (
+                                <button
+                                    type="button"
+                                    title="Download"
+                                    onClick={() => handleOpenAttachment(attachment.id)}
+                                >
+                                    <Download className="size-3" />
+                                </button>
+                            )}
                             onLink={async (attachmentId) => {
                                 try {
                                     await linkAttachment(transaction_id, attachmentId)

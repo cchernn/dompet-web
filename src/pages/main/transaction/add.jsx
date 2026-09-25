@@ -35,6 +35,7 @@ import { CURRENCIES } from "@/lib/currencies"
 
 const formSchema = z.object({
     date: z.date({ required_error: "Date is required" }),
+    time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, { message: "Use HH:MM (24-hour)" }),
     name: z.string()
         .min(1, { message: "Name is required" })
         .max(255, { message: "Name must be less than 255 characters" }),
@@ -56,6 +57,7 @@ function TransactionAddPage() {
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            time: "00:00",
             name: "",
             type: "expenditure",
             amount: 0,
@@ -82,8 +84,9 @@ function TransactionAddPage() {
 
     const onSubmit = async (data) => {
         try {
+            const datePart = data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" })
             await createTransaction({
-                date: data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" }),
+                datetime: `${datePart}T${data.time}:00`,
                 name: data.name,
                 type: data.type,
                 amount: data.amount,
@@ -138,6 +141,22 @@ function TransactionAddPage() {
                                     </Popover>
                                     <FormDescription />
                                     <FormMessage>{errors.date?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Time Field */}
+                        <FormField
+                            control={form.control}
+                            name="time"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Time</FormLabel>
+                                    <FormControl>
+                                        <Input type="time" className="w-40" {...field} />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage>{errors.time?.message}</FormMessage>
                                 </FormItem>
                             )}
                         />

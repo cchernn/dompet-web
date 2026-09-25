@@ -28,7 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import { toast } from "sonner"
-import { listAttachments, deleteAttachment } from "@/api/attachments"
+import { listAttachments, deleteAttachment, getAttachment } from "@/api/attachments"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 
 function formatSize(bytes) {
@@ -57,6 +57,21 @@ function AttachmentListPage() {
 
     const handleEdit = (id) => navigate(`/attachments/${id}`)
     const handleAdd = () => navigate(`/attachments/add`)
+
+    const handleOpenAttachment = async (attachmentId) => {
+        // The list response no longer carries a download_url (listing many
+        // attachments shouldn't pay for an S3 presigned-URL generation per
+        // row) — fetch one on demand for the specific attachment being
+        // opened, same pattern as the transactions page.
+        const newTab = window.open("", "_blank")
+        try {
+            const { data } = await getAttachment(attachmentId)
+            if (newTab) newTab.location.href = data.download_url
+        } catch (error) {
+            if (newTab) newTab.close()
+            toast.error(error.message)
+        }
+    }
 
     const handleDelete = async (id) => {
         try {
@@ -128,11 +143,9 @@ function AttachmentListPage() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="flex justify-center items-center gap-1">
-                                            {attachment.download_url && (
-                                                <Button variant="outline" onClick={() => window.open(attachment.download_url, "_blank", "noreferrer")}>
-                                                    <Download />
-                                                </Button>
-                                            )}
+                                            <Button variant="outline" onClick={() => handleOpenAttachment(attachment.id)}>
+                                                <Download />
+                                            </Button>
                                             <Button onClick={() => handleEdit(attachment.id)}><FilePenLine /></Button>
                                             <Alert
                                                 button_text={<Trash2 />}
