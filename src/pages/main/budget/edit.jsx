@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { UserPlus, UserMinus } from "lucide-react"
+import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -308,7 +309,7 @@ function BudgetEditPage() {
                             <TableBody>
                                 {transactions.items.map((tx) => (
                                     <TableRow key={tx.id}>
-                                        <TableCell className="text-sm">{tx.date}</TableCell>
+                                        <TableCell className="text-sm">{format(new Date(tx.datetime), "d MMM yyyy")}</TableCell>
                                         <TableCell className="text-sm">{tx.name}</TableCell>
                                         <TableCell className="text-sm">{tx.type}</TableCell>
                                         <TableCell className="text-sm">{Number(tx.amount).toFixed(2)}</TableCell>
