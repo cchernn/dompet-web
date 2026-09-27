@@ -36,8 +36,8 @@ import { z } from "zod"
 import { cn } from "@/lib/utils"
 import { AmountDisplay, AMOUNT_META } from "@/components/amount-display"
 import { getTransaction, updateTransaction, deactivateTransaction, reactivateTransaction } from "@/api/transactions"
-import { listAccounts } from "@/api/accounts"
-import { listCategories } from "@/api/categories"
+import { searchAccounts } from "@/api/accounts"
+import { searchCategories } from "@/api/categories"
 import { listTags } from "@/api/tags"
 import { listTransactionTags, linkTag, unlinkTag } from "@/api/transactionTags"
 import { listAttachments, getAttachment } from "@/api/attachments"
@@ -45,7 +45,14 @@ import { listTransactionAttachments, linkAttachment, unlinkAttachment } from "@/
 import { listBudgets } from "@/api/budgets"
 import { listTransactionBudgets, linkBudget, unlinkBudget } from "@/api/transactionBudgets"
 import { CURRENCIES } from "@/lib/currencies"
-import type { Account, Category, Tag, Attachment, Budget, Transaction, TransactionPatch, TransactionType } from "@/api/types"
+import type { AccountSearchResult, CategorySearchResult, Tag, Attachment, Budget, Transaction, TransactionPatch, TransactionType } from "@/api/types"
+
+// Filter-dropdown source: up to 1000 rows in one call (vs. the plain list
+// endpoints' 100-row cap), same as the transactions-list filter. Note this
+// view is active-only — if this transaction's own source/destination/
+// category has since been deactivated, it won't be in these results, and
+// the Combobox will show its placeholder instead of the real name.
+const ACCOUNT_CATEGORY_PAGE_SIZE = 1000
 
 const formSchema = z.object({
     date: z.date({ required_error: "Date is required" }),
@@ -82,8 +89,8 @@ function TransactionEditPage() {
     const [transaction, setTransaction] = useState<Transaction | null>(null)
     const [loading, setLoading] = useState(true)
 
-    const [accounts, setAccounts] = useState<Account[]>([])
-    const [categories, setCategories] = useState<Category[]>([])
+    const [accounts, setAccounts] = useState<AccountSearchResult[]>([])
+    const [categories, setCategories] = useState<CategorySearchResult[]>([])
 
     const [tagOptions, setTagOptions] = useState<ComboboxOption[]>([])
     const [attachmentOptions, setAttachmentOptions] = useState<ComboboxOption[]>([])
@@ -176,8 +183,12 @@ function TransactionEditPage() {
         fetchLinkedAttachments()
         fetchLinkedBudgets()
 
-        listAccounts({ pageSize: 100 }).then(({ data }) => setAccounts(data)).catch((error: Error) => toast.error(error.message))
-        listCategories({ pageSize: 100 }).then(({ data }) => setCategories(data)).catch((error: Error) => toast.error(error.message))
+        searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE })
+            .then(({ data }) => setAccounts(data))
+            .catch((error: Error) => toast.error(error.message))
+        searchCategories({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE })
+            .then(({ data }) => setCategories(data))
+            .catch((error: Error) => toast.error(error.message))
         listTags({ pageSize: 100 }).then(({ data }) => setTagOptions(data.map((t) => ({ value: t.id, label: t.name })))).catch((error: Error) => toast.error(error.message))
         listAttachments({ pageSize: 100 }).then(({ data }) => setAttachmentOptions(data.map((a) => ({ value: a.id, label: a.filename })))).catch((error: Error) => toast.error(error.message))
         listBudgets({ pageSize: 100 }).then(({ data }) => setBudgetOptions(data.map((b) => ({ value: b.id, label: b.name })))).catch((error: Error) => toast.error(error.message))

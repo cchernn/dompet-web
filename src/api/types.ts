@@ -55,6 +55,42 @@ export interface AttachmentRef {
     filename: string
 }
 
+// Shapes from the */search endpoints (GET /accounts/search, /categories/search,
+// /tags/search, /budgets/search — dompet.vw_* views) used to populate filter
+// dropdowns. Distinct from the plain resource models: no is_active/timestamps
+// (the view is pre-filtered to active rows only), plus a computed usage_count
+// the view orders by (usage_count DESC, name ASC) so common picks sort first.
+// These four resources' search endpoints also accept a raised page-size
+// ceiling (1000, vs. the normal list endpoints' 100) so a dropdown can fetch
+// every row in one call — locations/attachments search does NOT get this
+// raised ceiling (they stay typeahead-only, per the backend).
+export interface AccountSearchResult {
+    id: string
+    code: string
+    name: string
+    description?: string | null
+    usage_count: number
+}
+
+export interface CategorySearchResult {
+    id: string
+    name: string
+    parent_id?: string | null
+    usage_count: number
+}
+
+export interface TagSearchResult {
+    id: string
+    name: string
+    usage_count: number
+}
+
+export interface BudgetSearchResult {
+    id: string
+    name: string
+    usage_count: number
+}
+
 export interface Category {
     id: string
     user_id?: string | null

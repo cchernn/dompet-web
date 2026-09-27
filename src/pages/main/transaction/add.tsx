@@ -33,8 +33,8 @@ import { z } from "zod"
 import { cn } from "@/lib/utils"
 import { AmountDisplay, AMOUNT_META } from "@/components/amount-display"
 import { createTransaction } from "@/api/transactions"
-import { listAccounts } from "@/api/accounts"
-import { listCategories } from "@/api/categories"
+import { searchAccounts } from "@/api/accounts"
+import { searchCategories } from "@/api/categories"
 import { listTags } from "@/api/tags"
 import { linkTag } from "@/api/transactionTags"
 import { listAttachments } from "@/api/attachments"
@@ -42,7 +42,11 @@ import { linkAttachment } from "@/api/transactionAttachments"
 import { listBudgets } from "@/api/budgets"
 import { linkBudget } from "@/api/transactionBudgets"
 import { CURRENCIES } from "@/lib/currencies"
-import type { Account, Category, Tag, Attachment, Budget, TransactionType } from "@/api/types"
+import type { AccountSearchResult, CategorySearchResult, Tag, Attachment, Budget, TransactionType } from "@/api/types"
+
+// Filter-dropdown source: up to 1000 rows in one call (vs. the plain list
+// endpoints' 100-row cap), same as the transactions-list filter.
+const ACCOUNT_CATEGORY_PAGE_SIZE = 1000
 
 const formSchema = z.object({
     date: z.date({ required_error: "Date is required" }),
@@ -74,8 +78,8 @@ const TYPE_ACTIVE_CLASSES: Record<TransactionType, string> = {
 
 function TransactionAddPage() {
     const navigate = useNavigate()
-    const [accounts, setAccounts] = useState<Account[]>([])
-    const [categories, setCategories] = useState<Category[]>([])
+    const [accounts, setAccounts] = useState<AccountSearchResult[]>([])
+    const [categories, setCategories] = useState<CategorySearchResult[]>([])
     const [tags, setTags] = useState<Tag[]>([])
     const [attachments, setAttachments] = useState<Attachment[]>([])
     const [budgets, setBudgets] = useState<Budget[]>([])
@@ -110,10 +114,10 @@ function TransactionAddPage() {
     const previewCurrency = form.watch("currency_code")
 
     useEffect(() => {
-        listAccounts({ pageSize: 100 })
+        searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE })
             .then(({ data }) => setAccounts(data))
             .catch((error: Error) => toast.error(error.message))
-        listCategories({ pageSize: 100 })
+        searchCategories({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE })
             .then(({ data }) => setCategories(data))
             .catch((error: Error) => toast.error(error.message))
         listTags({ pageSize: 100 })

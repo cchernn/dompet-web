@@ -52,12 +52,20 @@ import { cn } from "@/lib/utils"
 import { AmountDisplay } from "@/components/amount-display"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { searchTransactions, deactivateTransaction } from "@/api/transactions"
-import { listCategories } from "@/api/categories"
-import { listAccounts } from "@/api/accounts"
-import { listTags } from "@/api/tags"
-import { listBudgets } from "@/api/budgets"
+import { searchCategories } from "@/api/categories"
+import { searchAccounts } from "@/api/accounts"
+import { searchTags } from "@/api/tags"
+import { searchBudgets } from "@/api/budgets"
 import { getAttachment } from "@/api/attachments"
-import type { Category, Account, Tag, Budget, TransactionSearchResult, TransactionType } from "@/api/types"
+import type {
+    CategorySearchResult, AccountSearchResult, TagSearchResult, BudgetSearchResult,
+    TransactionSearchResult, TransactionType,
+} from "@/api/types"
+
+// Filter dropdowns fetch every row in one call rather than paginating — the
+// */search endpoints for these four resources raise the page-size ceiling to
+// 1000 (vs. the normal list endpoints' 100) specifically for this use case.
+const FILTER_OPTIONS_PAGE_SIZE = 1000
 
 const ALL = "__all__"
 
@@ -128,10 +136,10 @@ function SortableHeader({ column, label, sort, onToggle, className }: SortableHe
 
 function TransactionListPage() {
     const navigate = useNavigate()
-    const [categories, setCategories] = useState<Category[]>([])
-    const [accounts, setAccounts] = useState<Account[]>([])
-    const [tags, setTags] = useState<Tag[]>([])
-    const [budgets, setBudgets] = useState<Budget[]>([])
+    const [categories, setCategories] = useState<CategorySearchResult[]>([])
+    const [accounts, setAccounts] = useState<AccountSearchResult[]>([])
+    const [tags, setTags] = useState<TagSearchResult[]>([])
+    const [budgets, setBudgets] = useState<BudgetSearchResult[]>([])
     const [filters, setFilters] = useState<Filters>({
         from: "", to: "", category: "", type: "", source: "", destination: "", tags: "", budgets: "",
     })
@@ -166,16 +174,16 @@ function TransactionListPage() {
     )
 
     useEffect(() => {
-        listCategories({ pageSize: 100 })
+        searchCategories({ pageSize: FILTER_OPTIONS_PAGE_SIZE })
             .then(({ data }) => setCategories(data))
             .catch((error: Error) => toast.error(error.message))
-        listAccounts({ pageSize: 100 })
+        searchAccounts({ pageSize: FILTER_OPTIONS_PAGE_SIZE })
             .then(({ data }) => setAccounts(data))
             .catch((error: Error) => toast.error(error.message))
-        listTags({ pageSize: 100 })
+        searchTags({ pageSize: FILTER_OPTIONS_PAGE_SIZE })
             .then(({ data }) => setTags(data))
             .catch((error: Error) => toast.error(error.message))
-        listBudgets({ pageSize: 100 })
+        searchBudgets({ pageSize: FILTER_OPTIONS_PAGE_SIZE })
             .then(({ data }) => setBudgets(data))
             .catch((error: Error) => toast.error(error.message))
     }, [])

@@ -1,9 +1,14 @@
 import apiClient from "@/lib/apiClient"
-import type { Budget, BudgetInput, BudgetPatch, Transaction } from "@/api/types"
-import type { ListParams } from "@/api/accounts"
+import type { Budget, BudgetInput, BudgetPatch, BudgetSearchResult, Transaction } from "@/api/types"
+import type { ListParams, SearchParams } from "@/api/accounts"
 
 export const listBudgets = ({ page = 1, pageSize = 25, includeInactive = false }: ListParams = {}) =>
     apiClient.get<Budget[]>("/budgets", { page, page_size: pageSize, include_inactive: includeInactive || undefined })
+
+// Filter-dropdown source: up to 1000 rows in one call, ordered by
+// usage_count desc then name asc (most-used budgets sort first).
+export const searchBudgets = ({ page = 1, pageSize = 25, q }: SearchParams = {}) =>
+    apiClient.get<BudgetSearchResult[]>("/budgets/search", { page, page_size: pageSize, q })
 
 export const getBudget = (budgetId: string) => apiClient.get<Budget>(`/budgets/${budgetId}`)
 
