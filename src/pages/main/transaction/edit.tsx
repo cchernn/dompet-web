@@ -202,7 +202,13 @@ function TransactionEditPage() {
         try {
             const datePart = data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" })
             const patch: TransactionPatch = {
-                datetime: `${datePart}T${data.time}:00`,
+                // Explicit +08:00 offset required — Asia/Kuala_Lumpur has no
+                // DST, so this is always correct, and the backend now hard-
+                // rejects a naive datetime (see app/db/transaction_operation.py
+                // in dompet — a naive value was silently misread as UTC,
+                // which is what corrupted the Firefly-migrated rows and 8
+                // real user-created transactions before being fixed).
+                datetime: `${datePart}T${data.time}:00+08:00`,
                 type: data.type,
                 amount: data.amount,
                 currency_code: data.currency_code,
