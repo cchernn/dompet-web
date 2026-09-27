@@ -82,9 +82,12 @@ function LocationListPage() {
 
     return (
         <div className="min-h-svh m-2">
-            <div className="flex items-center gap-3 m-2">
-                <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add</Button>
-                {!loading && <span className="text-sm text-muted-foreground">{totalCount} location{totalCount === 1 ? "" : "s"}</span>}
+            <div className="flex items-baseline gap-3 m-2">
+                <h1 className="text-2xl font-semibold tracking-tight">Locations</h1>
+                <span className="text-2xl font-semibold text-muted-foreground">{totalCount.toLocaleString()}</span>
+            </div>
+            <div className="m-2">
+                <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add location</Button>
             </div>
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">

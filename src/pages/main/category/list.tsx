@@ -45,6 +45,7 @@ function CategoryListPage() {
         items: categories,
         page,
         totalPages,
+        totalCount,
         loading,
         nextPage,
         previousPage,
@@ -73,7 +74,13 @@ function CategoryListPage() {
 
     return (
         <div className="min-h-svh m-2">
-            <Button className="min-w-[12rem] m-2" onClick={handleAdd}><FilePlus />Add</Button>
+            <div className="flex items-baseline gap-3 m-2">
+                <h1 className="text-2xl font-semibold tracking-tight">Categories</h1>
+                <span className="text-2xl font-semibold text-muted-foreground">{totalCount.toLocaleString()}</span>
+            </div>
+            <div className="m-2">
+                <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add category</Button>
+            </div>
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
