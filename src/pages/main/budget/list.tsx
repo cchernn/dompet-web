@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import Alert from "@/lib/alertDialog"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { searchBudgets, deleteBudget } from "@/api/budgets"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import type { BudgetSearchResult } from "@/api/types"

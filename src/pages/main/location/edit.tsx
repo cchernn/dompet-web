@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { getLocation, updateLocation } from "@/api/locations"
 import type { Location, LocationPatch } from "@/api/types"
 

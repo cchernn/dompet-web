@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { createAndUploadAttachment } from "@/api/attachments"
 
 function AttachmentAddPage() {

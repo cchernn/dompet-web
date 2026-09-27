@@ -5,7 +5,7 @@ import {
     FilePenLine, FilePlus, Ban, X, ArrowUp, ArrowDown, ArrowUpDown, Paperclip,
     Tag as TagIcon, ArrowRight, SlidersHorizontal, CalendarIcon,
 } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { format, parse } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -517,7 +517,12 @@ function TransactionListPage() {
                                             }
                                         }}
                                     >
-                                        <TableCell className="text-sm align-top whitespace-nowrap">{tx.date}</TableCell>
+                                        <TableCell className="text-sm align-top whitespace-nowrap">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span>{tx.date}</span>
+                                                <span className="text-xs text-muted-foreground">{format(new Date(tx.datetime), "HH:mm")}</span>
+                                            </div>
+                                        </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col gap-0.5 py-1 min-w-0">
                                                 <span className="font-medium truncate">{tx.name}</span>
@@ -601,7 +606,7 @@ function TransactionListPage() {
 
                                 <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
                                     <span className="text-muted-foreground">Date</span>
-                                    <span>{format(parseFilterDate(selectedTransaction.date)!, "d MMM yyyy")}</span>
+                                    <span>{format(new Date(selectedTransaction.datetime), "d MMM yyyy, HH:mm")}</span>
 
                                     <span className="text-muted-foreground">Category</span>
                                     <span>{selectedTransaction.category ?? "—"}</span>

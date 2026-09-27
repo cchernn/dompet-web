@@ -23,7 +23,7 @@ import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Alert from "@/lib/alertDialog"
 import {
     getAccount,

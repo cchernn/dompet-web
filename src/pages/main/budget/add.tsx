@@ -18,7 +18,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { createBudget } from "@/api/budgets"
 
 const formSchema = z.object({
@@ -41,9 +41,9 @@ function BudgetAddPage() {
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
-            const { data } = await createBudget({ name: values.name.trim() })
+            await createBudget({ name: values.name.trim() })
             toast.success("Budget created")
-            navigate(`/budgets/${data.id}`)
+            navigate("/budgets")
         } catch (error) {
             toast.error((error as Error).message)
         }

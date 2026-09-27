@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { CalendarIcon, Ban, RotateCcw, Download, ArrowRight } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -513,100 +513,98 @@ function TransactionEditPage() {
                                 />
                             </div>
 
+                            <div className="flex flex-col gap-8 pt-6 border-t">
+                                <LinkedItemsSection
+                                    title="Tags"
+                                    linkedItems={linkedTags}
+                                    linkedLoading={linkedTagsLoading}
+                                    options={tagOptions}
+                                    comboboxPlaceholder="Select a tag to link"
+                                    renderItemLabel={(tag) => tag.name}
+                                    onLink={async (tagId) => {
+                                        try {
+                                            await linkTag(transaction_id!, tagId)
+                                            fetchLinkedTags()
+                                        } catch (error) {
+                                            toast.error((error as Error).message)
+                                        }
+                                    }}
+                                    onUnlink={async (tag) => {
+                                        try {
+                                            await unlinkTag(transaction_id!, tag.id)
+                                            fetchLinkedTags()
+                                        } catch (error) {
+                                            toast.error((error as Error).message)
+                                        }
+                                    }}
+                                />
+
+                                <LinkedItemsSection
+                                    title="Attachments"
+                                    linkedItems={linkedAttachments}
+                                    linkedLoading={linkedAttachmentsLoading}
+                                    options={attachmentOptions}
+                                    comboboxPlaceholder="Select an attachment to link"
+                                    renderItemLabel={(attachment) => attachment.filename}
+                                    renderItemExtra={(attachment) => (
+                                        <button
+                                            type="button"
+                                            title="Download"
+                                            onClick={() => handleOpenAttachment(attachment.id)}
+                                        >
+                                            <Download className="size-3" />
+                                        </button>
+                                    )}
+                                    onLink={async (attachmentId) => {
+                                        try {
+                                            await linkAttachment(transaction_id!, attachmentId)
+                                            fetchLinkedAttachments()
+                                        } catch (error) {
+                                            toast.error((error as Error).message)
+                                        }
+                                    }}
+                                    onUnlink={async (attachment) => {
+                                        try {
+                                            await unlinkAttachment(transaction_id!, attachment.id)
+                                            fetchLinkedAttachments()
+                                        } catch (error) {
+                                            toast.error((error as Error).message)
+                                        }
+                                    }}
+                                />
+
+                                <LinkedItemsSection
+                                    title="Budgets"
+                                    linkedItems={linkedBudgets}
+                                    linkedLoading={linkedBudgetsLoading}
+                                    options={budgetOptions}
+                                    comboboxPlaceholder="Select a budget to link"
+                                    renderItemLabel={(budget) => budget.name}
+                                    onLink={async (budgetId) => {
+                                        try {
+                                            await linkBudget(transaction_id!, budgetId)
+                                            fetchLinkedBudgets()
+                                        } catch (error) {
+                                            toast.error((error as Error).message)
+                                        }
+                                    }}
+                                    onUnlink={async (budget) => {
+                                        try {
+                                            await unlinkBudget(transaction_id!, budget.id)
+                                            fetchLinkedBudgets()
+                                        } catch (error) {
+                                            toast.error((error as Error).message)
+                                        }
+                                    }}
+                                />
+                            </div>
+
                             <div className="flex flex-col gap-2 w-full max-w-xs">
                                 <Button type="submit" disabled={isSubmitting}>Submit</Button>
                                 <Button type="button" onClick={onBack}>Back</Button>
                             </div>
                         </form>
                     </Form>
-                )}
-
-                {!loading && (
-                    <div className="w-full max-w-screen-md flex flex-col gap-8 mt-8 pt-8 border-t">
-                        <LinkedItemsSection
-                            title="Tags"
-                            linkedItems={linkedTags}
-                            linkedLoading={linkedTagsLoading}
-                            options={tagOptions}
-                            comboboxPlaceholder="Select a tag to link"
-                            renderItemLabel={(tag) => tag.name}
-                            onLink={async (tagId) => {
-                                try {
-                                    await linkTag(transaction_id!, tagId)
-                                    fetchLinkedTags()
-                                } catch (error) {
-                                    toast.error((error as Error).message)
-                                }
-                            }}
-                            onUnlink={async (tag) => {
-                                try {
-                                    await unlinkTag(transaction_id!, tag.id)
-                                    fetchLinkedTags()
-                                } catch (error) {
-                                    toast.error((error as Error).message)
-                                }
-                            }}
-                        />
-
-                        <LinkedItemsSection
-                            title="Attachments"
-                            linkedItems={linkedAttachments}
-                            linkedLoading={linkedAttachmentsLoading}
-                            options={attachmentOptions}
-                            comboboxPlaceholder="Select an attachment to link"
-                            renderItemLabel={(attachment) => attachment.filename}
-                            renderItemExtra={(attachment) => (
-                                <button
-                                    type="button"
-                                    title="Download"
-                                    onClick={() => handleOpenAttachment(attachment.id)}
-                                >
-                                    <Download className="size-3" />
-                                </button>
-                            )}
-                            onLink={async (attachmentId) => {
-                                try {
-                                    await linkAttachment(transaction_id!, attachmentId)
-                                    fetchLinkedAttachments()
-                                } catch (error) {
-                                    toast.error((error as Error).message)
-                                }
-                            }}
-                            onUnlink={async (attachment) => {
-                                try {
-                                    await unlinkAttachment(transaction_id!, attachment.id)
-                                    fetchLinkedAttachments()
-                                } catch (error) {
-                                    toast.error((error as Error).message)
-                                }
-                            }}
-                        />
-
-                        <LinkedItemsSection
-                            title="Budgets"
-                            linkedItems={linkedBudgets}
-                            linkedLoading={linkedBudgetsLoading}
-                            options={budgetOptions}
-                            comboboxPlaceholder="Select a budget to link"
-                            renderItemLabel={(budget) => budget.name}
-                            onLink={async (budgetId) => {
-                                try {
-                                    await linkBudget(transaction_id!, budgetId)
-                                    fetchLinkedBudgets()
-                                } catch (error) {
-                                    toast.error((error as Error).message)
-                                }
-                            }}
-                            onUnlink={async (budget) => {
-                                try {
-                                    await unlinkBudget(transaction_id!, budget.id)
-                                    fetchLinkedBudgets()
-                                } catch (error) {
-                                    toast.error((error as Error).message)
-                                }
-                            }}
-                        />
-                    </div>
                 )}
             </Card>
         </div>

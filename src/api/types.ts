@@ -5,6 +5,7 @@
 
 export type TransactionType = "expenditure" | "income" | "transfer"
 export type LocationType = "physical" | "online"
+export type NotificationType = "success" | "error" | "warning" | "info"
 
 export interface Account {
     id: string
@@ -38,6 +39,7 @@ export interface Transaction {
 export interface TransactionSearchResult {
     id: string
     date: string
+    datetime: string
     name: string
     type: TransactionType
     amount: string
@@ -223,3 +225,23 @@ export interface BudgetInput {
     name: string
 }
 export type BudgetPatch = Partial<BudgetInput>
+
+export interface Notification {
+    id: string
+    user_id: string
+    type: NotificationType
+    message: string
+    description?: string | null
+    entity_type?: string | null
+    entity_id?: string | null
+    is_read: boolean
+    created_at: string
+}
+
+export interface NotificationInput {
+    type: NotificationType
+    message: string
+    description?: string
+    entity_type?: string
+    entity_id?: string
+}

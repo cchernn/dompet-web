@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { getAttachment, updateAttachment } from "@/api/attachments"
 import type { Attachment } from "@/api/types"
 

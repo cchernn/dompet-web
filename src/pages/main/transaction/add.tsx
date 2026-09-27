@@ -1,7 +1,7 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react"
 import { useNavigate } from "react-router-dom"
 import { CalendarIcon, ArrowRight } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -160,9 +160,9 @@ function TransactionAddPage() {
             // The transaction now exists, so pending tag/attachment/budget
             // selections can actually be linked. A failure here shouldn't
             // block navigation — the transaction itself was created fine —
-            // so each link is caught individually and reported, and we land
-            // on the edit page (not the list) so any failed link can be
-            // retried right there.
+            // so each link is caught individually and reported. Any failed
+            // link must be retried from the transaction's own edit page
+            // (reachable from the list), not automatically here.
             let linkFailures = 0
             for (const tag of pendingTags) {
                 try {
@@ -190,7 +190,7 @@ function TransactionAddPage() {
             }
 
             toast.success(linkFailures > 0 ? "Transaction created (some links failed)" : "Transaction created")
-            navigate(`/transactions/${created.id}`)
+            navigate("/transactions")
         } catch (error) {
             toast.error((error as Error).message)
         }

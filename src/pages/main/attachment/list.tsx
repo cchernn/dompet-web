@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import Alert from "@/lib/alertDialog"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { listAttachments, deleteAttachment, getAttachment } from "@/api/attachments"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import type { Attachment } from "@/api/types"

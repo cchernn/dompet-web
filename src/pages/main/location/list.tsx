@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Alert from "@/lib/alertDialog"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { listLocations, deleteLocation } from "@/api/locations"
