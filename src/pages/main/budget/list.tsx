@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
     Users,
@@ -23,15 +24,26 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetFooter,
+    SheetTitle,
+    SheetDescription,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import { toast } from "sonner"
-import { listBudgets, deleteBudget } from "@/api/budgets"
+import { searchBudgets, deleteBudget } from "@/api/budgets"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
+import type { BudgetSearchResult } from "@/api/types"
 
 function BudgetListPage() {
     const navigate = useNavigate()
+    const [sheetOpen, setSheetOpen] = useState(false)
+    const [selectedBudget, setSelectedBudget] = useState<BudgetSearchResult | null>(null)
+
     const {
         items: budgets,
         loading,
@@ -40,15 +52,20 @@ function BudgetListPage() {
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listBudgets({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => searchBudgets({ page, pageSize }))
 
-    const handleManage = (id: string) => navigate(`/budgets/${id}`)
     const handleAdd = () => navigate(`/budgets/add`)
+
+    const openBudget = (budget: BudgetSearchResult) => {
+        setSelectedBudget(budget)
+        setSheetOpen(true)
+    }
 
     const handleDelete = async (id: string) => {
         try {
             await deleteBudget(id)
             toast.success("Budget deleted")
+            setSheetOpen(false)
             reload()
         } catch (error) {
             toast.error((error as Error).message)
@@ -96,29 +113,25 @@ function BudgetListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Budget</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {budgets.map((budget) => (
-                                    <TableRow key={budget.id}>
-                                        <TableCell className="text-sm">{budget.name}</TableCell>
-                                        <TableCell className="text-sm">
-                                            <Badge variant={budget.is_active ? "secondary" : "outline"}>
-                                                {budget.is_active ? "Active" : "Deleted"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="flex justify-center items-center gap-1">
-                                            <Button onClick={() => handleManage(budget.id)}><Users />Manage</Button>
-                                            <Alert
-                                                button_text={<Trash2 />}
-                                                title="Confirm Delete"
-                                                description="This action cannot be undone. Deleted budgets cannot be restored from this app."
-                                                action={() => handleDelete(budget.id)}
-                                            />
-                                        </TableCell>
+                                    <TableRow
+                                        key={budget.id}
+                                        className="cursor-pointer"
+                                        tabIndex={0}
+                                        role="button"
+                                        onClick={() => openBudget(budget)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                e.preventDefault()
+                                                openBudget(budget)
+                                            }
+                                        }}
+                                    >
+                                        <TableCell className="py-3 font-medium">{budget.name}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -126,6 +139,32 @@ function BudgetListPage() {
                     )}
                 </div>
             </Card>
+
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                    <SheetHeader>
+                        <SheetTitle>Budget</SheetTitle>
+                        <SheetDescription className="sr-only">Budget details</SheetDescription>
+                    </SheetHeader>
+                    {selectedBudget && (
+                        <>
+                            <div className="text-xl font-semibold mt-4">{selectedBudget.name}</div>
+
+                            <SheetFooter className="mt-6">
+                                <Button onClick={() => navigate(`/budgets/${selectedBudget.id}`)}>
+                                    <Users />Manage
+                                </Button>
+                                <Alert
+                                    button_text={<><Trash2 />Delete</>}
+                                    title="Confirm Delete"
+                                    description="This action cannot be undone. Deleted budgets cannot be restored from this app."
+                                    action={() => handleDelete(selectedBudget.id)}
+                                />
+                            </SheetFooter>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
         </div>
     )
 }

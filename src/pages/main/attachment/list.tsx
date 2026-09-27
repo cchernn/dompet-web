@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
     FilePenLine,
@@ -24,12 +25,20 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetFooter,
+    SheetTitle,
+    SheetDescription,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import { toast } from "sonner"
 import { listAttachments, deleteAttachment, getAttachment } from "@/api/attachments"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
+import type { Attachment } from "@/api/types"
 
 function formatSize(bytes?: number | null): string {
     if (bytes === null || bytes === undefined) return "—"
@@ -45,6 +54,9 @@ function formatSize(bytes?: number | null): string {
 
 function AttachmentListPage() {
     const navigate = useNavigate()
+    const [sheetOpen, setSheetOpen] = useState(false)
+    const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null)
+
     const {
         items: attachments,
         loading,
@@ -55,11 +67,15 @@ function AttachmentListPage() {
         reload,
     } = usePaginatedList(({ page, pageSize }) => listAttachments({ page, pageSize }))
 
-    const handleEdit = (id: string) => navigate(`/attachments/${id}`)
     const handleAdd = () => navigate(`/attachments/add`)
 
-    const handleOpenAttachment = async (attachmentId: string) => {
-        // The list response no longer carries a download_url (listing many
+    const openAttachment = (attachment: Attachment) => {
+        setSelectedAttachment(attachment)
+        setSheetOpen(true)
+    }
+
+    const handleDownload = async (attachmentId: string) => {
+        // The list/panel data never carries a download_url (listing many
         // attachments shouldn't pay for an S3 presigned-URL generation per
         // row) — fetch one on demand for the specific attachment being
         // opened, same pattern as the transactions page.
@@ -77,6 +93,7 @@ function AttachmentListPage() {
         try {
             await deleteAttachment(id)
             toast.success("Attachment deleted")
+            setSheetOpen(false)
             reload()
         } catch (error) {
             toast.error((error as Error).message)
@@ -124,35 +141,32 @@ function AttachmentListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Filename</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Size</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Type</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Attachment</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {attachments.map((attachment) => (
-                                    <TableRow key={attachment.id}>
-                                        <TableCell className="text-sm">{attachment.filename}</TableCell>
-                                        <TableCell className="text-sm">{formatSize(attachment.size_bytes)}</TableCell>
-                                        <TableCell className="text-sm">{attachment.content_type || "—"}</TableCell>
-                                        <TableCell className="text-sm">
-                                            <Badge variant={attachment.is_active ? "secondary" : "outline"}>
-                                                {attachment.is_active ? "Active" : "Deleted"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="flex justify-center items-center gap-1">
-                                            <Button variant="outline" onClick={() => handleOpenAttachment(attachment.id)}>
-                                                <Download />
-                                            </Button>
-                                            <Button onClick={() => handleEdit(attachment.id)}><FilePenLine /></Button>
-                                            <Alert
-                                                button_text={<Trash2 />}
-                                                title="Confirm Delete"
-                                                description="This action cannot be undone. Deleted attachments cannot be restored from this app."
-                                                action={() => handleDelete(attachment.id)}
-                                            />
+                                    <TableRow
+                                        key={attachment.id}
+                                        className="cursor-pointer"
+                                        tabIndex={0}
+                                        role="button"
+                                        onClick={() => openAttachment(attachment)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                e.preventDefault()
+                                                openAttachment(attachment)
+                                            }
+                                        }}
+                                    >
+                                        <TableCell className="py-3">
+                                            <div className="flex flex-col gap-0.5 min-w-0">
+                                                <span className="font-medium truncate">{attachment.filename}</span>
+                                                <span className="text-sm text-muted-foreground truncate">
+                                                    {formatSize(attachment.size_bytes)}
+                                                    {attachment.content_type ? ` · ${attachment.content_type}` : ""}
+                                                </span>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -161,6 +175,51 @@ function AttachmentListPage() {
                     )}
                 </div>
             </Card>
+
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                    <SheetHeader>
+                        <SheetTitle>Attachment</SheetTitle>
+                        <SheetDescription className="sr-only">Attachment details</SheetDescription>
+                    </SheetHeader>
+                    {selectedAttachment && (
+                        <>
+                            <div className="flex flex-col gap-6 mt-4">
+                                <div className="text-xl font-semibold break-all">{selectedAttachment.filename}</div>
+
+                                <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">Type</span>
+                                    <span>{selectedAttachment.content_type || "—"}</span>
+
+                                    <span className="text-muted-foreground">Size</span>
+                                    <span>{formatSize(selectedAttachment.size_bytes)}</span>
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="self-start"
+                                    onClick={() => handleDownload(selectedAttachment.id)}
+                                >
+                                    <Download />Download
+                                </Button>
+                            </div>
+
+                            <SheetFooter className="mt-6">
+                                <Button onClick={() => navigate(`/attachments/${selectedAttachment.id}`)}>
+                                    <FilePenLine />Edit
+                                </Button>
+                                <Alert
+                                    button_text={<><Trash2 />Delete</>}
+                                    title="Confirm Delete"
+                                    description="This action cannot be undone. Deleted attachments cannot be restored from this app."
+                                    action={() => handleDelete(selectedAttachment.id)}
+                                />
+                            </SheetFooter>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
         </div>
     )
 }

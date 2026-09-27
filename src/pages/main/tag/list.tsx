@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FilePenLine, Trash2, FilePlus } from "lucide-react"
 import { toast } from "sonner"
@@ -20,14 +21,25 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetFooter,
+    SheetTitle,
+    SheetDescription,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import Alert from "@/lib/alertDialog"
-import { listTags, deleteTag } from "@/api/tags"
+import { searchTags, deleteTag } from "@/api/tags"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
-import type { Tag } from "@/api/types"
+import type { TagSearchResult } from "@/api/types"
 
 function TagListPage() {
     const navigate = useNavigate()
+    const [sheetOpen, setSheetOpen] = useState(false)
+    const [selectedTag, setSelectedTag] = useState<TagSearchResult | null>(null)
+
     const {
         items: tags,
         page,
@@ -36,18 +48,20 @@ function TagListPage() {
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listTags({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => searchTags({ page, pageSize }))
 
     const handleAdd = () => navigate("/tags/add")
 
-    const handleEdit = (tag: Tag) => {
-        navigate(`/tags/${tag.id}`, { state: { tag } })
+    const openTag = (tag: TagSearchResult) => {
+        setSelectedTag(tag)
+        setSheetOpen(true)
     }
 
     const handleDelete = async (id: string) => {
         try {
             await deleteTag(id)
             toast.success("Tag deleted")
+            setSheetOpen(false)
             reload()
         } catch (error) {
             toast.error((error as Error).message)
@@ -95,25 +109,25 @@ function TagListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Active</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Tag</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {tags.map((tag) => (
-                                    <TableRow key={tag.id}>
-                                        <TableCell className="text-sm">{tag.name}</TableCell>
-                                        <TableCell className="text-sm">{tag.is_active ? "Yes" : "No"}</TableCell>
-                                        <TableCell className="flex justify-center items-center gap-1">
-                                            <Button onClick={() => handleEdit(tag)}><FilePenLine /></Button>
-                                            <Alert
-                                                button_text={<Trash2 />}
-                                                title="Confirm Delete"
-                                                description="This action cannot be undone. This will permanently deactivate this tag."
-                                                action={() => handleDelete(tag.id)}
-                                            />
-                                        </TableCell>
+                                    <TableRow
+                                        key={tag.id}
+                                        className="cursor-pointer"
+                                        tabIndex={0}
+                                        role="button"
+                                        onClick={() => openTag(tag)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                e.preventDefault()
+                                                openTag(tag)
+                                            }
+                                        }}
+                                    >
+                                        <TableCell className="py-3 font-medium">{tag.name}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -121,6 +135,32 @@ function TagListPage() {
                     )}
                 </div>
             </Card>
+
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                    <SheetHeader>
+                        <SheetTitle>Tag</SheetTitle>
+                        <SheetDescription className="sr-only">Tag details</SheetDescription>
+                    </SheetHeader>
+                    {selectedTag && (
+                        <>
+                            <div className="text-xl font-semibold mt-4">{selectedTag.name}</div>
+
+                            <SheetFooter className="mt-6">
+                                <Button onClick={() => navigate(`/tags/${selectedTag.id}`)}>
+                                    <FilePenLine />Edit
+                                </Button>
+                                <Alert
+                                    button_text={<><Trash2 />Delete</>}
+                                    title="Confirm Delete"
+                                    description="This action cannot be undone. This will permanently deactivate this tag."
+                                    action={() => handleDelete(selectedTag.id)}
+                                />
+                            </SheetFooter>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
         </div>
     )
 }

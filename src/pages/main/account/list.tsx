@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FilePenLine, FilePlus, Ban, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -19,15 +20,27 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetFooter,
+    SheetTitle,
+    SheetDescription,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import Alert from "@/lib/alertDialog"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { listAccounts, deactivateAccount, reactivateAccount } from "@/api/accounts"
+import type { Account } from "@/api/types"
 
 function AccountListPage() {
     const navigate = useNavigate()
+    const [sheetOpen, setSheetOpen] = useState(false)
+    const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
+
     const {
         items: accounts,
         page,
@@ -37,14 +50,15 @@ function AccountListPage() {
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listAccounts({ page, pageSize }))
-
-    const handleEdit = (id: string) => {
-        navigate(`/accounts/${id}`)
-    }
+    } = usePaginatedList(({ page, pageSize }) => listAccounts({ page, pageSize, includeInactive: true }))
 
     const handleAdd = () => {
         navigate(`/accounts/add`)
+    }
+
+    const openAccount = (account: Account) => {
+        setSelectedAccount(account)
+        setSheetOpen(true)
     }
 
     const handleDeactivate = async (id: string) => {
@@ -52,6 +66,7 @@ function AccountListPage() {
             await deactivateAccount(id)
             toast.success("Account deactivated.")
             reload()
+            setSelectedAccount((prev) => (prev && prev.id === id ? { ...prev, is_active: false } : prev))
         } catch (error) {
             toast.error((error as Error).message)
         }
@@ -62,6 +77,7 @@ function AccountListPage() {
             await reactivateAccount(id)
             toast.success("Account reactivated.")
             reload()
+            setSelectedAccount((prev) => (prev && prev.id === id ? { ...prev, is_active: true } : prev))
         } catch (error) {
             toast.error((error as Error).message)
         }
@@ -69,9 +85,12 @@ function AccountListPage() {
 
     return (
         <div className="min-h-svh m-2">
-            <div className="flex items-center gap-3 m-2">
-                <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add</Button>
-                {!loading && <span className="text-sm text-muted-foreground">{totalCount} account{totalCount === 1 ? "" : "s"}</span>}
+            <div className="flex items-baseline gap-3 m-2">
+                <h1 className="text-2xl font-semibold tracking-tight">Accounts</h1>
+                <span className="text-2xl font-semibold text-muted-foreground">{totalCount.toLocaleString()}</span>
+            </div>
+            <div className="m-2">
+                <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add account</Button>
             </div>
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
@@ -113,41 +132,34 @@ function AccountListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Code</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Description</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Account</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {accounts.map((account) => (
-                                    <TableRow key={account.id}>
-                                        <TableCell className="text-sm">{account.code}</TableCell>
-                                        <TableCell className="text-sm">{account.name}</TableCell>
-                                        <TableCell className="text-sm truncate max-w-[240px]" title={account.description}>{account.description}</TableCell>
-                                        <TableCell className="text-sm">
-                                            <Badge variant={account.is_active ? "secondary" : "outline"}>
-                                                {account.is_active ? "Active" : "Inactive"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="flex justify-center items-center gap-1">
-                                            <Button onClick={() => handleEdit(account.id)}><FilePenLine /></Button>
-                                            {account.is_active ? (
-                                                <Alert
-                                                    button_text={<Ban />}
-                                                    title="Confirm Deactivate"
-                                                    description="This account will be marked inactive. You can reactivate it later."
-                                                    action={() => handleDeactivate(account.id)}
-                                                />
-                                            ) : (
-                                                <Alert
-                                                    button_text={<RotateCcw />}
-                                                    title="Confirm Reactivate"
-                                                    description="This account will be marked active again."
-                                                    action={() => handleReactivate(account.id)}
-                                                />
-                                            )}
+                                    <TableRow
+                                        key={account.id}
+                                        className="cursor-pointer"
+                                        tabIndex={0}
+                                        role="button"
+                                        onClick={() => openAccount(account)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                e.preventDefault()
+                                                openAccount(account)
+                                            }
+                                        }}
+                                    >
+                                        <TableCell className="py-3">
+                                            <div className="flex flex-col gap-0.5 min-w-0">
+                                                <span className="font-medium truncate flex items-center gap-2">
+                                                    {account.name}
+                                                    {!account.is_active && <Badge variant="outline">Inactive</Badge>}
+                                                </span>
+                                                {account.description && (
+                                                    <span className="text-sm text-muted-foreground truncate">{account.description}</span>
+                                                )}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -156,6 +168,56 @@ function AccountListPage() {
                     }
                 </div>
             </Card>
+
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                    <SheetHeader>
+                        <SheetTitle>Account</SheetTitle>
+                        <SheetDescription className="sr-only">Account details</SheetDescription>
+                    </SheetHeader>
+                    {selectedAccount && (
+                        <>
+                            <div className="flex flex-col gap-6 mt-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="text-xl font-semibold">{selectedAccount.name}</div>
+                                    <Badge variant={selectedAccount.is_active ? "secondary" : "outline"}>
+                                        {selectedAccount.is_active ? "Active" : "Inactive"}
+                                    </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">Code</span>
+                                    <span>{selectedAccount.code}</span>
+
+                                    <span className="text-muted-foreground">Description</span>
+                                    <span>{selectedAccount.description ?? "—"}</span>
+                                </div>
+                            </div>
+
+                            <SheetFooter className="mt-6">
+                                <Button onClick={() => navigate(`/accounts/${selectedAccount.id}`)}>
+                                    <FilePenLine />Edit
+                                </Button>
+                                {selectedAccount.is_active ? (
+                                    <Alert
+                                        button_text={<><Ban />Deactivate</>}
+                                        title="Confirm Deactivate"
+                                        description="This account will be marked inactive. You can reactivate it later."
+                                        action={() => handleDeactivate(selectedAccount.id)}
+                                    />
+                                ) : (
+                                    <Alert
+                                        button_text={<><RotateCcw />Reactivate</>}
+                                        title="Confirm Reactivate"
+                                        description="This account will be marked active again."
+                                        action={() => handleReactivate(selectedAccount.id)}
+                                    />
+                                )}
+                            </SheetFooter>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
         </div>
     )
 }

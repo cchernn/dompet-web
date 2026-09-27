@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FilePenLine, Trash2, FilePlus, Link } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -19,15 +20,27 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetFooter,
+    SheetTitle,
+    SheetDescription,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import Alert from "@/lib/alertDialog"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { listLocations, deleteLocation } from "@/api/locations"
+import type { Location } from "@/api/types"
 
 function LocationListPage() {
     const navigate = useNavigate()
+    const [sheetOpen, setSheetOpen] = useState(false)
+    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
+
     const {
         items: locations,
         page,
@@ -39,18 +52,20 @@ function LocationListPage() {
         reload,
     } = usePaginatedList(({ page, pageSize }) => listLocations({ page, pageSize }))
 
-    const handleEdit = (id: string) => {
-        navigate(`/locations/${id}`)
-    }
-
     const handleAdd = () => {
         navigate(`/locations/add`)
+    }
+
+    const openLocation = (location: Location) => {
+        setSelectedLocation(location)
+        setSheetOpen(true)
     }
 
     const handleDelete = async (id: string) => {
         try {
             await deleteLocation(id)
             toast.success("Location deleted.")
+            setSheetOpen(false)
             reload()
         } catch (error) {
             toast.error((error as Error).message)
@@ -60,6 +75,10 @@ function LocationListPage() {
     const handleOpenUrl = (url: string) => {
         window.open(url, "_blank", "noopener,noreferrer")
     }
+
+    const selectedUrl = selectedLocation
+        ? (selectedLocation.type === "physical" ? selectedLocation.google_maps_url : selectedLocation.url)
+        : null
 
     return (
         <div className="min-h-svh m-2">
@@ -107,51 +126,79 @@ function LocationListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Type</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Link</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Location</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {locations.map((location) => {
-                                    const url = location.type === "physical" ? location.google_maps_url : location.url
-                                    return (
-                                        <TableRow key={location.id}>
-                                            <TableCell className="text-sm">
-                                                <Badge variant="secondary">{location.type}</Badge>
-                                            </TableCell>
-                                            <TableCell className="text-sm">{location.name}</TableCell>
-                                            <TableCell className="text-sm">
-                                                {url ? (
-                                                    <Button title={url} onClick={() => handleOpenUrl(url)}>
-                                                        <Link /><span className="truncate max-w-[160px] hidden xl:inline">{url}</span>
-                                                    </Button>
-                                                ) : ""}
-                                            </TableCell>
-                                            <TableCell className="text-sm">
-                                                <Badge variant={location.is_active ? "secondary" : "outline"}>
-                                                    {location.is_active ? "Active" : "Inactive"}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="flex justify-center items-center gap-1">
-                                                <Button onClick={() => handleEdit(location.id)}><FilePenLine /></Button>
-                                                <Alert
-                                                    button_text={<Trash2 />}
-                                                    title="Confirm Delete"
-                                                    description="This action cannot be undone and cannot be reversed from this app."
-                                                    action={() => handleDelete(location.id)}
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    )
-                                })}
+                                {locations.map((location) => (
+                                    <TableRow
+                                        key={location.id}
+                                        className="cursor-pointer"
+                                        tabIndex={0}
+                                        role="button"
+                                        onClick={() => openLocation(location)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                e.preventDefault()
+                                                openLocation(location)
+                                            }
+                                        }}
+                                    >
+                                        <TableCell className="py-3">
+                                            <span className="font-medium truncate flex items-center gap-2">
+                                                {location.name}
+                                                <Badge variant="outline">{location.type}</Badge>
+                                            </span>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
                             </TableBody>
                         </Table>
                     }
                 </div>
             </Card>
+
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                    <SheetHeader>
+                        <SheetTitle>Location</SheetTitle>
+                        <SheetDescription className="sr-only">Location details</SheetDescription>
+                    </SheetHeader>
+                    {selectedLocation && (
+                        <>
+                            <div className="flex flex-col gap-6 mt-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="text-xl font-semibold">{selectedLocation.name}</div>
+                                    <Badge variant="outline">{selectedLocation.type}</Badge>
+                                </div>
+
+                                {selectedUrl && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="self-start"
+                                        onClick={() => handleOpenUrl(selectedUrl)}
+                                    >
+                                        <Link />{selectedUrl}
+                                    </Button>
+                                )}
+                            </div>
+
+                            <SheetFooter className="mt-6">
+                                <Button onClick={() => navigate(`/locations/${selectedLocation.id}`)}>
+                                    <FilePenLine />Edit
+                                </Button>
+                                <Alert
+                                    button_text={<><Trash2 />Delete</>}
+                                    title="Confirm Delete"
+                                    description="This action cannot be undone and cannot be reversed from this app."
+                                    action={() => handleDelete(selectedLocation.id)}
+                                />
+                            </SheetFooter>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
         </div>
     )
 }
