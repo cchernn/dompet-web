@@ -46,6 +46,7 @@ import { toast } from "sonner"
 import { getBudget, updateBudget, listBudgetTransactions } from "@/api/budgets"
 import { listBudgetMembers, addBudgetMember, removeBudgetMember } from "@/api/budgetMembers"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
+import type { Budget } from "@/api/types"
 
 const nameFormSchema = z.object({
     name: z.string()
@@ -53,7 +54,14 @@ const nameFormSchema = z.object({
         .max(255, { message: "Name must be less than 255 characters" }),
 })
 
-function PaginationFooter({ page, totalPages, onPrevious, onNext }) {
+interface PaginationFooterProps {
+    page: number
+    totalPages: number
+    onPrevious: () => void
+    onNext: () => void
+}
+
+function PaginationFooter({ page, totalPages, onPrevious, onNext }: PaginationFooterProps) {
     return (
         <Pagination>
             <PaginationContent>
@@ -80,14 +88,14 @@ function PaginationFooter({ page, totalPages, onPrevious, onNext }) {
 }
 
 function BudgetEditPage() {
-    const { budget_id } = useParams()
+    const { budget_id } = useParams<{ budget_id: string }>()
     const navigate = useNavigate()
-    const [budget, setBudget] = useState(null)
+    const [budget, setBudget] = useState<Budget | null>(null)
     const [loading, setLoading] = useState(true)
     const [newMemberUserId, setNewMemberUserId] = useState("")
     const [addingMember, setAddingMember] = useState(false)
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof nameFormSchema>>({
         resolver: zodResolver(nameFormSchema),
     })
 
@@ -96,10 +104,10 @@ function BudgetEditPage() {
     } = form
 
     const members = usePaginatedList(
-        ({ page, pageSize }) => listBudgetMembers(budget_id, { page, pageSize })
+        ({ page, pageSize }) => listBudgetMembers(budget_id!, { page, pageSize })
     )
     const transactions = usePaginatedList(
-        ({ page, pageSize }) => listBudgetTransactions(budget_id, { page, pageSize })
+        ({ page, pageSize }) => listBudgetTransactions(budget_id!, { page, pageSize })
     )
 
     useEffect(() => {
@@ -109,28 +117,28 @@ function BudgetEditPage() {
 
     async function fetchBudget() {
         try {
-            const { data } = await getBudget(budget_id)
+            const { data } = await getBudget(budget_id!)
             setBudget(data)
             form.reset({ name: data.name ?? "" })
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         } finally {
             setLoading(false)
         }
     }
 
-    const onSubmitName = async (values) => {
+    const onSubmitName = async (values: z.infer<typeof nameFormSchema>) => {
         const name = values.name?.trim()
         if (!name || name === budget?.name) {
             toast.info("Nothing to update")
             return
         }
         try {
-            const { data } = await updateBudget(budget_id, { name })
+            const { data } = await updateBudget(budget_id!, { name })
             setBudget(data)
             toast.success("Budget updated")
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
@@ -139,24 +147,24 @@ function BudgetEditPage() {
         if (!userId) return
         setAddingMember(true)
         try {
-            await addBudgetMember(budget_id, userId)
+            await addBudgetMember(budget_id!, userId)
             toast.success("Member added")
             setNewMemberUserId("")
             members.reload()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         } finally {
             setAddingMember(false)
         }
     }
 
-    const handleRemoveMember = async (memberUserId) => {
+    const handleRemoveMember = async (memberUserId: string) => {
         try {
-            await removeBudgetMember(budget_id, memberUserId)
+            await removeBudgetMember(budget_id!, memberUserId)
             toast.success("Member removed")
             members.reload()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

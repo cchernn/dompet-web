@@ -18,14 +18,14 @@ import authService from "@/lib/authService"
 function ConfirmPage() {
     const [passkey, setPasskey] = useState("")
     const navigate = useNavigate()
-    const location = useLocation()
+    const location = useLocation() as { state: { username?: string } | null }
 
     const username = location.state?.username
 
-    const onSubmit = async (data) => {
+    const onSubmit = async () => {
         try {
             const response = await authService.confirmSignUp({
-                username: username,
+                username: username!,
                 code: passkey,
             })
             console.log("Success", response)
@@ -46,7 +46,7 @@ function ConfirmPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center justify-center">
-                        <InputOTP 
+                        <InputOTP
                             maxLength={6}
                             value={passkey}
                             onChange={(value) => setPasskey(value)}
@@ -62,7 +62,7 @@ function ConfirmPage() {
                         </InputOTP>
 
                         <Button className="w-full mt-6 mb-4" type="submit" onClick={onSubmit}>Submit</Button>
-                        
+
                     </CardContent>
                 </Card>
             </div>

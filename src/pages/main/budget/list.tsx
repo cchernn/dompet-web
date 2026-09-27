@@ -1,6 +1,9 @@
 import { useNavigate } from "react-router-dom"
-import { FilePenLine, Trash2, FilePlus } from "lucide-react"
-import { toast } from "sonner"
+import {
+    Users,
+    Trash2,
+    FilePlus,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Table,
@@ -21,35 +24,34 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
-import { listTags, deleteTag } from "@/api/tags"
+import { toast } from "sonner"
+import { listBudgets, deleteBudget } from "@/api/budgets"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 
-function TagListPage() {
+function BudgetListPage() {
     const navigate = useNavigate()
     const {
-        items: tags,
+        items: budgets,
+        loading,
         page,
         totalPages,
-        loading,
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listTags({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => listBudgets({ page, pageSize }))
 
-    const handleAdd = () => navigate("/tags/add")
+    const handleManage = (id: string) => navigate(`/budgets/${id}`)
+    const handleAdd = () => navigate(`/budgets/add`)
 
-    const handleEdit = (tag) => {
-        navigate(`/tags/${tag.id}`, { state: { tag } })
-    }
-
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: string) => {
         try {
-            await deleteTag(id)
-            toast.success("Tag deleted")
+            await deleteBudget(id)
+            toast.success("Budget deleted")
             reload()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
@@ -63,9 +65,9 @@ function TagListPage() {
                             <Skeleton className="h-6 w-full my-2" />
                             <Skeleton className="h-6 w-full my-2" />
                         </div>
-                    ) : tags.length === 0 ? (
+                    ) : budgets.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
-                            <h2>No Tags Available</h2>
+                            <h2>No Budgets Available</h2>
                         </div>
                     ) : (
                         <Table className="min-w-full">
@@ -95,22 +97,26 @@ function TagListPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Active</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {tags.map((tag) => (
-                                    <TableRow key={tag.id}>
-                                        <TableCell className="text-sm">{tag.name}</TableCell>
-                                        <TableCell className="text-sm">{tag.is_active ? "Yes" : "No"}</TableCell>
+                                {budgets.map((budget) => (
+                                    <TableRow key={budget.id}>
+                                        <TableCell className="text-sm">{budget.name}</TableCell>
+                                        <TableCell className="text-sm">
+                                            <Badge variant={budget.is_active ? "secondary" : "outline"}>
+                                                {budget.is_active ? "Active" : "Deleted"}
+                                            </Badge>
+                                        </TableCell>
                                         <TableCell className="flex justify-center items-center gap-1">
-                                            <Button onClick={() => handleEdit(tag)}><FilePenLine /></Button>
+                                            <Button onClick={() => handleManage(budget.id)}><Users />Manage</Button>
                                             <Alert
                                                 button_text={<Trash2 />}
                                                 title="Confirm Delete"
-                                                description="This action cannot be undone. This will permanently deactivate this tag."
-                                                action={() => handleDelete(tag.id)}
+                                                description="This action cannot be undone. Deleted budgets cannot be restored from this app."
+                                                action={() => handleDelete(budget.id)}
                                             />
                                         </TableCell>
                                     </TableRow>
@@ -124,4 +130,4 @@ function TagListPage() {
     )
 }
 
-export default TagListPage
+export default BudgetListPage

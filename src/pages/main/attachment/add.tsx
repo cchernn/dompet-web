@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,13 +13,13 @@ import { createAndUploadAttachment } from "@/api/attachments"
 
 function AttachmentAddPage() {
     const navigate = useNavigate()
-    const [file, setFile] = useState(null)
+    const [file, setFile] = useState<File | null>(null)
     const [fileError, setFileError] = useState("")
     const [uploading, setUploading] = useState(false)
 
     const onBack = () => navigate(-1)
 
-    const onSubmit = async (event) => {
+    const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         if (!file) {
             setFileError("Please choose a file to upload")
@@ -32,7 +32,7 @@ function AttachmentAddPage() {
             toast.success("Attachment uploaded")
             navigate("/attachments")
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         } finally {
             setUploading(false)
         }

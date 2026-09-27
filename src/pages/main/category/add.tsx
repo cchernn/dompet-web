@@ -13,11 +13,12 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
-import { Combobox } from "@/components/ui/combobox"
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { listCategories, createCategory } from "@/api/categories"
+import type { Category } from "@/api/types"
 
 const formSchema = z.object({
     name: z.string().min(1, { message: "Name is required" }).max(255, { message: "Name must be less than 255 characters" }),
@@ -26,9 +27,9 @@ const formSchema = z.object({
 
 function CategoryAddPage() {
     const navigate = useNavigate()
-    const [categories, setCategories] = useState([])
+    const [categories, setCategories] = useState<Category[]>([])
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: { name: "", parent_id: null },
     })
@@ -40,22 +41,22 @@ function CategoryAddPage() {
     useEffect(() => {
         listCategories({ pageSize: 100 })
             .then(({ data }) => setCategories(data))
-            .catch((error) => toast.error(error.message))
+            .catch((error: Error) => toast.error(error.message))
     }, [])
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
             await createCategory({ name: data.name, parent_id: data.parent_id || undefined })
             toast.success("Category created")
             navigate("/categories")
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
     const onBack = () => navigate(-1)
 
-    const parentOptions = categories.map((category) => ({ value: category.id, label: category.name }))
+    const parentOptions: ComboboxOption[] = categories.map((category) => ({ value: category.id, label: category.name }))
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">

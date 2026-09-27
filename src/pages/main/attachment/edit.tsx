@@ -24,6 +24,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
 import { getAttachment, updateAttachment } from "@/api/attachments"
+import type { Attachment } from "@/api/types"
 
 const formSchema = z.object({
     filename: z.string()
@@ -31,7 +32,7 @@ const formSchema = z.object({
         .max(255, { message: "Filename must be less than 255 characters" }),
 })
 
-function formatSize(bytes) {
+function formatSize(bytes?: number | null): string {
     if (bytes === null || bytes === undefined) return "—"
     const units = ["B", "KB", "MB", "GB"]
     let value = bytes
@@ -44,12 +45,12 @@ function formatSize(bytes) {
 }
 
 function AttachmentEditPage() {
-    const { attachment_id } = useParams()
-    const [attachment, setAttachment] = useState(null)
+    const { attachment_id } = useParams<{ attachment_id: string }>()
+    const [attachment, setAttachment] = useState<Attachment | null>(null)
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
     })
 
@@ -64,17 +65,17 @@ function AttachmentEditPage() {
 
     async function fetchAttachment() {
         try {
-            const { data } = await getAttachment(attachment_id)
+            const { data } = await getAttachment(attachment_id!)
             setAttachment(data)
             form.reset({ filename: data.filename ?? "" })
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         } finally {
             setLoading(false)
         }
     }
 
-    const onSubmit = async (values) => {
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
         const filename = values.filename?.trim()
         if (!filename || filename === attachment?.filename) {
             toast.info("Nothing to update")
@@ -82,11 +83,11 @@ function AttachmentEditPage() {
             return
         }
         try {
-            await updateAttachment(attachment_id, { filename })
+            await updateAttachment(attachment_id!, { filename })
             toast.success("Attachment updated")
             navigate("/attachments")
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

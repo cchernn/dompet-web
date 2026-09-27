@@ -14,11 +14,12 @@ import {
 } from "@/components/ui/form"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Combobox } from "@/components/ui/combobox"
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { listCategories, updateCategory } from "@/api/categories"
+import type { Category, CategoryPatch } from "@/api/types"
 
 const formSchema = z.object({
     name: z.string().max(255, { message: "Name must be less than 255 characters" }).optional().or(z.literal("")),
@@ -28,8 +29,8 @@ const formSchema = z.object({
 // Computes every descendant id of `rootId` given the full category list, so
 // the parent Combobox can refuse to offer them — the backend only rejects a
 // category being re-parented to itself directly, not a multi-level cycle.
-function collectDescendantIds(categories, rootId) {
-    const childrenByParent = new Map()
+function collectDescendantIds(categories: Category[], rootId: string): string[] {
+    const childrenByParent = new Map<string, string[]>()
     for (const category of categories) {
         if (!category.parent_id) continue
         const siblings = childrenByParent.get(category.parent_id) ?? []
@@ -37,10 +38,10 @@ function collectDescendantIds(categories, rootId) {
         childrenByParent.set(category.parent_id, siblings)
     }
 
-    const descendants = []
+    const descendants: string[] = []
     const queue = [...(childrenByParent.get(rootId) ?? [])]
     while (queue.length > 0) {
-        const id = queue.shift()
+        const id = queue.shift()!
         descendants.push(id)
         queue.push(...(childrenByParent.get(id) ?? []))
     }
@@ -48,14 +49,14 @@ function collectDescendantIds(categories, rootId) {
 }
 
 function CategoryEditPage() {
-    const { category_id } = useParams()
-    const { state } = useLocation()
+    const { category_id } = useParams<{ category_id: string }>()
+    const { state } = useLocation() as { state: { category?: Category } | null }
     const navigate = useNavigate()
-    const [categories, setCategories] = useState([])
-    const [category, setCategory] = useState(state?.category ?? null)
+    const [categories, setCategories] = useState<Category[]>([])
+    const [category, setCategory] = useState<Category | null>(state?.category ?? null)
     const [loading, setLoading] = useState(!state?.category)
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
     })
 
@@ -72,7 +73,7 @@ function CategoryEditPage() {
                     setCategory(found ?? null)
                 }
             })
-            .catch((error) => toast.error(error.message))
+            .catch((error: Error) => toast.error(error.message))
             .finally(() => setLoading(false))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [category_id])
@@ -84,26 +85,26 @@ function CategoryEditPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [category])
 
-    const onSubmit = async (data) => {
-        const patch = {}
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
+        const patch: CategoryPatch = {}
         if (data.name && data.name.trim() !== "" && data.name !== category?.name) {
             patch.name = data.name.trim()
         }
         patch.parent_id = data.parent_id || null
 
         try {
-            await updateCategory(category_id, patch)
+            await updateCategory(category_id!, patch)
             toast.success("Category updated")
             navigate("/categories")
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
     const onBack = () => navigate(-1)
 
     const excludeValues = category ? [category.id, ...collectDescendantIds(categories, category.id)] : []
-    const parentOptions = categories.map((c) => ({ value: c.id, label: c.name }))
+    const parentOptions: ComboboxOption[] = categories.map((c) => ({ value: c.id, label: c.name }))
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">

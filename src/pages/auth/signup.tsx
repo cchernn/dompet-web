@@ -43,11 +43,10 @@ const formSchema = z.object({
 function SignUpPage() {
     const navigate = useNavigate()
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             username: "",
-            email: "",
             password: "",
             cpassword: "",
         }
@@ -57,9 +56,9 @@ function SignUpPage() {
         formState: {errors, isSubmitting}
     } = form
 
-    const onSubmit = async(data) => {
+    const onSubmit = async(data: z.infer<typeof formSchema>) => {
         try {
-            const response = await authService.signUp({
+            await authService.signUp({
                 username: data.username,
                 password: data.password,
                 attributes: {

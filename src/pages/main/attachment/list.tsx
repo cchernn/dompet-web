@@ -31,7 +31,7 @@ import { toast } from "sonner"
 import { listAttachments, deleteAttachment, getAttachment } from "@/api/attachments"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 
-function formatSize(bytes) {
+function formatSize(bytes?: number | null): string {
     if (bytes === null || bytes === undefined) return "—"
     const units = ["B", "KB", "MB", "GB"]
     let value = bytes
@@ -55,10 +55,10 @@ function AttachmentListPage() {
         reload,
     } = usePaginatedList(({ page, pageSize }) => listAttachments({ page, pageSize }))
 
-    const handleEdit = (id) => navigate(`/attachments/${id}`)
+    const handleEdit = (id: string) => navigate(`/attachments/${id}`)
     const handleAdd = () => navigate(`/attachments/add`)
 
-    const handleOpenAttachment = async (attachmentId) => {
+    const handleOpenAttachment = async (attachmentId: string) => {
         // The list response no longer carries a download_url (listing many
         // attachments shouldn't pay for an S3 presigned-URL generation per
         // row) — fetch one on demand for the specific attachment being
@@ -66,20 +66,20 @@ function AttachmentListPage() {
         const newTab = window.open("", "_blank")
         try {
             const { data } = await getAttachment(attachmentId)
-            if (newTab) newTab.location.href = data.download_url
+            if (newTab && data.download_url) newTab.location.href = data.download_url
         } catch (error) {
             if (newTab) newTab.close()
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: string) => {
         try {
             await deleteAttachment(id)
             toast.success("Attachment deleted")
             reload()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

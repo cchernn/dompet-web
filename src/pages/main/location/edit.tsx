@@ -29,6 +29,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
 import { getLocation, updateLocation } from "@/api/locations"
+import type { Location, LocationPatch } from "@/api/types"
 
 const formSchema = z.object({
     type: z.enum(["physical", "online"]),
@@ -40,12 +41,12 @@ const formSchema = z.object({
 })
 
 function LocationEditPage() {
-    const { location_id } = useParams()
-    const [location, setLocation] = useState(null)
+    const { location_id } = useParams<{ location_id: string }>()
+    const [location, setLocation] = useState<Location | null>(null)
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
     })
 
@@ -62,7 +63,7 @@ function LocationEditPage() {
 
     async function fetchLocation() {
         try {
-            const { data } = await getLocation(location_id)
+            const { data } = await getLocation(location_id!)
             setLocation(data)
             form.reset({
                 type: data.type,
@@ -71,32 +72,32 @@ function LocationEditPage() {
                 url: data.url ?? "",
             })
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         } finally {
             setLoading(false)
         }
     }
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
             // The backend's update_location does NOT re-apply the type-exclusivity
             // nulling that create_location does, so we must always send BOTH
             // fields explicitly here: the one matching the current type gets its
             // value, the other is explicitly nulled — otherwise a type change (or
             // stale prior data) can leave both fields set on the row.
-            const body = {
+            const body: LocationPatch = {
                 type: data.type,
                 google_maps_url: data.type === "physical" ? (data.google_maps_url || null) : null,
                 url: data.type === "online" ? (data.url || null) : null,
             }
-            if (data.name && data.name !== location.name) {
+            if (data.name && data.name !== location?.name) {
                 body.name = data.name
             }
-            await updateLocation(location_id, body)
+            await updateLocation(location_id!, body)
             toast.success("Location updated.")
             navigate(`/locations`)
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

@@ -30,7 +30,7 @@ const formSchema = z.object({
 function BudgetAddPage() {
     const navigate = useNavigate()
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: { name: "" },
     })
@@ -39,13 +39,13 @@ function BudgetAddPage() {
         formState: { errors, isSubmitting },
     } = form
 
-    const onSubmit = async (values) => {
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             const { data } = await createBudget({ name: values.name.trim() })
             toast.success("Budget created")
             navigate(`/budgets/${data.id}`)
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

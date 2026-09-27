@@ -13,7 +13,6 @@ import {
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -33,7 +32,7 @@ const formSchema = z.object({
 function SignInPage() {
     const navigate = useNavigate()
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             username: "",
@@ -45,7 +44,7 @@ function SignInPage() {
         formState: {errors, isSubmitting}
     } = form
 
-    const onSubmit = async(data) => {
+    const onSubmit = async(data: z.infer<typeof formSchema>) => {
         try {
             const response = await authService.signIn({
                 username: data.username,
@@ -57,7 +56,7 @@ function SignInPage() {
             console.log("SignIn Failed", error)
         }
     }
-    
+
     return (
         <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
             <div className="flex w-full max-w-sm flex-col gap-6">
@@ -102,16 +101,16 @@ function SignInPage() {
                                     </FormItem>
                                     )}
                                 />
-                                
+
                                 <Button className="w-full mt-6 mb-4" type="submit" disabled={isSubmitting}>Sign In</Button>
 
                                 <div className="text-center text-sm">
-                                    Don't have an account? {" "}
+                                    Don&apos;t have an account? {" "}
                                     <a className="underline underline-offset-4 hover:font-bold transition-all duration-300" href="/signup">
                                         Sign up
                                     </a>
                                 </div>
-                                
+
                             </form>
                         </Form>
                     </CardContent>

@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import { listCategories, deleteCategory } from "@/api/categories"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
+import type { Category } from "@/api/types"
 
 function CategoryListPage() {
     const navigate = useNavigate()
@@ -38,21 +39,21 @@ function CategoryListPage() {
         reload,
     } = usePaginatedList(({ page, pageSize }) => listCategories({ page, pageSize }))
 
-    const parentName = (parentId) => categories.find((c) => c.id === parentId)?.name ?? "—"
+    const parentName = (parentId: string) => categories.find((c) => c.id === parentId)?.name ?? "—"
 
     const handleAdd = () => navigate("/categories/add")
 
-    const handleEdit = (category) => {
+    const handleEdit = (category: Category) => {
         navigate(`/categories/${category.id}`, { state: { category } })
     }
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: string) => {
         try {
             await deleteCategory(id)
             toast.success("Category deleted")
             reload()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

@@ -24,7 +24,7 @@ const formSchema = z.object({
 function TagAddPage() {
     const navigate = useNavigate()
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: { name: "" },
     })
@@ -33,13 +33,13 @@ function TagAddPage() {
         formState: { errors, isSubmitting },
     } = form
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
             await createTag({ name: data.name })
             toast.success("Tag created")
             navigate("/tags")
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

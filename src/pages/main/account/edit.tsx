@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { Combobox } from "@/components/ui/combobox"
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -33,6 +33,7 @@ import {
 } from "@/api/accounts"
 import { listAccountLocations, linkLocation, unlinkLocation } from "@/api/accountLocations"
 import { listLocations } from "@/api/locations"
+import type { Account, Location, AccountPatch } from "@/api/types"
 
 const formSchema = z.object({
     code: z.string()
@@ -45,15 +46,15 @@ const formSchema = z.object({
 })
 
 function AccountEditPage() {
-    const { account_id } = useParams()
+    const { account_id } = useParams<{ account_id: string }>()
     const navigate = useNavigate()
-    const [account, setAccount] = useState(null)
+    const [account, setAccount] = useState<Account | null>(null)
     const [loading, setLoading] = useState(true)
-    const [linkedLocations, setLinkedLocations] = useState([])
-    const [allLocations, setAllLocations] = useState([])
+    const [linkedLocations, setLinkedLocations] = useState<Location[]>([])
+    const [allLocations, setAllLocations] = useState<Location[]>([])
     const [selectedLocationId, setSelectedLocationId] = useState("")
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
     })
 
@@ -70,7 +71,7 @@ function AccountEditPage() {
 
     async function fetchAccount() {
         try {
-            const { data } = await getAccount(account_id)
+            const { data } = await getAccount(account_id!)
             setAccount(data)
             form.reset({
                 code: data.code ?? "",
@@ -78,7 +79,7 @@ function AccountEditPage() {
                 description: data.description ?? "",
             })
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         } finally {
             setLoading(false)
         }
@@ -86,10 +87,10 @@ function AccountEditPage() {
 
     async function fetchLinkedLocations() {
         try {
-            const { data } = await listAccountLocations(account_id, { pageSize: 100 })
+            const { data } = await listAccountLocations(account_id!, { pageSize: 100 })
             setLinkedLocations(data)
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
@@ -98,17 +99,17 @@ function AccountEditPage() {
             const { data } = await listLocations({ pageSize: 100 })
             setAllLocations(data)
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         // Only send fields the user actually changed to a non-blank value —
         // the backend's edit endpoint doesn't re-validate non-empty like create does.
-        const patch = {}
-        if (data.code && data.code !== account.code) patch.code = data.code
-        if (data.name && data.name !== account.name) patch.name = data.name
-        if (data.description !== undefined && data.description !== account.description) {
+        const patch: AccountPatch = {}
+        if (data.code && data.code !== account?.code) patch.code = data.code
+        if (data.name && data.name !== account?.name) patch.name = data.name
+        if (data.description !== undefined && data.description !== account?.description) {
             patch.description = data.description || undefined
         }
         if (Object.keys(patch).length === 0) {
@@ -116,11 +117,11 @@ function AccountEditPage() {
             return
         }
         try {
-            await updateAccount(account_id, patch)
+            await updateAccount(account_id!, patch)
             toast.success("Account updated.")
             navigate(`/accounts`)
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
@@ -130,46 +131,46 @@ function AccountEditPage() {
 
     const handleDeactivate = async () => {
         try {
-            await deactivateAccount(account_id)
+            await deactivateAccount(account_id!)
             toast.success("Account deactivated.")
             fetchAccount()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
     const handleReactivate = async () => {
         try {
-            await reactivateAccount(account_id)
+            await reactivateAccount(account_id!)
             toast.success("Account reactivated.")
             fetchAccount()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
     const handleLink = async () => {
         if (!selectedLocationId) return
         try {
-            await linkLocation(account_id, selectedLocationId)
+            await linkLocation(account_id!, selectedLocationId)
             setSelectedLocationId("")
             fetchLinkedLocations()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
-    const handleUnlink = async (locationId) => {
+    const handleUnlink = async (locationId: string) => {
         try {
-            await unlinkLocation(account_id, locationId)
+            await unlinkLocation(account_id!, locationId)
             fetchLinkedLocations()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
     const linkedIds = new Set(linkedLocations.map((location) => location.id))
-    const locationOptions = allLocations.map((location) => ({ value: location.id, label: location.name }))
+    const locationOptions: ComboboxOption[] = allLocations.map((location) => ({ value: location.id, label: location.name }))
 
     return (
         <div className="min-h-svh m-2 items-center justify-center">

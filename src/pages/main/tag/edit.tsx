@@ -18,19 +18,20 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { listTags, updateTag } from "@/api/tags"
+import type { Tag } from "@/api/types"
 
 const formSchema = z.object({
     name: z.string().max(255, { message: "Name must be less than 255 characters" }).optional().or(z.literal("")),
 })
 
 function TagEditPage() {
-    const { tag_id } = useParams()
-    const { state } = useLocation()
+    const { tag_id } = useParams<{ tag_id: string }>()
+    const { state } = useLocation() as { state: { tag?: Tag } | null }
     const navigate = useNavigate()
-    const [tag, setTag] = useState(state?.tag ?? null)
+    const [tag, setTag] = useState<Tag | null>(state?.tag ?? null)
     const [loading, setLoading] = useState(!state?.tag)
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
     })
 
@@ -49,22 +50,22 @@ function TagEditPage() {
                 setTag(found ?? null)
                 if (found) form.reset({ name: found.name ?? "" })
             })
-            .catch((error) => toast.error(error.message))
+            .catch((error: Error) => toast.error(error.message))
             .finally(() => setLoading(false))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tag_id])
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         if (!data.name || data.name.trim() === "" || data.name === tag?.name) {
             toast.error("Nothing to update")
             return
         }
         try {
-            await updateTag(tag_id, { name: data.name.trim() })
+            await updateTag(tag_id!, { name: data.name.trim() })
             toast.success("Tag updated")
             navigate("/tags")
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

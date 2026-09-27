@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
 import { createLocation } from "@/api/locations"
+import type { LocationInput } from "@/api/types"
 
 const formSchema = z.object({
     type: z.enum(["physical", "online"]),
@@ -40,7 +41,7 @@ const formSchema = z.object({
 function LocationAddPage() {
     const navigate = useNavigate()
 
-    const form = useForm({
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             type: "physical",
@@ -56,9 +57,9 @@ function LocationAddPage() {
 
     const type = form.watch("type")
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
-            const body = {
+            const body: LocationInput = {
                 type: data.type,
                 name: data.name,
                 ...(data.type === "physical"
@@ -69,7 +70,7 @@ function LocationAddPage() {
             toast.success("Location created.")
             navigate(`/locations`)
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

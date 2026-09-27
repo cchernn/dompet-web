@@ -39,7 +39,7 @@ function AccountListPage() {
         reload,
     } = usePaginatedList(({ page, pageSize }) => listAccounts({ page, pageSize }))
 
-    const handleEdit = (id) => {
+    const handleEdit = (id: string) => {
         navigate(`/accounts/${id}`)
     }
 
@@ -47,23 +47,23 @@ function AccountListPage() {
         navigate(`/accounts/add`)
     }
 
-    const handleDeactivate = async (id) => {
+    const handleDeactivate = async (id: string) => {
         try {
             await deactivateAccount(id)
             toast.success("Account deactivated.")
             reload()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
-    const handleReactivate = async (id) => {
+    const handleReactivate = async (id: string) => {
         try {
             await reactivateAccount(id)
             toast.success("Account reactivated.")
             reload()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 

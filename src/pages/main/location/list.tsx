@@ -39,7 +39,7 @@ function LocationListPage() {
         reload,
     } = usePaginatedList(({ page, pageSize }) => listLocations({ page, pageSize }))
 
-    const handleEdit = (id) => {
+    const handleEdit = (id: string) => {
         navigate(`/locations/${id}`)
     }
 
@@ -47,17 +47,17 @@ function LocationListPage() {
         navigate(`/locations/add`)
     }
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: string) => {
         try {
             await deleteLocation(id)
             toast.success("Location deleted.")
             reload()
         } catch (error) {
-            toast.error(error.message)
+            toast.error((error as Error).message)
         }
     }
 
-    const handleOpenUrl = (url) => {
+    const handleOpenUrl = (url: string) => {
         window.open(url, "_blank", "noopener,noreferrer")
     }
 
