@@ -22,9 +22,6 @@ import { toast } from "@/lib/toast"
 import { createAccount } from "@/api/accounts"
 
 const formSchema = z.object({
-    code: z.string()
-        .min(1, { message: "Code is required" })
-        .max(100, { message: "Code must be less than 100 characters" }),
     name: z.string()
         .min(1, { message: "Name is required" })
         .max(255, { message: "Name must be less than 255 characters" }),
@@ -39,7 +36,6 @@ function AccountAddPage() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            code: "",
             name: "",
             description: "",
         }
@@ -52,7 +48,6 @@ function AccountAddPage() {
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
             await createAccount({
-                code: data.code,
                 name: data.name,
                 description: data.description || undefined,
             })
@@ -75,22 +70,6 @@ function AccountAddPage() {
                 </CardHeader>
                 <Form {...form}>
                     <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
-                        {/* Code Field */}
-                        <FormField
-                            control={form.control}
-                            name="code"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Code</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Account Code" {...field} />
-                                    </FormControl>
-                                    <FormDescription />
-                                    <FormMessage>{errors.code?.message}</FormMessage>
-                                </FormItem>
-                            )}
-                        />
-
                         {/* Name Field */}
                         <FormField
                             control={form.control}

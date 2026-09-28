@@ -36,9 +36,6 @@ import { listLocations } from "@/api/locations"
 import type { Account, Location, AccountPatch } from "@/api/types"
 
 const formSchema = z.object({
-    code: z.string()
-        .min(1, { message: "Code is required" })
-        .max(100, { message: "Code must be less than 100 characters" }),
     name: z.string()
         .min(1, { message: "Name is required" })
         .max(255, { message: "Name must be less than 255 characters" }),
@@ -74,7 +71,6 @@ function AccountEditPage() {
             const { data } = await getAccount(account_id!)
             setAccount(data)
             form.reset({
-                code: data.code ?? "",
                 name: data.name ?? "",
                 description: data.description ?? "",
             })
@@ -107,7 +103,6 @@ function AccountEditPage() {
         // Only send fields the user actually changed to a non-blank value —
         // the backend's edit endpoint doesn't re-validate non-empty like create does.
         const patch: AccountPatch = {}
-        if (data.code && data.code !== account?.code) patch.code = data.code
         if (data.name && data.name !== account?.name) patch.name = data.name
         if (data.description !== undefined && data.description !== account?.description) {
             patch.description = data.description || undefined
@@ -176,7 +171,10 @@ function AccountEditPage() {
         <div className="min-h-svh m-2 items-center justify-center">
             <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
                 <CardHeader className="pt-0 pb-4 w-full flex flex-row items-center justify-between">
-                    <CardTitle>Account: {account_id}</CardTitle>
+                    <div>
+                        <CardTitle>Account: {account_id}</CardTitle>
+                        {account && <p className="text-sm text-muted-foreground mt-1">Code: {account.code}</p>}
+                    </div>
                     {account && (
                         account.is_active ? (
                             <Alert
@@ -204,22 +202,6 @@ function AccountEditPage() {
                     :
                     <Form {...form}>
                         <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
-                            {/* Code Field */}
-                            <FormField
-                                control={form.control}
-                                name="code"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Code</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Account Code" {...field} />
-                                        </FormControl>
-                                        <FormDescription />
-                                        <FormMessage>{errors.code?.message}</FormMessage>
-                                    </FormItem>
-                                )}
-                            />
-
                             {/* Name Field */}
                             <FormField
                                 control={form.control}

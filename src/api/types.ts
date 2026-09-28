@@ -180,7 +180,8 @@ export interface TransactionBudgetLink {
 // contract, not to replace each page's own zod schema for value validation.
 
 export interface AccountInput {
-    code: string
+    // Optional — the backend auto-generates one from `name` if omitted.
+    code?: string
     name: string
     description?: string
 }
