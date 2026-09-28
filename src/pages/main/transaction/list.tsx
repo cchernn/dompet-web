@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import type { DateRange } from "react-day-picker"
 import {
     FilePenLine, FilePlus, Ban, X, ArrowUp, ArrowDown, ArrowUpDown, Paperclip,
-    Tag as TagIcon, ArrowRight, SlidersHorizontal, CalendarIcon,
+    Tag as TagIcon, ArrowRight, SlidersHorizontal, CalendarIcon, PiggyBank,
 } from "lucide-react"
 import { toast } from "@/lib/toast"
 import { format, parse } from "date-fns"
@@ -526,12 +526,33 @@ function TransactionListPage() {
                                         <TableCell>
                                             <div className="flex flex-col gap-0.5 py-1 min-w-0">
                                                 <span className="font-medium truncate">{tx.name}</span>
-                                                <span className="text-sm text-muted-foreground flex items-center gap-1 truncate">
-                                                    {tx.source}
+                                                <span
+                                                    className="text-sm text-muted-foreground flex items-center gap-1 truncate"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <button type="button" className="truncate hover:text-foreground hover:underline">
+                                                                {tx.source}
+                                                            </button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent align="start" className="w-56 p-2 text-sm">
+                                                            <span className="text-muted-foreground">Source Location:</span> {tx.source_location ?? "—"}
+                                                        </PopoverContent>
+                                                    </Popover>
                                                     <ArrowRight className="size-3 shrink-0" />
-                                                    {tx.destination}
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <button type="button" className="truncate hover:text-foreground hover:underline">
+                                                                {tx.destination}
+                                                            </button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent align="start" className="w-56 p-2 text-sm">
+                                                            <span className="text-muted-foreground">Destination Location:</span> {tx.destination_location ?? "—"}
+                                                        </PopoverContent>
+                                                    </Popover>
                                                 </span>
-                                                {(tx.category || tx.tags.length > 0 || tx.attachments.length > 0) && (
+                                                {(tx.category || tx.tags.length > 0 || tx.attachments.length > 0 || tx.budgets.length > 0) && (
                                                     <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                                                         <span className="truncate">{tx.category ?? "—"}</span>
                                                         <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -569,6 +590,22 @@ function TransactionListPage() {
                                                                                 >
                                                                                     {a.filename}
                                                                                 </button>
+                                                                            ))}
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            )}
+                                                            {tx.budgets.length > 0 && (
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <button type="button" className="inline-flex items-center gap-1 hover:text-foreground">
+                                                                            <PiggyBank className="size-3" />{tx.budgets.length}
+                                                                        </button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent align="end" className="w-56 p-2">
+                                                                        <div className="flex flex-wrap gap-1">
+                                                                            {tx.budgets.map((budget) => (
+                                                                                <Badge key={budget} variant="outline">{budget}</Badge>
                                                                             ))}
                                                                         </div>
                                                                     </PopoverContent>
@@ -614,8 +651,14 @@ function TransactionListPage() {
                                     <span className="text-muted-foreground">Source</span>
                                     <span>{selectedTransaction.source}</span>
 
+                                    <span className="text-muted-foreground">Source Location</span>
+                                    <span>{selectedTransaction.source_location ?? "—"}</span>
+
                                     <span className="text-muted-foreground">Destination</span>
                                     <span>{selectedTransaction.destination}</span>
+
+                                    <span className="text-muted-foreground">Destination Location</span>
+                                    <span>{selectedTransaction.destination_location ?? "—"}</span>
 
                                     <span className="text-muted-foreground">Tags</span>
                                     <span>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { CalendarIcon, Ban, RotateCcw, Download, ArrowRight } from "lucide-react"
 import { toast } from "@/lib/toast"
@@ -44,6 +44,7 @@ import { listAttachments, getAttachment } from "@/api/attachments"
 import { listTransactionAttachments, linkAttachment, unlinkAttachment } from "@/api/transactionAttachments"
 import { listBudgets } from "@/api/budgets"
 import { listTransactionBudgets, linkBudget, unlinkBudget } from "@/api/transactionBudgets"
+import { listAccountLocations } from "@/api/accountLocations"
 import { CURRENCIES } from "@/lib/currencies"
 import type { AccountSearchResult, CategorySearchResult, Tag, Attachment, Budget, Transaction, TransactionPatch, TransactionType } from "@/api/types"
 
@@ -68,6 +69,8 @@ const formSchema = z.object({
     category_id: z.string().nullable().optional(),
     source_account_id: z.string({ required_error: "Source account is required" }),
     destination_account_id: z.string({ required_error: "Destination account is required" }),
+    source_location_id: z.string().nullable().optional(),
+    destination_location_id: z.string().nullable().optional(),
 })
 
 const TYPE_LABELS: Record<TransactionType, string> = {
@@ -102,6 +105,8 @@ function TransactionEditPage() {
     const [linkedAttachmentsLoading, setLinkedAttachmentsLoading] = useState(true)
     const [linkedBudgets, setLinkedBudgets] = useState<Budget[]>([])
     const [linkedBudgetsLoading, setLinkedBudgetsLoading] = useState(true)
+    const [sourceLocationOptions, setSourceLocationOptions] = useState<ComboboxOption[]>([])
+    const [destinationLocationOptions, setDestinationLocationOptions] = useState<ComboboxOption[]>([])
 
     const form = useForm<z.infer<typeof formSchema>>({ resolver: zodResolver(formSchema) })
     const {
@@ -112,6 +117,70 @@ function TransactionEditPage() {
     const previewType = form.watch("type")
     const previewAmount = form.watch("amount")
     const previewCurrency = form.watch("currency_code")
+    const sourceAccountId = form.watch("source_account_id")
+    const destinationAccountId = form.watch("destination_account_id")
+
+    // Each leg's location must already be linked (via account_locations) to
+    // that same leg's account — independently, not a shared/merged list —
+    // so each side gets its own option fetch, scoped to its own account and
+    // refetched whenever that account changes. A previously-picked location
+    // is cleared if it falls outside the new set, but only on an actual
+    // account change (skipped on the very first run, which is just this
+    // transaction's own existing source/destination loading in via
+    // fetchTransaction's form.reset — that shouldn't wipe its own location).
+    const previousSourceAccountIdRef = useRef<string | undefined>(undefined)
+    useEffect(() => {
+        if (!sourceAccountId) {
+            setSourceLocationOptions([])
+            return
+        }
+        let cancelled = false
+        listAccountLocations(sourceAccountId, { pageSize: 100 }).then(({ data }) => {
+            if (cancelled) return
+            const options = data.map((location) => ({ value: location.id, label: location.name }))
+            setSourceLocationOptions(options)
+
+            const previous = previousSourceAccountIdRef.current
+            if (previous !== undefined && previous !== sourceAccountId) {
+                const currentValue = form.getValues("source_location_id")
+                if (currentValue && !options.some((option) => option.value === currentValue)) {
+                    form.setValue("source_location_id", null)
+                }
+            }
+            previousSourceAccountIdRef.current = sourceAccountId
+        }).catch((error: Error) => toast.error(error.message))
+        return () => {
+            cancelled = true
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sourceAccountId])
+
+    const previousDestinationAccountIdRef = useRef<string | undefined>(undefined)
+    useEffect(() => {
+        if (!destinationAccountId) {
+            setDestinationLocationOptions([])
+            return
+        }
+        let cancelled = false
+        listAccountLocations(destinationAccountId, { pageSize: 100 }).then(({ data }) => {
+            if (cancelled) return
+            const options = data.map((location) => ({ value: location.id, label: location.name }))
+            setDestinationLocationOptions(options)
+
+            const previous = previousDestinationAccountIdRef.current
+            if (previous !== undefined && previous !== destinationAccountId) {
+                const currentValue = form.getValues("destination_location_id")
+                if (currentValue && !options.some((option) => option.value === currentValue)) {
+                    form.setValue("destination_location_id", null)
+                }
+            }
+            previousDestinationAccountIdRef.current = destinationAccountId
+        }).catch((error: Error) => toast.error(error.message))
+        return () => {
+            cancelled = true
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [destinationAccountId])
 
     const fetchTransaction = async () => {
         try {
@@ -133,6 +202,8 @@ function TransactionEditPage() {
                 category_id: data.category_id ?? null,
                 source_account_id: data.source_account_id,
                 destination_account_id: data.destination_account_id,
+                source_location_id: data.source_location_id ?? null,
+                destination_location_id: data.destination_location_id ?? null,
             })
         } catch (error) {
             toast.error((error as Error).message)
@@ -215,6 +286,8 @@ function TransactionEditPage() {
                 category_id: data.category_id || undefined,
                 source_account_id: data.source_account_id,
                 destination_account_id: data.destination_account_id,
+                source_location_id: data.source_location_id || null,
+                destination_location_id: data.destination_location_id || null,
             }
             // Never send a blank name — omit it rather than trust the backend to reject it.
             if (data.name && data.name.trim() !== "") {
@@ -474,49 +547,93 @@ function TransactionEditPage() {
                                 )}
                             />
 
-                            {/* Source → Destination — stack on mobile, paired row from sm: up */}
-                            <div className="flex flex-col sm:flex-row sm:items-end gap-2">
-                                <FormField
-                                    control={form.control}
-                                    name="source_account_id"
-                                    render={({ field }) => (
-                                        <FormItem className="flex-1 min-w-0">
-                                            <FormLabel>Source Account</FormLabel>
-                                            <Combobox
-                                                options={accountOptions}
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Select the source account"
-                                                searchPlaceholder="Search accounts"
-                                                emptyText="No account found"
-                                            />
-                                            <FormDescription>Account the money/activity originates from.</FormDescription>
-                                            <FormMessage>{errors.source_account_id?.message}</FormMessage>
-                                        </FormItem>
-                                    )}
-                                />
+                            {/* Source → Destination, each paired with its own Location — stack on mobile, side by side from sm: up */}
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="flex-1 min-w-0 flex flex-col gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="source_account_id"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Source Account</FormLabel>
+                                                <Combobox
+                                                    options={accountOptions}
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Select the source account"
+                                                    searchPlaceholder="Search accounts"
+                                                    emptyText="No account found"
+                                                />
+                                                <FormDescription>Account the money/activity originates from.</FormDescription>
+                                                <FormMessage>{errors.source_account_id?.message}</FormMessage>
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="source_location_id"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Source Location</FormLabel>
+                                                <Combobox
+                                                    options={sourceLocationOptions}
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="No location (optional)"
+                                                    searchPlaceholder="Search locations"
+                                                    emptyText={sourceAccountId ? "No locations linked to this account" : "Select an account first"}
+                                                />
+                                                <FormDescription>Must be linked to this account.</FormDescription>
+                                                <FormMessage>{errors.source_location_id?.message}</FormMessage>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
 
                                 <ArrowRight className="size-4 text-muted-foreground shrink-0 self-center rotate-90 sm:rotate-0" />
 
-                                <FormField
-                                    control={form.control}
-                                    name="destination_account_id"
-                                    render={({ field }) => (
-                                        <FormItem className="flex-1 min-w-0">
-                                            <FormLabel>Destination Account</FormLabel>
-                                            <Combobox
-                                                options={accountOptions}
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Select the destination account"
-                                                searchPlaceholder="Search accounts"
-                                                emptyText="No account found"
-                                            />
-                                            <FormDescription>Account the money/activity goes to.</FormDescription>
-                                            <FormMessage>{errors.destination_account_id?.message}</FormMessage>
-                                        </FormItem>
-                                    )}
-                                />
+                                <div className="flex-1 min-w-0 flex flex-col gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="destination_account_id"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Destination Account</FormLabel>
+                                                <Combobox
+                                                    options={accountOptions}
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Select the destination account"
+                                                    searchPlaceholder="Search accounts"
+                                                    emptyText="No account found"
+                                                />
+                                                <FormDescription>Account the money/activity goes to.</FormDescription>
+                                                <FormMessage>{errors.destination_account_id?.message}</FormMessage>
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="destination_location_id"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Destination Location</FormLabel>
+                                                <Combobox
+                                                    options={destinationLocationOptions}
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="No location (optional)"
+                                                    searchPlaceholder="Search locations"
+                                                    emptyText={destinationAccountId ? "No locations linked to this account" : "Select an account first"}
+                                                />
+                                                <FormDescription>Must be linked to this account.</FormDescription>
+                                                <FormMessage>{errors.destination_location_id?.message}</FormMessage>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex flex-col gap-8 pt-6 border-t">

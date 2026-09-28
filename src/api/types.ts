@@ -27,6 +27,11 @@ export interface Transaction {
     category_id?: string | null
     source_account_id: string
     destination_account_id: string
+    // Each independently must already be linked (via account_locations) to
+    // its own leg's account — not a free-standing/global picker, and not
+    // mutually exclusive (a location can be valid for both legs at once).
+    source_location_id?: string | null
+    destination_location_id?: string | null
     is_active: boolean
     created_at: string
     updated_at: string
@@ -47,6 +52,11 @@ export interface TransactionSearchResult {
     category?: string | null
     source: string
     destination: string
+    // Joined location names only — no ids. If an id is ever needed (e.g. to
+    // preselect it in an edit form), it must come from a separate
+    // GET /transactions/{id} call (plain Transaction model), not this one.
+    source_location?: string | null
+    destination_location?: string | null
     tags: string[]
     budgets: string[]
     attachments: AttachmentRef[]
@@ -196,6 +206,8 @@ export interface TransactionInput {
     category_id?: string
     source_account_id: string
     destination_account_id: string
+    source_location_id?: string | null
+    destination_location_id?: string | null
 }
 export type TransactionPatch = Partial<TransactionInput>
 
