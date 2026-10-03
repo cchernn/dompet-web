@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "@/lib/toast"
 import { Button } from "@/components/ui/button"
@@ -17,8 +16,8 @@ import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { useCachedResource } from "@/hooks/use-cached-resource"
 import { listCategories, createCategory } from "@/api/categories"
-import type { Category } from "@/api/types"
 
 const formSchema = z.object({
     name: z.string().min(1, { message: "Name is required" }).max(255, { message: "Name must be less than 255 characters" }),
@@ -27,7 +26,8 @@ const formSchema = z.object({
 
 function CategoryAddPage() {
     const navigate = useNavigate()
-    const [categories, setCategories] = useState<Category[]>([])
+    const { data: categoriesData } = useCachedResource("categories:list", () => listCategories({ pageSize: 100 }))
+    const categories = categoriesData ?? []
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -37,12 +37,6 @@ function CategoryAddPage() {
     const {
         formState: { errors, isSubmitting },
     } = form
-
-    useEffect(() => {
-        listCategories({ pageSize: 100 })
-            .then(({ data }) => setCategories(data))
-            .catch((error: Error) => toast.error(error.message))
-    }, [])
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {

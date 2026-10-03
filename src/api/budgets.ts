@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient"
+import { invalidateResource } from "@/lib/resourceCache"
 import type { Budget, BudgetInput, BudgetPatch, BudgetSearchResult, Transaction } from "@/api/types"
 import type { ListParams, SearchParams } from "@/api/accounts"
 
@@ -12,12 +13,15 @@ export const searchBudgets = ({ page = 1, pageSize = 25, q }: SearchParams = {})
 
 export const getBudget = (budgetId: string) => apiClient.get<Budget>(`/budgets/${budgetId}`)
 
-export const createBudget = (body: BudgetInput) => apiClient.post<Budget>("/budgets", body)
+export const createBudget = (body: BudgetInput) =>
+    apiClient.post<Budget>("/budgets", body).then((result) => { invalidateResource("budgets"); return result })
 
-export const updateBudget = (budgetId: string, body: BudgetPatch) => apiClient.put<Budget>(`/budgets/${budgetId}`, body)
+export const updateBudget = (budgetId: string, body: BudgetPatch) =>
+    apiClient.put<Budget>(`/budgets/${budgetId}`, body).then((result) => { invalidateResource("budgets"); return result })
 
 // One-way soft delete (is_active=false) — no reactivate route exists.
-export const deleteBudget = (budgetId: string) => apiClient.delete<Budget>(`/budgets/${budgetId}`)
+export const deleteBudget = (budgetId: string) =>
+    apiClient.delete<Budget>(`/budgets/${budgetId}`).then((result) => { invalidateResource("budgets"); return result })
 
 // Read-only sub-list. Returns the plain Transaction model (raw account/
 // category ids, `datetime` not `date`) — NOT the denormalized search-view

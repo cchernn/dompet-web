@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient"
+import { invalidateResource } from "@/lib/resourceCache"
 import type { Location, LocationInput, LocationPatch, LocationSearchResult, LocationType } from "@/api/types"
 import type { ListParams, SearchParams } from "@/api/accounts"
 
@@ -15,10 +16,12 @@ export const searchLocations = ({ page = 1, pageSize = 25, q, owner, type }: Sea
 
 export const getLocation = (locationId: string) => apiClient.get<Location>(`/locations/${locationId}`)
 
-export const createLocation = (body: LocationInput) => apiClient.post<Location>("/locations", body)
+export const createLocation = (body: LocationInput) =>
+    apiClient.post<Location>("/locations", body).then((result) => { invalidateResource("locations"); return result })
 
 export const updateLocation = (locationId: string, body: LocationPatch) =>
-    apiClient.put<Location>(`/locations/${locationId}`, body)
+    apiClient.put<Location>(`/locations/${locationId}`, body).then((result) => { invalidateResource("locations"); return result })
 
 // One-way soft delete (is_active=false) — no reactivate route exists.
-export const deleteLocation = (locationId: string) => apiClient.delete<Location>(`/locations/${locationId}`)
+export const deleteLocation = (locationId: string) =>
+    apiClient.delete<Location>(`/locations/${locationId}`).then((result) => { invalidateResource("locations"); return result })

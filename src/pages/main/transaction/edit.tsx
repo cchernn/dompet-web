@@ -35,6 +35,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { cn } from "@/lib/utils"
 import { AmountDisplay, AMOUNT_META } from "@/components/amount-display"
+import { useCachedResource } from "@/hooks/use-cached-resource"
 import { getTransaction, updateTransaction, deactivateTransaction, reactivateTransaction } from "@/api/transactions"
 import { searchAccounts } from "@/api/accounts"
 import { searchCategories } from "@/api/categories"
@@ -46,7 +47,7 @@ import { listBudgets } from "@/api/budgets"
 import { listTransactionBudgets, linkBudget, unlinkBudget } from "@/api/transactionBudgets"
 import { listAccountLocations } from "@/api/accountLocations"
 import { CURRENCIES } from "@/lib/currencies"
-import type { AccountSearchResult, CategorySearchResult, Tag, Attachment, Budget, Transaction, TransactionPatch, TransactionType } from "@/api/types"
+import type { Tag, Attachment, Budget, Transaction, TransactionPatch, TransactionType } from "@/api/types"
 
 // Filter-dropdown source: up to 1000 rows in one call (vs. the plain list
 // endpoints' 100-row cap), same as the transactions-list filter. Note this
@@ -92,12 +93,16 @@ function TransactionEditPage() {
     const [transaction, setTransaction] = useState<Transaction | null>(null)
     const [loading, setLoading] = useState(true)
 
-    const [accounts, setAccounts] = useState<AccountSearchResult[]>([])
-    const [categories, setCategories] = useState<CategorySearchResult[]>([])
-
-    const [tagOptions, setTagOptions] = useState<ComboboxOption[]>([])
-    const [attachmentOptions, setAttachmentOptions] = useState<ComboboxOption[]>([])
-    const [budgetOptions, setBudgetOptions] = useState<ComboboxOption[]>([])
+    const { data: accountsData } = useCachedResource("accounts:search", () => searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
+    const { data: categoriesData } = useCachedResource("categories:search", () => searchCategories({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
+    const { data: tagsData } = useCachedResource("tags:list", () => listTags({ pageSize: 100 }))
+    const { data: attachmentsData } = useCachedResource("attachments:list", () => listAttachments({ pageSize: 100 }))
+    const { data: budgetsData } = useCachedResource("budgets:list", () => listBudgets({ pageSize: 100 }))
+    const accounts = accountsData ?? []
+    const categories = categoriesData ?? []
+    const tagOptions: ComboboxOption[] = (tagsData ?? []).map((t) => ({ value: t.id, label: t.name }))
+    const attachmentOptions: ComboboxOption[] = (attachmentsData ?? []).map((a) => ({ value: a.id, label: a.filename }))
+    const budgetOptions: ComboboxOption[] = (budgetsData ?? []).map((b) => ({ value: b.id, label: b.name }))
 
     const [linkedTags, setLinkedTags] = useState<Tag[]>([])
     const [linkedTagsLoading, setLinkedTagsLoading] = useState(true)
@@ -253,16 +258,6 @@ function TransactionEditPage() {
         fetchLinkedTags()
         fetchLinkedAttachments()
         fetchLinkedBudgets()
-
-        searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE })
-            .then(({ data }) => setAccounts(data))
-            .catch((error: Error) => toast.error(error.message))
-        searchCategories({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE })
-            .then(({ data }) => setCategories(data))
-            .catch((error: Error) => toast.error(error.message))
-        listTags({ pageSize: 100 }).then(({ data }) => setTagOptions(data.map((t) => ({ value: t.id, label: t.name })))).catch((error: Error) => toast.error(error.message))
-        listAttachments({ pageSize: 100 }).then(({ data }) => setAttachmentOptions(data.map((a) => ({ value: a.id, label: a.filename })))).catch((error: Error) => toast.error(error.message))
-        listBudgets({ pageSize: 100 }).then(({ data }) => setBudgetOptions(data.map((b) => ({ value: b.id, label: b.name })))).catch((error: Error) => toast.error(error.message))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transaction_id])
 

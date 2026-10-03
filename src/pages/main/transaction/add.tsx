@@ -32,6 +32,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { cn } from "@/lib/utils"
 import { AmountDisplay, AMOUNT_META } from "@/components/amount-display"
+import { useCachedResource } from "@/hooks/use-cached-resource"
 import { createTransaction } from "@/api/transactions"
 import { searchAccounts } from "@/api/accounts"
 import { searchCategories } from "@/api/categories"
@@ -43,7 +44,7 @@ import { listBudgets } from "@/api/budgets"
 import { linkBudget } from "@/api/transactionBudgets"
 import { listAccountLocations } from "@/api/accountLocations"
 import { CURRENCIES } from "@/lib/currencies"
-import type { AccountSearchResult, CategorySearchResult, Tag, Attachment, Budget, TransactionType } from "@/api/types"
+import type { Tag, Attachment, Budget, TransactionType } from "@/api/types"
 
 // Filter-dropdown source: up to 1000 rows in one call (vs. the plain list
 // endpoints' 100-row cap), same as the transactions-list filter.
@@ -81,11 +82,16 @@ const TYPE_ACTIVE_CLASSES: Record<TransactionType, string> = {
 
 function TransactionAddPage() {
     const navigate = useNavigate()
-    const [accounts, setAccounts] = useState<AccountSearchResult[]>([])
-    const [categories, setCategories] = useState<CategorySearchResult[]>([])
-    const [tags, setTags] = useState<Tag[]>([])
-    const [attachments, setAttachments] = useState<Attachment[]>([])
-    const [budgets, setBudgets] = useState<Budget[]>([])
+    const { data: accountsData } = useCachedResource("accounts:search", () => searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
+    const { data: categoriesData } = useCachedResource("categories:search", () => searchCategories({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
+    const { data: tagsData } = useCachedResource("tags:list", () => listTags({ pageSize: 100 }))
+    const { data: attachmentsData } = useCachedResource("attachments:list", () => listAttachments({ pageSize: 100 }))
+    const { data: budgetsData } = useCachedResource("budgets:list", () => listBudgets({ pageSize: 100 }))
+    const accounts = accountsData ?? []
+    const categories = categoriesData ?? []
+    const tags = tagsData ?? []
+    const attachments = attachmentsData ?? []
+    const budgets = budgetsData ?? []
 
     // The transaction doesn't exist yet, so these can't be linked via the
     // real POST /transactions/{id}/tags-style endpoints until after create —
@@ -182,24 +188,6 @@ function TransactionAddPage() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [destinationAccountId])
-
-    useEffect(() => {
-        searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE })
-            .then(({ data }) => setAccounts(data))
-            .catch((error: Error) => toast.error(error.message))
-        searchCategories({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE })
-            .then(({ data }) => setCategories(data))
-            .catch((error: Error) => toast.error(error.message))
-        listTags({ pageSize: 100 })
-            .then(({ data }) => setTags(data))
-            .catch((error: Error) => toast.error(error.message))
-        listAttachments({ pageSize: 100 })
-            .then(({ data }) => setAttachments(data))
-            .catch((error: Error) => toast.error(error.message))
-        listBudgets({ pageSize: 100 })
-            .then(({ data }) => setBudgets(data))
-            .catch((error: Error) => toast.error(error.message))
-    }, [])
 
     const accountOptions: ComboboxOption[] = accounts.map((a) => ({ value: a.id, label: a.name }))
     const categoryOptions: ComboboxOption[] = categories.map((c) => ({ value: c.id, label: c.name }))

@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { useCachedResource } from "@/hooks/use-cached-resource"
 import { listTags, updateTag } from "@/api/tags"
 import type { Tag } from "@/api/types"
 
@@ -28,8 +29,12 @@ function TagEditPage() {
     const { tag_id } = useParams<{ tag_id: string }>()
     const { state } = useLocation() as { state: { tag?: Tag } | null }
     const navigate = useNavigate()
+    const { data: tagsData, loading: tagsLoading } = useCachedResource(
+        "tags:list:includeInactive",
+        () => listTags({ pageSize: 100, includeInactive: true })
+    )
     const [tag, setTag] = useState<Tag | null>(state?.tag ?? null)
-    const [loading, setLoading] = useState(!state?.tag)
+    const loading = !tag && tagsLoading
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -44,16 +49,12 @@ function TagEditPage() {
             form.reset({ name: tag.name ?? "" })
             return
         }
-        listTags({ pageSize: 100, includeInactive: true })
-            .then(({ data }) => {
-                const found = data.find((t) => t.id === tag_id)
-                setTag(found ?? null)
-                if (found) form.reset({ name: found.name ?? "" })
-            })
-            .catch((error: Error) => toast.error(error.message))
-            .finally(() => setLoading(false))
+        if (tagsLoading) return
+        const found = (tagsData ?? []).find((t) => t.id === tag_id)
+        setTag(found ?? null)
+        if (found) form.reset({ name: found.name ?? "" })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tag_id])
+    }, [tag, tagsLoading, tag_id])
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         if (!data.name || data.name.trim() === "" || data.name === tag?.name) {

@@ -1,4 +1,5 @@
 import { CircleUserRound } from "lucide-react"
+import { Link } from "react-router-dom"
 import {
     Avatar,
     AvatarImage,
@@ -23,13 +24,13 @@ export function NavUser({
         <SidebarMenu>
             <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                    <a href="/signout">
+                    <Link to="/signout">
                         <Avatar>
                             <AvatarImage />
                             <AvatarFallback><CircleUserRound /></AvatarFallback>
                         </Avatar>
                         <span>Sign Out</span>
-                    </a>
+                    </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>

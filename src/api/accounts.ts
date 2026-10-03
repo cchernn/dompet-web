@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient"
+import { invalidateResource } from "@/lib/resourceCache"
 import type { Account, AccountInput, AccountPatch, AccountSearchResult, AccountType } from "@/api/types"
 
 export interface ListParams {
@@ -27,11 +28,14 @@ export const searchAccounts = ({ page = 1, pageSize = 25, q, type }: SearchParam
 
 export const getAccount = (accountId: string) => apiClient.get<Account>(`/accounts/${accountId}`)
 
-export const createAccount = (body: AccountInput) => apiClient.post<Account>("/accounts", body)
+export const createAccount = (body: AccountInput) =>
+    apiClient.post<Account>("/accounts", body).then((result) => { invalidateResource("accounts"); return result })
 
 export const updateAccount = (accountId: string, body: AccountPatch) =>
-    apiClient.put<Account>(`/accounts/${accountId}`, body)
+    apiClient.put<Account>(`/accounts/${accountId}`, body).then((result) => { invalidateResource("accounts"); return result })
 
-export const deactivateAccount = (accountId: string) => apiClient.post<Account>(`/accounts/${accountId}/deactivate`)
+export const deactivateAccount = (accountId: string) =>
+    apiClient.post<Account>(`/accounts/${accountId}/deactivate`).then((result) => { invalidateResource("accounts"); return result })
 
-export const reactivateAccount = (accountId: string) => apiClient.post<Account>(`/accounts/${accountId}/reactivate`)
+export const reactivateAccount = (accountId: string) =>
+    apiClient.post<Account>(`/accounts/${accountId}/reactivate`).then((result) => { invalidateResource("accounts"); return result })

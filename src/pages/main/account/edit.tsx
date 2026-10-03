@@ -38,6 +38,7 @@ import {
     deactivateAccount,
     reactivateAccount,
 } from "@/api/accounts"
+import { useCachedResource } from "@/hooks/use-cached-resource"
 import { listAccountLocations, linkLocation, unlinkLocation } from "@/api/accountLocations"
 import { listLocations } from "@/api/locations"
 import type { Account, AccountType, Location, AccountPatch } from "@/api/types"
@@ -66,7 +67,8 @@ function AccountEditPage() {
     const [account, setAccount] = useState<Account | null>(null)
     const [loading, setLoading] = useState(true)
     const [linkedLocations, setLinkedLocations] = useState<Location[]>([])
-    const [allLocations, setAllLocations] = useState<Location[]>([])
+    const { data: allLocationsData } = useCachedResource("locations:list", () => listLocations({ pageSize: 100 }))
+    const allLocations = allLocationsData ?? []
     const [selectedLocationId, setSelectedLocationId] = useState("")
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -80,7 +82,6 @@ function AccountEditPage() {
     useEffect(() => {
         fetchAccount()
         fetchLinkedLocations()
-        fetchAllLocations()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [account_id])
 
@@ -104,15 +105,6 @@ function AccountEditPage() {
         try {
             const { data } = await listAccountLocations(account_id!, { pageSize: 100 })
             setLinkedLocations(data)
-        } catch (error) {
-            toast.error((error as Error).message)
-        }
-    }
-
-    async function fetchAllLocations() {
-        try {
-            const { data } = await listLocations({ pageSize: 100 })
-            setAllLocations(data)
         } catch (error) {
             toast.error((error as Error).message)
         }

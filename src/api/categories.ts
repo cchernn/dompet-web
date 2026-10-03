@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient"
+import { invalidateResource } from "@/lib/resourceCache"
 import type { Category, CategoryInput, CategoryPatch, CategorySearchResult } from "@/api/types"
 import type { ListParams, SearchParams } from "@/api/accounts"
 
@@ -13,10 +14,12 @@ export const searchCategories = ({ page = 1, pageSize = 25, q, owner }: SearchPa
     apiClient.get<CategorySearchResult[]>("/categories/search", { page, page_size: pageSize, q, user_id: owner })
 
 // No GET-by-id route exists — edit pages must seed from already-fetched list data.
-export const createCategory = (body: CategoryInput) => apiClient.post<Category>("/categories", body)
+export const createCategory = (body: CategoryInput) =>
+    apiClient.post<Category>("/categories", body).then((result) => { invalidateResource("categories"); return result })
 
 export const updateCategory = (categoryId: string, body: CategoryPatch) =>
-    apiClient.put<Category>(`/categories/${categoryId}`, body)
+    apiClient.put<Category>(`/categories/${categoryId}`, body).then((result) => { invalidateResource("categories"); return result })
 
 // One-way soft delete (is_active=false) — no reactivate route exists.
-export const deleteCategory = (categoryId: string) => apiClient.delete<Category>(`/categories/${categoryId}`)
+export const deleteCategory = (categoryId: string) =>
+    apiClient.delete<Category>(`/categories/${categoryId}`).then((result) => { invalidateResource("categories"); return result })

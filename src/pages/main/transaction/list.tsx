@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { DateRange } from "react-day-picker"
 import {
@@ -51,6 +51,7 @@ import Alert from "@/lib/alertDialog"
 import { cn } from "@/lib/utils"
 import { AmountDisplay } from "@/components/amount-display"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
+import { useCachedResource } from "@/hooks/use-cached-resource"
 import { searchTransactions, deactivateTransaction } from "@/api/transactions"
 import { searchCategories } from "@/api/categories"
 import { searchAccounts } from "@/api/accounts"
@@ -58,7 +59,6 @@ import { searchTags } from "@/api/tags"
 import { searchBudgets } from "@/api/budgets"
 import { getAttachment } from "@/api/attachments"
 import type {
-    CategorySearchResult, AccountSearchResult, TagSearchResult, BudgetSearchResult,
     TransactionSearchResult, TransactionType,
 } from "@/api/types"
 
@@ -136,10 +136,14 @@ function SortableHeader({ column, label, sort, onToggle, className }: SortableHe
 
 function TransactionListPage() {
     const navigate = useNavigate()
-    const [categories, setCategories] = useState<CategorySearchResult[]>([])
-    const [accounts, setAccounts] = useState<AccountSearchResult[]>([])
-    const [tags, setTags] = useState<TagSearchResult[]>([])
-    const [budgets, setBudgets] = useState<BudgetSearchResult[]>([])
+    const { data: categoriesData } = useCachedResource("categories:search", () => searchCategories({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
+    const { data: accountsData } = useCachedResource("accounts:search", () => searchAccounts({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
+    const { data: tagsData } = useCachedResource("tags:search", () => searchTags({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
+    const { data: budgetsData } = useCachedResource("budgets:search", () => searchBudgets({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
+    const categories = categoriesData ?? []
+    const accounts = accountsData ?? []
+    const tags = tagsData ?? []
+    const budgets = budgetsData ?? []
     const [filters, setFilters] = useState<Filters>({
         from: "", to: "", category: "", type: "", source: "", destination: "", tags: "", budgets: "",
     })
@@ -172,21 +176,6 @@ function TransactionListPage() {
             budgets: filters.budgets || undefined,
         })
     )
-
-    useEffect(() => {
-        searchCategories({ pageSize: FILTER_OPTIONS_PAGE_SIZE })
-            .then(({ data }) => setCategories(data))
-            .catch((error: Error) => toast.error(error.message))
-        searchAccounts({ pageSize: FILTER_OPTIONS_PAGE_SIZE })
-            .then(({ data }) => setAccounts(data))
-            .catch((error: Error) => toast.error(error.message))
-        searchTags({ pageSize: FILTER_OPTIONS_PAGE_SIZE })
-            .then(({ data }) => setTags(data))
-            .catch((error: Error) => toast.error(error.message))
-        searchBudgets({ pageSize: FILTER_OPTIONS_PAGE_SIZE })
-            .then(({ data }) => setBudgets(data))
-            .catch((error: Error) => toast.error(error.message))
-    }, [])
 
     const updateFilter = (key: keyof Filters, value: string) => {
         setFilters((prev) => ({ ...prev, [key]: value }))

@@ -18,6 +18,7 @@ import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { useCachedResource } from "@/hooks/use-cached-resource"
 import { listCategories, updateCategory } from "@/api/categories"
 import type { Category, CategoryPatch } from "@/api/types"
 
@@ -52,9 +53,13 @@ function CategoryEditPage() {
     const { category_id } = useParams<{ category_id: string }>()
     const { state } = useLocation() as { state: { category?: Category } | null }
     const navigate = useNavigate()
-    const [categories, setCategories] = useState<Category[]>([])
+    const { data: categoriesData, loading: categoriesLoading } = useCachedResource(
+        "categories:list:includeInactive",
+        () => listCategories({ pageSize: 100, includeInactive: true })
+    )
+    const categories = categoriesData ?? []
     const [category, setCategory] = useState<Category | null>(state?.category ?? null)
-    const [loading, setLoading] = useState(!state?.category)
+    const loading = !category && categoriesLoading
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -65,18 +70,11 @@ function CategoryEditPage() {
     } = form
 
     useEffect(() => {
-        listCategories({ pageSize: 100, includeInactive: true })
-            .then(({ data }) => {
-                setCategories(data)
-                if (!category) {
-                    const found = data.find((c) => c.id === category_id)
-                    setCategory(found ?? null)
-                }
-            })
-            .catch((error: Error) => toast.error(error.message))
-            .finally(() => setLoading(false))
+        if (category || categoriesLoading) return
+        const found = categories.find((c) => c.id === category_id)
+        setCategory(found ?? null)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [category_id])
+    }, [categoriesLoading, category_id])
 
     useEffect(() => {
         if (category) {

@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient"
+import { invalidateResource } from "@/lib/resourceCache"
 import type { Attachment, AttachmentPatch, AttachmentSearchResult } from "@/api/types"
 import type { ListParams, SearchParams } from "@/api/accounts"
 
@@ -42,12 +43,14 @@ export const createAndUploadAttachment = async (file: File): Promise<Attachment>
         sizeBytes: file.size,
     })
     await uploadAttachmentFile(data.upload_url, file, file.type)
+    invalidateResource("attachments")
     return data.attachment
 }
 
 // filename rename only — re-uploading a new file is a new Attachment, not an edit.
 export const updateAttachment = (attachmentId: string, body: AttachmentPatch) =>
-    apiClient.put<Attachment>(`/attachments/${attachmentId}`, body)
+    apiClient.put<Attachment>(`/attachments/${attachmentId}`, body).then((result) => { invalidateResource("attachments"); return result })
 
 // One-way soft delete (is_active=false) — no reactivate route exists.
-export const deleteAttachment = (attachmentId: string) => apiClient.delete<Attachment>(`/attachments/${attachmentId}`)
+export const deleteAttachment = (attachmentId: string) =>
+    apiClient.delete<Attachment>(`/attachments/${attachmentId}`).then((result) => { invalidateResource("attachments"); return result })

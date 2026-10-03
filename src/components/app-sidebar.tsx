@@ -1,4 +1,5 @@
 import type { ComponentProps } from "react"
+import { Link } from "react-router-dom"
 import {
     ChartColumn,
     FileText,
@@ -95,10 +96,10 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                         {items.map((item) => (
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton asChild>
-                                    <a href={item.url}>
+                                    <Link to={item.url}>
                                         <item.icon />
                                         <span>{item.title}</span>
-                                    </a>
+                                    </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         ))}
