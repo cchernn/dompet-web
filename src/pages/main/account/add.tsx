@@ -11,6 +11,13 @@ import {
     FormMessage
 } from "@/components/ui/form"
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import {
     Card,
     CardHeader,
     CardTitle,
@@ -20,6 +27,17 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "@/lib/toast"
 import { createAccount } from "@/api/accounts"
+import type { AccountType } from "@/api/types"
+
+const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
+    bank: "Bank",
+    wallet: "Wallet",
+    merchant: "Merchant",
+    online: "Online",
+    utility: "Utility",
+    subscription: "Subscription",
+    other: "Other",
+}
 
 const formSchema = z.object({
     name: z.string()
@@ -28,6 +46,7 @@ const formSchema = z.object({
     description: z.string()
         .max(1000, { message: "Description must be less than 1000 characters" })
         .optional(),
+    type: z.enum(["bank", "wallet", "merchant", "online", "utility", "subscription", "other"]),
 })
 
 function AccountAddPage() {
@@ -38,6 +57,7 @@ function AccountAddPage() {
         defaultValues: {
             name: "",
             description: "",
+            type: "other",
         }
     })
 
@@ -50,6 +70,7 @@ function AccountAddPage() {
             await createAccount({
                 name: data.name,
                 description: data.description || undefined,
+                type: data.type,
             })
             toast.success("Account created.")
             navigate(`/accounts`)
@@ -98,6 +119,31 @@ function AccountAddPage() {
                                     </FormControl>
                                     <FormDescription />
                                     <FormMessage>{errors.description?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Type Field */}
+                        <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Type</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a type" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {(Object.entries(ACCOUNT_TYPE_LABELS) as [AccountType, string][]).map(([value, label]) => (
+                                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormDescription />
+                                    <FormMessage>{errors.type?.message}</FormMessage>
                                 </FormItem>
                             )}
                         />

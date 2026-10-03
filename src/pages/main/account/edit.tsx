@@ -13,6 +13,13 @@ import {
     FormMessage
 } from "@/components/ui/form"
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import {
     Card,
     CardHeader,
     CardTitle,
@@ -33,13 +40,24 @@ import {
 } from "@/api/accounts"
 import { listAccountLocations, linkLocation, unlinkLocation } from "@/api/accountLocations"
 import { listLocations } from "@/api/locations"
-import type { Account, Location, AccountPatch } from "@/api/types"
+import type { Account, AccountType, Location, AccountPatch } from "@/api/types"
+
+const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
+    bank: "Bank",
+    wallet: "Wallet",
+    merchant: "Merchant",
+    online: "Online",
+    utility: "Utility",
+    subscription: "Subscription",
+    other: "Other",
+}
 
 const formSchema = z.object({
     name: z.string()
         .min(1, { message: "Name is required" })
         .max(255, { message: "Name must be less than 255 characters" }),
     description: z.string().optional(),
+    type: z.enum(["bank", "wallet", "merchant", "online", "utility", "subscription", "other"]),
 })
 
 function AccountEditPage() {
@@ -73,6 +91,7 @@ function AccountEditPage() {
             form.reset({
                 name: data.name ?? "",
                 description: data.description ?? "",
+                type: data.type,
             })
         } catch (error) {
             toast.error((error as Error).message)
@@ -107,6 +126,7 @@ function AccountEditPage() {
         if (data.description !== undefined && data.description !== account?.description) {
             patch.description = data.description || undefined
         }
+        if (data.type && data.type !== account?.type) patch.type = data.type
         if (Object.keys(patch).length === 0) {
             toast.success("No changes to save.")
             return
@@ -230,6 +250,31 @@ function AccountEditPage() {
                                         </FormControl>
                                         <FormDescription />
                                         <FormMessage>{errors.description?.message}</FormMessage>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* Type Field */}
+                            <FormField
+                                control={form.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Type</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a type" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {(Object.entries(ACCOUNT_TYPE_LABELS) as [AccountType, string][]).map(([value, label]) => (
+                                                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription />
+                                        <FormMessage>{errors.type?.message}</FormMessage>
                                     </FormItem>
                                 )}
                             />

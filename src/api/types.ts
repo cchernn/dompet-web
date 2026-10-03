@@ -6,12 +6,14 @@
 export type TransactionType = "expenditure" | "income" | "transfer"
 export type LocationType = "physical" | "online"
 export type NotificationType = "success" | "error" | "warning" | "info"
+export type AccountType = "bank" | "wallet" | "merchant" | "online" | "utility" | "subscription" | "other"
 
 export interface Account {
     id: string
     code: string
     name: string
     description?: string
+    type: AccountType
     is_active: boolean
     created_at: string
     updated_at: string
@@ -82,6 +84,7 @@ export interface AccountSearchResult {
     name: string
     description?: string | null
     usage_count: number
+    type: AccountType
 }
 
 export interface CategorySearchResult {
@@ -115,6 +118,10 @@ export interface Category {
 
 export interface Location {
     id: string
+    // null = public/shared (visible to everyone, but per the backend's
+    // current RLS policies cannot be edited or deleted through the app —
+    // only read); a real id = private to that user, normal CRUD applies.
+    user_id?: string | null
     type: LocationType
     name: string
     google_maps_url?: string | null
@@ -194,6 +201,8 @@ export interface AccountInput {
     code?: string
     name: string
     description?: string
+    // Optional — defaults to "other" server-side if omitted.
+    type?: AccountType
 }
 export type AccountPatch = Partial<AccountInput>
 
@@ -222,6 +231,9 @@ export interface LocationInput {
     name: string
     google_maps_url?: string | null
     url?: string | null
+    // Create-only — the backend doesn't support changing visibility via
+    // update. Defaults to false (private to the creator) if omitted.
+    is_public?: boolean
 }
 export type LocationPatch = Partial<LocationInput>
 

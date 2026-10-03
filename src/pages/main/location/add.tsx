@@ -36,6 +36,7 @@ const formSchema = z.object({
         .max(255, { message: "Name must be less than 255 characters" }),
     google_maps_url: z.string().optional(),
     url: z.string().optional(),
+    visibility: z.enum(["private", "public"]),
 })
 
 function LocationAddPage() {
@@ -48,6 +49,7 @@ function LocationAddPage() {
             name: "",
             google_maps_url: "",
             url: "",
+            visibility: "private",
         }
     })
 
@@ -62,6 +64,7 @@ function LocationAddPage() {
             const body: LocationInput = {
                 type: data.type,
                 name: data.name,
+                is_public: data.visibility === "public",
                 ...(data.type === "physical"
                     ? { google_maps_url: data.google_maps_url || undefined }
                     : { url: data.url || undefined }),
@@ -158,6 +161,30 @@ function LocationAddPage() {
                                 )}
                             />
                         )}
+
+                        {/* Visibility Field */}
+                        <FormField
+                            control={form.control}
+                            name="visibility"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Visibility</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select visibility." />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="private">Private</SelectItem>
+                                            <SelectItem value="public">Public</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormDescription>Private locations are only visible to you. This cannot be changed later.</FormDescription>
+                                    <FormMessage>{errors.visibility?.message}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
 
                         <div className="flex flex-col gap-2 w-full max-w-xs">
                             <Button type="submit" disabled={isSubmitting}>Submit</Button>

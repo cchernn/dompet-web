@@ -55,6 +55,7 @@ function LocationEditPage() {
     } = form
 
     const type = form.watch("type")
+    const isPublic = location ? location.user_id == null : false
 
     useEffect(() => {
         fetchLocation()
@@ -79,6 +80,10 @@ function LocationEditPage() {
     }
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
+        if (isPublic) {
+            toast.error("Public locations can't be edited.")
+            return
+        }
         try {
             // The backend's update_location does NOT re-apply the type-exclusivity
             // nulling that create_location does, so we must always send BOTH
@@ -110,6 +115,11 @@ function LocationEditPage() {
             <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start">
                 <CardHeader className="pt-0 pb-4">
                     <CardTitle>Location ID: {location_id}</CardTitle>
+                    {location && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Visibility: {isPublic ? "Public" : "Private"}
+                        </p>
+                    )}
                 </CardHeader>
                 {
                     loading ?
@@ -118,6 +128,12 @@ function LocationEditPage() {
                             <Skeleton className="h-6 w-full my-2" />
                         </div>
                     :
+                    <>
+                    {isPublic && (
+                        <p className="text-sm text-muted-foreground mb-4">
+                            This is a public location and can&apos;t be edited.
+                        </p>
+                    )}
                     <Form {...form}>
                         <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                             {/* Type Field */}
@@ -194,11 +210,12 @@ function LocationEditPage() {
                             )}
 
                             <div className="flex flex-col gap-2 w-full max-w-xs">
-                                <Button type="submit" disabled={isSubmitting}>Submit</Button>
+                                <Button type="submit" disabled={isSubmitting || isPublic}>Submit</Button>
                                 <Button type="button" onClick={onBack}>Back</Button>
                             </div>
                         </form>
                     </Form>
+                    </>
                 }
             </Card>
         </div>
