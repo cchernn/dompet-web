@@ -1,11 +1,14 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
     Users,
     Trash2,
     FilePlus,
+    X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
     Table,
     TableCaption,
@@ -43,17 +46,40 @@ function BudgetListPage() {
     const navigate = useNavigate()
     const [sheetOpen, setSheetOpen] = useState(false)
     const [selectedBudget, setSelectedBudget] = useState<BudgetSearchResult | null>(null)
+    const [search, setSearch] = useState("")
 
     const {
         items: budgets,
         loading,
         page,
+        setPage,
         totalPages,
         totalCount,
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => searchBudgets({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => searchBudgets({ page, pageSize, q: search || undefined }))
+
+    // Debounce the name search so typing doesn't fire a request per keystroke.
+    const didMount = useRef(false)
+    useEffect(() => {
+        if (!didMount.current) {
+            didMount.current = true
+            return
+        }
+        const timeout = setTimeout(() => {
+            setPage(1)
+            reload()
+        }, 300)
+        return () => clearTimeout(timeout)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search])
+
+    const clearFilters = () => {
+        setSearch("")
+        setPage(1)
+        reload()
+    }
 
     const handleAdd = () => navigate(`/budgets/add`)
 
@@ -82,6 +108,27 @@ function BudgetListPage() {
             <div className="m-2">
                 <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add budget</Button>
             </div>
+
+            <Card className="p-4 m-2 rounded-2xl shadow-md border">
+                <div className="flex flex-wrap items-end gap-4">
+                    <div className="flex flex-col gap-1">
+                        <Label>Search</Label>
+                        <Input
+                            className="w-56"
+                            placeholder="Search by name"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+
+                    {search && (
+                        <Button type="button" variant="outline" onClick={clearFilters}>
+                            <X />Clear filters
+                        </Button>
+                    )}
+                </div>
+            </Card>
+
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (

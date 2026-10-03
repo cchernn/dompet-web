@@ -1,9 +1,14 @@
 import apiClient from "@/lib/apiClient"
-import type { Attachment, AttachmentPatch } from "@/api/types"
-import type { ListParams } from "@/api/accounts"
+import type { Attachment, AttachmentPatch, AttachmentSearchResult } from "@/api/types"
+import type { ListParams, SearchParams } from "@/api/accounts"
 
 export const listAttachments = ({ page = 1, pageSize = 25, includeInactive = false }: ListParams = {}) =>
     apiClient.get<Attachment[]>("/attachments", { page, page_size: pageSize, include_inactive: includeInactive || undefined })
+
+// Filter-dropdown/listing source. Like locations, attachments keep the
+// normal 100-row page-size ceiling (typeahead-only, per the backend).
+export const searchAttachments = ({ page = 1, pageSize = 25, q }: SearchParams = {}) =>
+    apiClient.get<AttachmentSearchResult[]>("/attachments/search", { page, page_size: pageSize, q })
 
 export const getAttachment = (attachmentId: string) => apiClient.get<Attachment>(`/attachments/${attachmentId}`)
 

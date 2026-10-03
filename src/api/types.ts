@@ -92,6 +92,9 @@ export interface CategorySearchResult {
     name: string
     parent_id?: string | null
     usage_count: number
+    // null = global/shared (visible to everyone, immutable through the app);
+    // a real id = owned by that user, normal CRUD applies.
+    user_id?: string | null
 }
 
 export interface TagSearchResult {
@@ -104,6 +107,27 @@ export interface BudgetSearchResult {
     id: string
     name: string
     usage_count: number
+}
+
+export interface LocationSearchResult {
+    id: string
+    name: string
+    type: LocationType
+    usage_count: number
+    // null = public/shared (read-only through the app, see Location.user_id);
+    // a real id = private to that user, normal CRUD applies.
+    user_id?: string | null
+}
+
+// vw_attachments has no usage_count (an attachment is normally linked to
+// exactly one transaction) and no download_url (that's only ever generated
+// for a single GET /attachments/{id}, not eagerly for a list).
+export interface AttachmentSearchResult {
+    id: string
+    filename: string
+    content_type?: string | null
+    size_bytes?: number | null
+    created_at: string
 }
 
 export interface Category {

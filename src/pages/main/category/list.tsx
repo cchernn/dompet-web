@@ -1,8 +1,17 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FilePenLine, Trash2, FilePlus } from "lucide-react"
+import { FilePenLine, Trash2, FilePlus, X } from "lucide-react"
 import { toast } from "@/lib/toast"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import {
     Table,
     TableCaption,
@@ -32,31 +41,46 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
-import { listCategories, deleteCategory } from "@/api/categories"
+import authService from "@/lib/authService"
+import { searchCategories, deleteCategory } from "@/api/categories"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
-import type { Category } from "@/api/types"
+import type { CategorySearchResult } from "@/api/types"
+
+const ALL = "__all__"
 
 function CategoryListPage() {
     const navigate = useNavigate()
     const [sheetOpen, setSheetOpen] = useState(false)
-    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+    const [selectedCategory, setSelectedCategory] = useState<CategorySearchResult | null>(null)
+    const [search, setSearch] = useState("")
+    const [owner, setOwner] = useState<"" | "mine" | "global">("")
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
+    useEffect(() => {
+        authService.getUser()
+            .then((id) => setCurrentUserId(id ?? null))
+            .catch((error: Error) => toast.error(error.message))
+    }, [])
+
+    const ownerParam = owner === "mine" ? (currentUserId ?? undefined) : owner === "global" ? "null" : undefined
 
     const {
         items: categories,
         page,
+        setPage,
         totalPages,
         totalCount,
         loading,
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listCategories({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => searchCategories({ page, pageSize, q: search || undefined, owner: ownerParam }))
 
     const parentName = (parentId: string) => categories.find((c) => c.id === parentId)?.name ?? "—"
 
     const handleAdd = () => navigate("/categories/add")
 
-    const openCategory = (category: Category) => {
+    const openCategory = (category: CategorySearchResult) => {
         setSelectedCategory(category)
         setSheetOpen(true)
     }
@@ -72,6 +96,36 @@ function CategoryListPage() {
         }
     }
 
+    // Debounce the name search so typing doesn't fire a request per keystroke.
+    const didMount = useRef(false)
+    useEffect(() => {
+        if (!didMount.current) {
+            didMount.current = true
+            return
+        }
+        const timeout = setTimeout(() => {
+            setPage(1)
+            reload()
+        }, 300)
+        return () => clearTimeout(timeout)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search])
+
+    const updateOwner = (value: string) => {
+        setOwner(value === ALL ? "" : (value as "mine" | "global"))
+        setPage(1)
+        reload()
+    }
+
+    const clearFilters = () => {
+        setSearch("")
+        setOwner("")
+        setPage(1)
+        reload()
+    }
+
+    const hasFilters = search || owner
+
     return (
         <div className="min-h-svh m-2">
             <div className="flex items-baseline gap-3 m-2">
@@ -81,6 +135,41 @@ function CategoryListPage() {
             <div className="m-2">
                 <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add category</Button>
             </div>
+
+            <Card className="p-4 m-2 rounded-2xl shadow-md border">
+                <div className="flex flex-wrap items-end gap-4">
+                    <div className="flex flex-col gap-1">
+                        <Label>Search</Label>
+                        <Input
+                            className="w-56"
+                            placeholder="Search by name"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                        <Label>Owner</Label>
+                        <Select value={owner || ALL} onValueChange={updateOwner}>
+                            <SelectTrigger className="w-32">
+                                <SelectValue placeholder="All" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={ALL}>All</SelectItem>
+                                <SelectItem value="mine">Mine</SelectItem>
+                                <SelectItem value="global">Global</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {hasFilters && (
+                        <Button type="button" variant="outline" onClick={clearFilters}>
+                            <X />Clear filters
+                        </Button>
+                    )}
+                </div>
+            </Card>
+
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
@@ -120,6 +209,7 @@ function CategoryListPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Category</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Owner</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -141,16 +231,16 @@ function CategoryListPage() {
                                         >
                                             <TableCell className="py-3">
                                                 <div className="flex flex-col gap-0.5 min-w-0">
-                                                    <span className="font-medium truncate flex items-center gap-2">
-                                                        {category.name}
-                                                        {isGlobal && <Badge variant="outline">Global</Badge>}
-                                                    </span>
+                                                    <span className="font-medium truncate">{category.name}</span>
                                                     {category.parent_id && (
                                                         <span className="text-sm text-muted-foreground truncate">
                                                             in {parentName(category.parent_id)}
                                                         </span>
                                                     )}
                                                 </div>
+                                            </TableCell>
+                                            <TableCell className="py-3">
+                                                <Badge variant="outline">{isGlobal ? "Global" : "Mine"}</Badge>
                                             </TableCell>
                                         </TableRow>
                                     )

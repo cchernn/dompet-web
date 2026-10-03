@@ -7,8 +7,10 @@ export const listCategories = ({ page = 1, pageSize = 25, includeInactive = fals
 
 // Filter-dropdown source: up to 1000 rows in one call, ordered by
 // usage_count desc then name asc (most-used categories sort first).
-export const searchCategories = ({ page = 1, pageSize = 25, q }: SearchParams = {}) =>
-    apiClient.get<CategorySearchResult[]>("/categories/search", { page, page_size: pageSize, q })
+// user_id is an exact match, not an enum: pass the current user's id for
+// "mine", or the literal string "null" for global/shared rows.
+export const searchCategories = ({ page = 1, pageSize = 25, q, owner }: SearchParams & { owner?: string } = {}) =>
+    apiClient.get<CategorySearchResult[]>("/categories/search", { page, page_size: pageSize, q, user_id: owner })
 
 // No GET-by-id route exists — edit pages must seed from already-fetched list data.
 export const createCategory = (body: CategoryInput) => apiClient.post<Category>("/categories", body)

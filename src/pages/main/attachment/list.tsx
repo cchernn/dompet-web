@@ -1,12 +1,16 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
     FilePenLine,
     Trash2,
     FilePlus,
     Download,
+    X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import {
     Table,
     TableCaption,
@@ -36,9 +40,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import Alert from "@/lib/alertDialog"
 import { toast } from "@/lib/toast"
-import { listAttachments, deleteAttachment, getAttachment } from "@/api/attachments"
+import { searchAttachments, deleteAttachment, getAttachment } from "@/api/attachments"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
-import type { Attachment } from "@/api/types"
+import type { AttachmentSearchResult } from "@/api/types"
 
 function formatSize(bytes?: number | null): string {
     if (bytes === null || bytes === undefined) return "—"
@@ -55,24 +59,47 @@ function formatSize(bytes?: number | null): string {
 function AttachmentListPage() {
     const navigate = useNavigate()
     const [sheetOpen, setSheetOpen] = useState(false)
-    const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null)
+    const [selectedAttachment, setSelectedAttachment] = useState<AttachmentSearchResult | null>(null)
+    const [search, setSearch] = useState("")
 
     const {
         items: attachments,
         loading,
         page,
+        setPage,
         totalPages,
         totalCount,
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => listAttachments({ page, pageSize }))
+    } = usePaginatedList(({ page, pageSize }) => searchAttachments({ page, pageSize, q: search || undefined }))
 
     const handleAdd = () => navigate(`/attachments/add`)
 
-    const openAttachment = (attachment: Attachment) => {
+    const openAttachment = (attachment: AttachmentSearchResult) => {
         setSelectedAttachment(attachment)
         setSheetOpen(true)
+    }
+
+    // Debounce the name search so typing doesn't fire a request per keystroke.
+    const didMount = useRef(false)
+    useEffect(() => {
+        if (!didMount.current) {
+            didMount.current = true
+            return
+        }
+        const timeout = setTimeout(() => {
+            setPage(1)
+            reload()
+        }, 300)
+        return () => clearTimeout(timeout)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search])
+
+    const clearFilters = () => {
+        setSearch("")
+        setPage(1)
+        reload()
     }
 
     const handleDownload = async (attachmentId: string) => {
@@ -110,6 +137,27 @@ function AttachmentListPage() {
             <div className="m-2">
                 <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add attachment</Button>
             </div>
+
+            <Card className="p-4 m-2 rounded-2xl shadow-md border">
+                <div className="flex flex-wrap items-end gap-4">
+                    <div className="flex flex-col gap-1">
+                        <Label>Search</Label>
+                        <Input
+                            className="w-56"
+                            placeholder="Search by filename"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+
+                    {search && (
+                        <Button type="button" variant="outline" onClick={clearFilters}>
+                            <X />Clear filters
+                        </Button>
+                    )}
+                </div>
+            </Card>
+
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
@@ -149,6 +197,7 @@ function AttachmentListPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Attachment</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Type</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -171,9 +220,11 @@ function AttachmentListPage() {
                                                 <span className="font-medium truncate">{attachment.filename}</span>
                                                 <span className="text-sm text-muted-foreground truncate">
                                                     {formatSize(attachment.size_bytes)}
-                                                    {attachment.content_type ? ` · ${attachment.content_type}` : ""}
                                                 </span>
                                             </div>
+                                        </TableCell>
+                                        <TableCell className="py-3">
+                                            {attachment.content_type ? <Badge variant="outline">{attachment.content_type}</Badge> : "—"}
                                         </TableCell>
                                     </TableRow>
                                 ))}

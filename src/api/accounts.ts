@@ -1,5 +1,5 @@
 import apiClient from "@/lib/apiClient"
-import type { Account, AccountInput, AccountPatch, AccountSearchResult } from "@/api/types"
+import type { Account, AccountInput, AccountPatch, AccountSearchResult, AccountType } from "@/api/types"
 
 export interface ListParams {
     page?: number
@@ -22,8 +22,8 @@ export const listAccounts = ({ page = 1, pageSize = 25, includeInactive = false 
 
 // Filter-dropdown source: up to 1000 rows in one call, ordered by
 // usage_count desc then name asc (most-used accounts sort first).
-export const searchAccounts = ({ page = 1, pageSize = 25, q }: SearchParams = {}) =>
-    apiClient.get<AccountSearchResult[]>("/accounts/search", { page, page_size: pageSize, q })
+export const searchAccounts = ({ page = 1, pageSize = 25, q, type }: SearchParams & { type?: AccountType } = {}) =>
+    apiClient.get<AccountSearchResult[]>("/accounts/search", { page, page_size: pageSize, q, type })
 
 export const getAccount = (accountId: string) => apiClient.get<Account>(`/accounts/${accountId}`)
 
