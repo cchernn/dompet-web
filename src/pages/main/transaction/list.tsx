@@ -70,6 +70,12 @@ const FILTER_OPTIONS_PAGE_SIZE = 1000
 
 const ALL = "__all__"
 
+const TYPE_LABELS: Record<TransactionType, string> = {
+    expenditure: "Expenditure",
+    income: "Income",
+    transfer: "Transfer",
+}
+
 interface Filters {
     from: string
     to: string
@@ -243,6 +249,11 @@ function TransactionListPage() {
 
     const chips: Chip[] = (
         [
+            (filters.from || filters.to) && {
+                key: "date", label: "Date", value: formatDateRangeLabel(filters.from, filters.to), onRemove: clearDateRange,
+            },
+            filters.category && { key: "category", label: "Category", value: filters.category, onRemove: () => updateFilter("category", "") },
+            filters.type && { key: "type", label: "Type", value: TYPE_LABELS[filters.type as TransactionType], onRemove: () => updateFilter("type", "") },
             filters.source && { key: "source", label: "Source", value: filters.source, onRemove: () => updateFilter("source", "") },
             filters.destination && { key: "destination", label: "Destination", value: filters.destination, onRemove: () => updateFilter("destination", "") },
             filters.tags && { key: "tags", label: "Tags", value: filters.tags, onRemove: () => updateFilter("tags", "") },
@@ -385,9 +396,9 @@ function TransactionListPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={ALL}>All types</SelectItem>
-                                <SelectItem value="expenditure">Expenditure</SelectItem>
-                                <SelectItem value="income">Income</SelectItem>
-                                <SelectItem value="transfer">Transfer</SelectItem>
+                                {(Object.entries(TYPE_LABELS) as [TransactionType, string][]).map(([value, label]) => (
+                                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
