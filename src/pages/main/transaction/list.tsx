@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import type { DateRange } from "react-day-picker"
 import {
     FilePenLine, FilePlus, Ban, X, ArrowUp, ArrowDown, ArrowUpDown, Paperclip,
@@ -57,6 +57,7 @@ import { searchCategories } from "@/api/categories"
 import { searchAccounts } from "@/api/accounts"
 import { searchTags } from "@/api/tags"
 import { searchBudgets } from "@/api/budgets"
+import { searchLocations } from "@/api/locations"
 import { getAttachment } from "@/api/attachments"
 import type {
     TransactionSearchResult, TransactionType,
@@ -78,6 +79,11 @@ interface Filters {
     destination: string
     tags: string
     budgets: string
+    source_location: string
+}
+
+const EMPTY_FILTERS: Filters = {
+    from: "", to: "", category: "", type: "", source: "", destination: "", tags: "", budgets: "", source_location: "",
 }
 
 // A stored "YYYY-MM-DD" string must never go through `new Date(str)` — that
@@ -136,17 +142,29 @@ function SortableHeader({ column, label, sort, onToggle, className }: SortableHe
 
 function TransactionListPage() {
     const navigate = useNavigate()
+    // Only read once, to seed the initial filters when arriving from another
+    // page's "View Transactions" button (e.g. /transactions?source=...) —
+    // the URL isn't kept in sync with further filter changes after that.
+    const [initialSearchParams] = useSearchParams()
     const { data: categoriesData } = useCachedResource("categories:search", () => searchCategories({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
     const { data: accountsData } = useCachedResource("accounts:search", () => searchAccounts({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
     const { data: tagsData } = useCachedResource("tags:search", () => searchTags({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
     const { data: budgetsData } = useCachedResource("budgets:search", () => searchBudgets({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
+    const { data: locationsData } = useCachedResource("locations:search", () => searchLocations({ pageSize: 100 }))
     const categories = categoriesData ?? []
     const accounts = accountsData ?? []
     const tags = tagsData ?? []
     const budgets = budgetsData ?? []
-    const [filters, setFilters] = useState<Filters>({
-        from: "", to: "", category: "", type: "", source: "", destination: "", tags: "", budgets: "",
-    })
+    const locations = locationsData ?? []
+    const [filters, setFilters] = useState<Filters>(() => ({
+        ...EMPTY_FILTERS,
+        category: initialSearchParams.get("category") ?? "",
+        source: initialSearchParams.get("source") ?? "",
+        destination: initialSearchParams.get("destination") ?? "",
+        tags: initialSearchParams.get("tags") ?? "",
+        budgets: initialSearchParams.get("budgets") ?? "",
+        source_location: initialSearchParams.get("source_location") ?? "",
+    }))
     const [dateRangeOpen, setDateRangeOpen] = useState(false)
     const [extraFiltersOpen, setExtraFiltersOpen] = useState(false)
     const [sheetOpen, setSheetOpen] = useState(false)
@@ -174,6 +192,7 @@ function TransactionListPage() {
             destination: filters.destination || undefined,
             tags: filters.tags || undefined,
             budgets: filters.budgets || undefined,
+            source_location: filters.source_location || undefined,
         })
     )
 
@@ -184,7 +203,7 @@ function TransactionListPage() {
     }
 
     const clearFilters = () => {
-        setFilters({ from: "", to: "", category: "", type: "", source: "", destination: "", tags: "", budgets: "" })
+        setFilters(EMPTY_FILTERS)
         setPage(1)
         reload()
     }
@@ -213,7 +232,7 @@ function TransactionListPage() {
     }
 
     const hasFilters = filters.from || filters.to || filters.category || filters.type
-        || filters.source || filters.destination || filters.tags || filters.budgets
+        || filters.source || filters.destination || filters.tags || filters.budgets || filters.source_location
 
     interface Chip {
         key: string
@@ -228,12 +247,14 @@ function TransactionListPage() {
             filters.destination && { key: "destination", label: "Destination", value: filters.destination, onRemove: () => updateFilter("destination", "") },
             filters.tags && { key: "tags", label: "Tags", value: filters.tags, onRemove: () => updateFilter("tags", "") },
             filters.budgets && { key: "budgets", label: "Budget", value: filters.budgets, onRemove: () => updateFilter("budgets", "") },
+            filters.source_location && { key: "source_location", label: "Source Location", value: filters.source_location, onRemove: () => updateFilter("source_location", "") },
         ] as (Chip | "" | false)[]
     ).filter((chip): chip is Chip => Boolean(chip))
 
     const accountOptions: ComboboxOption[] = [{ value: ALL, label: "Any" }, ...accounts.map((a) => ({ value: a.name, label: a.name }))]
     const tagOptions: ComboboxOption[] = [{ value: ALL, label: "Any" }, ...tags.map((t) => ({ value: t.name, label: t.name }))]
     const budgetOptions: ComboboxOption[] = [{ value: ALL, label: "Any" }, ...budgets.map((b) => ({ value: b.name, label: b.name }))]
+    const locationOptions: ComboboxOption[] = [{ value: ALL, label: "Any" }, ...locations.map((l) => ({ value: l.name, label: l.name }))]
 
     const [sort, setSort] = useState<SortState>({ column: null, direction: "asc" })
 
@@ -421,6 +442,17 @@ function TransactionListPage() {
                                         placeholder="Any budget"
                                         searchPlaceholder="Search budgets"
                                         emptyText="No budget found"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <Label>Source Location</Label>
+                                    <Combobox
+                                        options={locationOptions}
+                                        value={filters.source_location || ALL}
+                                        onChange={(value) => updateFilter("source_location", value === ALL ? "" : value)}
+                                        placeholder="Any location"
+                                        searchPlaceholder="Search locations"
+                                        emptyText="No location found"
                                     />
                                 </div>
                             </div>

@@ -281,19 +281,27 @@ function CategoryListPage() {
                                     </div>
                                 </div>
 
-                                {!isGlobal && (
-                                    <SheetFooter className="mt-6">
-                                        <Button onClick={() => navigate(`/categories/${selectedCategory.id}`, { state: { category: selectedCategory } })}>
-                                            <FilePenLine />Edit
-                                        </Button>
-                                        <Alert
-                                            button_text={<><Trash2 />Delete</>}
-                                            title="Confirm Delete"
-                                            description="This action cannot be undone. This will permanently deactivate this category."
-                                            action={() => handleDelete(selectedCategory.id)}
-                                        />
-                                    </SheetFooter>
-                                )}
+                                <SheetFooter className="mt-6">
+                                    {!isGlobal && (
+                                        <>
+                                            <Button onClick={() => navigate(`/categories/${selectedCategory.id}`, { state: { category: selectedCategory } })}>
+                                                <FilePenLine />Edit
+                                            </Button>
+                                            <Alert
+                                                button_text={<><Trash2 />Delete</>}
+                                                title="Confirm Delete"
+                                                description="This action cannot be undone. This will permanently deactivate this category."
+                                                action={() => handleDelete(selectedCategory.id)}
+                                            />
+                                        </>
+                                    )}
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => navigate(`/transactions?category=${encodeURIComponent(selectedCategory.name)}`)}
+                                    >
+                                        <FileText />View Transactions
+                                    </Button>
+                                </SheetFooter>
                             </>
                         )
                     })()}

@@ -225,6 +225,12 @@ function TagListPage() {
                                     description="This action cannot be undone. This will permanently deactivate this tag."
                                     action={() => handleDelete(selectedTag.id)}
                                 />
+                                <Button
+                                    variant="outline"
+                                    onClick={() => navigate(`/transactions?tags=${encodeURIComponent(selectedTag.name)}`)}
+                                >
+                                    <FileText />View Transactions
+                                </Button>
                             </SheetFooter>
                         </>
                     )}

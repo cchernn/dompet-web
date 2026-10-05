@@ -344,19 +344,27 @@ function LocationListPage() {
                                 )}
                             </div>
 
-                            {selectedLocation.user_id != null && (
-                                <SheetFooter className="mt-6">
-                                    <Button onClick={() => navigate(`/locations/${selectedLocation.id}`)}>
-                                        <FilePenLine />Edit
-                                    </Button>
-                                    <Alert
-                                        button_text={<><Trash2 />Delete</>}
-                                        title="Confirm Delete"
-                                        description="This action cannot be undone and cannot be reversed from this app."
-                                        action={() => handleDelete(selectedLocation.id)}
-                                    />
-                                </SheetFooter>
-                            )}
+                            <SheetFooter className="mt-6">
+                                {selectedLocation.user_id != null && (
+                                    <>
+                                        <Button onClick={() => navigate(`/locations/${selectedLocation.id}`)}>
+                                            <FilePenLine />Edit
+                                        </Button>
+                                        <Alert
+                                            button_text={<><Trash2 />Delete</>}
+                                            title="Confirm Delete"
+                                            description="This action cannot be undone and cannot be reversed from this app."
+                                            action={() => handleDelete(selectedLocation.id)}
+                                        />
+                                    </>
+                                )}
+                                <Button
+                                    variant="outline"
+                                    onClick={() => navigate(`/transactions?source_location=${encodeURIComponent(selectedLocation.name)}`)}
+                                >
+                                    <FileText />View Transactions
+                                </Button>
+                            </SheetFooter>
                         </>
                     )}
                 </SheetContent>

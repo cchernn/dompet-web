@@ -231,6 +231,12 @@ function BudgetListPage() {
                                     description="This action cannot be undone. Deleted budgets cannot be restored from this app."
                                     action={() => handleDelete(selectedBudget.id)}
                                 />
+                                <Button
+                                    variant="outline"
+                                    onClick={() => navigate(`/transactions?budgets=${encodeURIComponent(selectedBudget.name)}`)}
+                                >
+                                    <FileText />View Transactions
+                                </Button>
                             </SheetFooter>
                         </>
                     )}

@@ -283,6 +283,12 @@ function AccountListPage() {
                                 <Button onClick={() => navigate(`/accounts/${selectedAccount.id}`)}>
                                     <FilePenLine />Edit
                                 </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => navigate(`/transactions?source=${encodeURIComponent(selectedAccount.name)}`)}
+                                >
+                                    <FileText />View Transactions
+                                </Button>
                             </SheetFooter>
                         </>
                     )}

@@ -16,6 +16,8 @@ export interface SearchTransactionsParams {
     destination?: string
     tags?: string
     budgets?: string
+    source_location?: string
+    destination_location?: string
 }
 
 // Denormalized search view (vw_transactions): joined account/category names
@@ -28,9 +30,11 @@ export interface SearchTransactionsParams {
 // tags/budgets still matches on any one of them.
 export const searchTransactions = ({
     page = 1, pageSize = 25, from, to, category, type, source, destination, tags, budgets,
+    source_location, destination_location,
 }: SearchTransactionsParams = {}) =>
     apiClient.get<TransactionSearchResult[]>("/transactions/search", {
         page, page_size: pageSize, from, to, category, type, source, destination, tags, budgets,
+        source_location, destination_location,
     })
 
 export const getTransaction = (transactionId: string) => apiClient.get<Transaction>(`/transactions/${transactionId}`)
