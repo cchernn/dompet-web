@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FilePenLine, Trash2, FilePlus, Link, X } from "lucide-react"
+import { FilePenLine, Trash2, FilePlus, Link, X, FileText, Landmark } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -272,7 +272,19 @@ function LocationListPage() {
                                             }
                                         }}
                                     >
-                                        <TableCell className="py-3 font-medium">{location.name}</TableCell>
+                                        <TableCell className="py-3">
+                                            <div className="flex flex-col gap-0.5 min-w-0">
+                                                <span className="font-medium truncate">{location.name}</span>
+                                                <span className="flex items-center gap-3 text-xs text-muted-foreground">
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <FileText className="size-3" />{location.transaction_count}
+                                                    </span>
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <Landmark className="size-3" />{location.account_count}
+                                                    </span>
+                                                </span>
+                                            </div>
+                                        </TableCell>
                                         <TableCell className="py-3">
                                             <Badge variant="outline">{LOCATION_TYPE_LABELS[location.type]}</Badge>
                                         </TableCell>
@@ -307,6 +319,18 @@ function LocationListPage() {
                                         Public locations can&apos;t be edited or deleted from this app.
                                     </p>
                                 )}
+
+                                <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">Transactions</span>
+                                    <span className="inline-flex items-center gap-1">
+                                        <FileText className="size-3" />{selectedLocation.transaction_count.toLocaleString()}
+                                    </span>
+
+                                    <span className="text-muted-foreground">Accounts</span>
+                                    <span className="inline-flex items-center gap-1">
+                                        <Landmark className="size-3" />{selectedLocation.account_count.toLocaleString()}
+                                    </span>
+                                </div>
 
                                 {selectedUrl && (
                                     <Button

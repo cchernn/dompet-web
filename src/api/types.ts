@@ -72,26 +72,29 @@ export interface AttachmentRef {
 // Shapes from the */search endpoints (GET /accounts/search, /categories/search,
 // /tags/search, /budgets/search — dompet.vw_* views) used to populate filter
 // dropdowns. Distinct from the plain resource models: no is_active/timestamps
-// (the view is pre-filtered to active rows only), plus a computed usage_count
-// the view orders by (usage_count DESC, name ASC) so common picks sort first.
-// These four resources' search endpoints also accept a raised page-size
-// ceiling (1000, vs. the normal list endpoints' 100) so a dropdown can fetch
-// every row in one call — locations/attachments search does NOT get this
-// raised ceiling (they stay typeahead-only, per the backend).
+// (the view is pre-filtered to active rows only), plus a computed
+// transaction_count the view orders by (transaction_count DESC, name ASC) so
+// common picks sort first. These four resources' search endpoints also accept
+// a raised page-size ceiling (1000, vs. the normal list endpoints' 100) so a
+// dropdown can fetch every row in one call — locations/attachments search
+// does NOT get this raised ceiling (they stay typeahead-only, per the backend).
 export interface AccountSearchResult {
     id: string
     code: string
     name: string
     description?: string | null
-    usage_count: number
+    transaction_count: number
     type: AccountType
+    // Accounts can link to more than one location (e.g. a wallet usable at
+    // several physical branches) — a count, not a single location name.
+    location_count: number
 }
 
 export interface CategorySearchResult {
     id: string
     name: string
     parent_id?: string | null
-    usage_count: number
+    transaction_count: number
     // null = global/shared (visible to everyone, immutable through the app);
     // a real id = owned by that user, normal CRUD applies.
     user_id?: string | null
@@ -100,34 +103,38 @@ export interface CategorySearchResult {
 export interface TagSearchResult {
     id: string
     name: string
-    usage_count: number
+    transaction_count: number
 }
 
 export interface BudgetSearchResult {
     id: string
     name: string
-    usage_count: number
+    transaction_count: number
 }
 
 export interface LocationSearchResult {
     id: string
     name: string
     type: LocationType
-    usage_count: number
+    // Number of accounts linked to this location — search still orders by
+    // this (DESC, name ASC), preserving the original dropdown-popularity intent.
+    account_count: number
+    // Number of transactions at this location (as source or destination).
+    transaction_count: number
     // null = public/shared (read-only through the app, see Location.user_id);
     // a real id = private to that user, normal CRUD applies.
     user_id?: string | null
 }
 
-// vw_attachments has no usage_count (an attachment is normally linked to
-// exactly one transaction) and no download_url (that's only ever generated
-// for a single GET /attachments/{id}, not eagerly for a list).
+// vw_attachments has no download_url (that's only ever generated for a
+// single GET /attachments/{id}, not eagerly for a list).
 export interface AttachmentSearchResult {
     id: string
     filename: string
     content_type?: string | null
     size_bytes?: number | null
     created_at: string
+    transaction_count: number
 }
 
 export interface Category {

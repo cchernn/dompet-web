@@ -5,6 +5,7 @@ import {
     Trash2,
     FilePlus,
     X,
+    FileText,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -185,7 +186,14 @@ function BudgetListPage() {
                                             }
                                         }}
                                     >
-                                        <TableCell className="py-3 font-medium">{budget.name}</TableCell>
+                                        <TableCell className="py-3">
+                                            <div className="flex flex-col gap-0.5 min-w-0">
+                                                <span className="font-medium truncate">{budget.name}</span>
+                                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                                    <FileText className="size-3" />{budget.transaction_count}
+                                                </span>
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -202,7 +210,16 @@ function BudgetListPage() {
                     </SheetHeader>
                     {selectedBudget && (
                         <>
-                            <div className="text-xl font-semibold mt-4">{selectedBudget.name}</div>
+                            <div className="flex flex-col gap-6 mt-4">
+                                <div className="text-xl font-semibold">{selectedBudget.name}</div>
+
+                                <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">Transactions</span>
+                                    <span className="inline-flex items-center gap-1">
+                                        <FileText className="size-3" />{selectedBudget.transaction_count.toLocaleString()}
+                                    </span>
+                                </div>
+                            </div>
 
                             <SheetFooter className="mt-6">
                                 <Button onClick={() => navigate(`/budgets/${selectedBudget.id}`)}>

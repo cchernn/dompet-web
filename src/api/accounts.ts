@@ -22,7 +22,7 @@ export const listAccounts = ({ page = 1, pageSize = 25, includeInactive = false 
     apiClient.get<Account[]>("/accounts", { page, page_size: pageSize, include_inactive: includeInactive || undefined })
 
 // Filter-dropdown source: up to 1000 rows in one call, ordered by
-// usage_count desc then name asc (most-used accounts sort first).
+// transaction_count desc then name asc (most-used accounts sort first).
 export const searchAccounts = ({ page = 1, pageSize = 25, q, type }: SearchParams & { type?: AccountType } = {}) =>
     apiClient.get<AccountSearchResult[]>("/accounts/search", { page, page_size: pageSize, q, type })
 

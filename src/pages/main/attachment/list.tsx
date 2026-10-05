@@ -6,6 +6,7 @@ import {
     FilePlus,
     Download,
     X,
+    FileText,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -221,6 +222,9 @@ function AttachmentListPage() {
                                                 <span className="text-sm text-muted-foreground truncate">
                                                     {formatSize(attachment.size_bytes)}
                                                 </span>
+                                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                                    <FileText className="size-3" />{attachment.transaction_count}
+                                                </span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="py-3">
@@ -251,6 +255,11 @@ function AttachmentListPage() {
 
                                     <span className="text-muted-foreground">Size</span>
                                     <span>{formatSize(selectedAttachment.size_bytes)}</span>
+
+                                    <span className="text-muted-foreground">Transactions</span>
+                                    <span className="inline-flex items-center gap-1">
+                                        <FileText className="size-3" />{selectedAttachment.transaction_count.toLocaleString()}
+                                    </span>
                                 </div>
 
                                 <Button

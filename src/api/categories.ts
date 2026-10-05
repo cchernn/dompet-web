@@ -7,7 +7,7 @@ export const listCategories = ({ page = 1, pageSize = 25, includeInactive = fals
     apiClient.get<Category[]>("/categories", { page, page_size: pageSize, include_inactive: includeInactive || undefined })
 
 // Filter-dropdown source: up to 1000 rows in one call, ordered by
-// usage_count desc then name asc (most-used categories sort first).
+// transaction_count desc then name asc (most-used categories sort first).
 // user_id is an exact match, not an enum: pass the current user's id for
 // "mine", or the literal string "null" for global/shared rows.
 export const searchCategories = ({ page = 1, pageSize = 25, q, owner }: SearchParams & { owner?: string } = {}) =>

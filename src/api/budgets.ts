@@ -7,7 +7,7 @@ export const listBudgets = ({ page = 1, pageSize = 25, includeInactive = false }
     apiClient.get<Budget[]>("/budgets", { page, page_size: pageSize, include_inactive: includeInactive || undefined })
 
 // Filter-dropdown source: up to 1000 rows in one call, ordered by
-// usage_count desc then name asc (most-used budgets sort first).
+// transaction_count desc then name asc (most-used budgets sort first).
 export const searchBudgets = ({ page = 1, pageSize = 25, q }: SearchParams = {}) =>
     apiClient.get<BudgetSearchResult[]>("/budgets/search", { page, page_size: pageSize, q })
 

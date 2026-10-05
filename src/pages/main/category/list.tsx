@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FilePenLine, Trash2, FilePlus, X } from "lucide-react"
+import { FilePenLine, Trash2, FilePlus, X, FileText } from "lucide-react"
 import { toast } from "@/lib/toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -237,6 +237,9 @@ function CategoryListPage() {
                                                             in {parentName(category.parent_id)}
                                                         </span>
                                                     )}
+                                                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                                        <FileText className="size-3" />{category.transaction_count}
+                                                    </span>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="py-3">
@@ -270,6 +273,11 @@ function CategoryListPage() {
                                     <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
                                         <span className="text-muted-foreground">Parent</span>
                                         <span>{selectedCategory.parent_id ? parentName(selectedCategory.parent_id) : "—"}</span>
+
+                                        <span className="text-muted-foreground">Transactions</span>
+                                        <span className="inline-flex items-center gap-1">
+                                            <FileText className="size-3" />{selectedCategory.transaction_count.toLocaleString()}
+                                        </span>
                                     </div>
                                 </div>
 

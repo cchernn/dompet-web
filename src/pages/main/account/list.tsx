@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FilePenLine, FilePlus, X } from "lucide-react"
+import { FilePenLine, FilePlus, X, FileText, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -223,6 +223,14 @@ function AccountListPage() {
                                                 {account.description && (
                                                     <span className="text-sm text-muted-foreground truncate">{account.description}</span>
                                                 )}
+                                                <span className="flex items-center gap-3 text-xs text-muted-foreground">
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <FileText className="size-3" />{account.transaction_count}
+                                                    </span>
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <MapPin className="size-3" />{account.location_count}
+                                                    </span>
+                                                </span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="py-3">
@@ -259,8 +267,15 @@ function AccountListPage() {
                                     <span className="text-muted-foreground">Description</span>
                                     <span>{selectedAccount.description ?? "—"}</span>
 
-                                    <span className="text-muted-foreground">Usage count</span>
-                                    <span>{selectedAccount.usage_count.toLocaleString()}</span>
+                                    <span className="text-muted-foreground">Transactions</span>
+                                    <span className="inline-flex items-center gap-1">
+                                        <FileText className="size-3" />{selectedAccount.transaction_count.toLocaleString()}
+                                    </span>
+
+                                    <span className="text-muted-foreground">Locations</span>
+                                    <span className="inline-flex items-center gap-1">
+                                        <MapPin className="size-3" />{selectedAccount.location_count.toLocaleString()}
+                                    </span>
                                 </div>
                             </div>
 
