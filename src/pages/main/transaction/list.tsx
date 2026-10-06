@@ -52,6 +52,7 @@ import { cn } from "@/lib/utils"
 import { AmountDisplay } from "@/components/amount-display"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { useCachedResource } from "@/hooks/use-cached-resource"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { searchTransactions, deactivateTransaction } from "@/api/transactions"
 import { searchCategories } from "@/api/categories"
 import { searchAccounts } from "@/api/accounts"
@@ -148,6 +149,7 @@ function SortableHeader({ column, label, sort, onToggle, className }: SortableHe
 
 function TransactionListPage() {
     const navigate = useNavigate()
+    const currentUserId = useCurrentUserId()
     // Only read once, to seed the initial filters when arriving from another
     // page's "View Transactions" button (e.g. /transactions?source=...) —
     // the URL isn't kept in sync with further filter changes after that.
@@ -734,17 +736,19 @@ function TransactionListPage() {
                                 </div>
                             </div>
 
-                            <SheetFooter className="mt-6">
-                                <Button onClick={() => navigate(`/transactions/${selectedTransaction.id}`)}>
-                                    <FilePenLine />Edit
-                                </Button>
-                                <Alert
-                                    button_text={<><Ban />Deactivate</>}
-                                    title="Deactivate Transaction"
-                                    description="This will mark the transaction inactive. It can be reactivated later from its edit page."
-                                    action={() => handleDeactivate(selectedTransaction)}
-                                />
-                            </SheetFooter>
+                            {isOwnedBy(selectedTransaction.user_id, currentUserId) && (
+                                <SheetFooter className="mt-6">
+                                    <Button onClick={() => navigate(`/transactions/${selectedTransaction.id}`)}>
+                                        <FilePenLine />Edit
+                                    </Button>
+                                    <Alert
+                                        button_text={<><Ban />Deactivate</>}
+                                        title="Deactivate Transaction"
+                                        description="This will mark the transaction inactive. It can be reactivated later from its edit page."
+                                        action={() => handleDeactivate(selectedTransaction)}
+                                    />
+                                </SheetFooter>
+                            )}
                         </>
                     )}
                 </SheetContent>

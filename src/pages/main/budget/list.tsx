@@ -39,7 +39,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import Alert from "@/lib/alertDialog"
 import { toast } from "@/lib/toast"
-import { searchBudgets, deleteBudget } from "@/api/budgets"
+import { searchBudgets, deleteBudget, getBudget } from "@/api/budgets"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import type { BudgetSearchResult } from "@/api/types"
 
@@ -47,6 +48,9 @@ function BudgetListPage() {
     const navigate = useNavigate()
     const [sheetOpen, setSheetOpen] = useState(false)
     const [selectedBudget, setSelectedBudget] = useState<BudgetSearchResult | null>(null)
+    // Budget search rows don't carry the owner, so it's fetched when the panel opens.
+    const [selectedBudgetOwnerId, setSelectedBudgetOwnerId] = useState<string | null | undefined>(undefined)
+    const currentUserId = useCurrentUserId()
     const [search, setSearch] = useState("")
 
     const {
@@ -88,6 +92,23 @@ function BudgetListPage() {
         setSelectedBudget(budget)
         setSheetOpen(true)
     }
+
+    const selectedBudgetId = selectedBudget?.id
+    useEffect(() => {
+        if (!selectedBudgetId) return
+        let cancelled = false
+        setSelectedBudgetOwnerId(undefined)
+        getBudget(selectedBudgetId)
+            .then(({ data }) => {
+                if (!cancelled) setSelectedBudgetOwnerId(data.user_id ?? null)
+            })
+            .catch(() => {
+                if (!cancelled) setSelectedBudgetOwnerId(null)
+            })
+        return () => {
+            cancelled = true
+        }
+    }, [selectedBudgetId])
 
     const handleDelete = async (id: string) => {
         try {
@@ -222,15 +243,19 @@ function BudgetListPage() {
                             </div>
 
                             <SheetFooter className="mt-6">
-                                <Button onClick={() => navigate(`/budgets/${selectedBudget.id}`)}>
-                                    <Users />Manage
-                                </Button>
-                                <Alert
-                                    button_text={<><Trash2 />Delete</>}
-                                    title="Confirm Delete"
-                                    description="This action cannot be undone. Deleted budgets cannot be restored from this app."
-                                    action={() => handleDelete(selectedBudget.id)}
-                                />
+                                {isOwnedBy(selectedBudgetOwnerId, currentUserId) && (
+                                    <>
+                                        <Button onClick={() => navigate(`/budgets/${selectedBudget.id}`)}>
+                                            <Users />Manage
+                                        </Button>
+                                        <Alert
+                                            button_text={<><Trash2 />Delete</>}
+                                            title="Confirm Delete"
+                                            description="This action cannot be undone. Deleted budgets cannot be restored from this app."
+                                            action={() => handleDelete(selectedBudget.id)}
+                                        />
+                                    </>
+                                )}
                                 <Button
                                     variant="outline"
                                     onClick={() => navigate(`/transactions?budgets=${encodeURIComponent(selectedBudget.name)}`)}

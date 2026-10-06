@@ -44,6 +44,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "@/lib/toast"
 import { getBudget, updateBudget, listBudgetTransactions } from "@/api/budgets"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { listBudgetMembers, addBudgetMember, removeBudgetMember } from "@/api/budgetMembers"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import type { Budget } from "@/api/types"
@@ -91,6 +92,8 @@ function BudgetEditPage() {
     const { budget_id } = useParams<{ budget_id: string }>()
     const navigate = useNavigate()
     const [budget, setBudget] = useState<Budget | null>(null)
+    const currentUserId = useCurrentUserId()
+    const owned = isOwnedBy(budget?.user_id, currentUserId)
     const [loading, setLoading] = useState(true)
     const [newMemberUserId, setNewMemberUserId] = useState("")
     const [addingMember, setAddingMember] = useState(false)
@@ -188,6 +191,12 @@ function BudgetEditPage() {
                                 {budget?.is_active ? "Active" : "Deleted"}
                             </Badge>
                         </div>
+                        {!owned && currentUserId !== undefined && (
+                            <p className="text-sm text-muted-foreground mb-4">
+                                You can see this budget because you are a member, but only its owner can change it.
+                            </p>
+                        )}
+                        {owned && (
                         <Form {...form}>
                             <form className="w-full flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmitName)}>
                                 <FormField
@@ -210,6 +219,7 @@ function BudgetEditPage() {
                                 </div>
                             </form>
                         </Form>
+                        )}
                     </>
                 )}
             </Card>
@@ -247,12 +257,14 @@ function BudgetEditPage() {
                                         <TableRow key={member.user_id}>
                                             <TableCell className="text-sm">{member.user_id}</TableCell>
                                             <TableCell className="flex justify-center items-center gap-1">
+                                                {owned && (
                                                 <Alert
                                                     button_text={<UserMinus />}
                                                     title="Remove Member"
                                                     description="This will remove the member's access to this budget."
                                                     action={() => handleRemoveMember(member.user_id)}
                                                 />
+                                                )}
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -261,6 +273,7 @@ function BudgetEditPage() {
                         )}
                     </div>
 
+                    {owned && (
                     <div className="flex flex-col gap-2 max-w-sm">
                         <Label htmlFor="new-member-user-id">Add Member</Label>
                         <div className="flex gap-2">
@@ -278,6 +291,7 @@ function BudgetEditPage() {
                             Members are added by their raw Cognito user ID — there is no user search yet.
                         </p>
                     </div>
+                    )}
                 </div>
             </Card>
 

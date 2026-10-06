@@ -10,6 +10,8 @@ export type AccountType = "bank" | "wallet" | "merchant" | "online" | "utility" 
 
 export interface Account {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     code: string
     name: string
     description?: string
@@ -21,6 +23,8 @@ export interface Account {
 
 export interface Transaction {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     datetime: string
     name: string
     type: TransactionType
@@ -45,6 +49,7 @@ export interface Transaction {
 // download_url on list results — see AttachmentRef).
 export interface TransactionSearchResult {
     id: string
+    user_id?: string | null
     date: string
     datetime: string
     name: string
@@ -170,6 +175,8 @@ export interface AccountLocationLink {
 
 export interface Tag {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     name: string
     is_active: boolean
     created_at: string
@@ -187,6 +194,8 @@ export interface TransactionTagLink {
 // _to_attachment_summary on the backend).
 export interface Attachment {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     filename: string
     content_type?: string | null
     size_bytes?: number | null
@@ -204,6 +213,8 @@ export interface TransactionAttachmentLink {
 
 export interface Budget {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     name: string
     is_active: boolean
     created_at: string

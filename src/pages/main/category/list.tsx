@@ -42,6 +42,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
+import { isOwnedBy } from "@/hooks/use-current-user-id"
 import { searchCategories, deleteCategory } from "@/api/categories"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import type { CategorySearchResult } from "@/api/types"
@@ -282,7 +283,7 @@ function CategoryListPage() {
                                 </div>
 
                                 <SheetFooter className="mt-6">
-                                    {!isGlobal && (
+                                    {isOwnedBy(selectedCategory.user_id, currentUserId) && (
                                         <>
                                             <Button onClick={() => navigate(`/categories/${selectedCategory.id}`, { state: { category: selectedCategory } })}>
                                                 <FilePenLine />Edit

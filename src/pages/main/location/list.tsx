@@ -42,6 +42,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "@/lib/toast"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
+import { isOwnedBy } from "@/hooks/use-current-user-id"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { searchLocations, deleteLocation, getLocation } from "@/api/locations"
 import type { LocationSearchResult, LocationType } from "@/api/types"
@@ -359,7 +360,7 @@ function LocationListPage() {
                             </div>
 
                             <SheetFooter className="mt-6">
-                                {selectedLocation.user_id != null && (
+                                {isOwnedBy(selectedLocation.user_id, currentUserId) && (
                                     <>
                                         <Button onClick={() => navigate(`/locations/${selectedLocation.id}`)}>
                                             <FilePenLine />Edit

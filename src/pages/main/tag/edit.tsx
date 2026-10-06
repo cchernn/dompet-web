@@ -18,6 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useCachedResource } from "@/hooks/use-cached-resource"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { listTags, updateTag } from "@/api/tags"
 import type { Tag } from "@/api/types"
 
@@ -35,6 +36,8 @@ function TagEditPage() {
     )
     const [tag, setTag] = useState<Tag | null>(state?.tag ?? null)
     const loading = !tag && tagsLoading
+    const currentUserId = useCurrentUserId()
+    const owned = isOwnedBy(tag?.user_id, currentUserId)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -78,11 +81,15 @@ function TagEditPage() {
                 <CardHeader className="pt-0 pb-4">
                     <CardTitle>Tag ID: {tag_id}</CardTitle>
                 </CardHeader>
-                {loading || !tag ? (
+                {loading || !tag || currentUserId === undefined ? (
                     <div className="w-full">
                         <Skeleton className="h-6 w-full my-2" />
                         <Skeleton className="h-6 w-full my-2" />
                     </div>
+                ) : !owned ? (
+                    <p className="text-sm text-muted-foreground">
+                        This tag belongs to another user, so it can&apos;t be edited here.
+                    </p>
                 ) : (
                     <Form {...form}>
                         <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>

@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useCachedResource } from "@/hooks/use-cached-resource"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { listCategories, updateCategory } from "@/api/categories"
 import type { Category, CategoryPatch } from "@/api/types"
 
@@ -60,6 +61,8 @@ function CategoryEditPage() {
     const categories = categoriesData ?? []
     const [category, setCategory] = useState<Category | null>(state?.category ?? null)
     const loading = !category && categoriesLoading
+    const currentUserId = useCurrentUserId()
+    const owned = isOwnedBy(category?.user_id, currentUserId)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -110,11 +113,15 @@ function CategoryEditPage() {
                 <CardHeader className="pt-0 pb-4">
                     <CardTitle>Category ID: {category_id}</CardTitle>
                 </CardHeader>
-                {loading || !category ? (
+                {loading || !category || currentUserId === undefined ? (
                     <div className="w-full">
                         <Skeleton className="h-6 w-full my-2" />
                         <Skeleton className="h-6 w-full my-2" />
                     </div>
+                ) : !owned ? (
+                    <p className="text-sm text-muted-foreground">
+                        This category is shared or belongs to another user, so it can&apos;t be edited here.
+                    </p>
                 ) : (
                     <Form {...form}>
                         <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>

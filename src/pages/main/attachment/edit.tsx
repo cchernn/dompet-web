@@ -24,6 +24,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "@/lib/toast"
 import { getAttachment, updateAttachment } from "@/api/attachments"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import type { Attachment } from "@/api/types"
 
 const formSchema = z.object({
@@ -47,6 +48,8 @@ function formatSize(bytes?: number | null): string {
 function AttachmentEditPage() {
     const { attachment_id } = useParams<{ attachment_id: string }>()
     const [attachment, setAttachment] = useState<Attachment | null>(null)
+    const currentUserId = useCurrentUserId()
+    const owned = isOwnedBy(attachment?.user_id, currentUserId)
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -122,6 +125,12 @@ function AttachmentEditPage() {
                                 </Button>
                             )}
                         </div>
+                        {!owned && currentUserId !== undefined && (
+                            <p className="text-sm text-muted-foreground mb-4">
+                                This attachment belongs to another user, so it can&apos;t be edited here.
+                            </p>
+                        )}
+                        {owned && (
                         <Form {...form}>
                             <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                                 <FormField
@@ -147,6 +156,7 @@ function AttachmentEditPage() {
                                 </div>
                             </form>
                         </Form>
+                        )}
                     </>
                 )}
             </Card>

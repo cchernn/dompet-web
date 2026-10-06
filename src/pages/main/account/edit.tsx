@@ -41,6 +41,7 @@ import {
 import { useCachedResource } from "@/hooks/use-cached-resource"
 import { listAccountLocations, linkLocation, unlinkLocation } from "@/api/accountLocations"
 import { listLocations } from "@/api/locations"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import type { Account, AccountType, Location, AccountPatch } from "@/api/types"
 
 const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
@@ -65,6 +66,8 @@ function AccountEditPage() {
     const { account_id } = useParams<{ account_id: string }>()
     const navigate = useNavigate()
     const [account, setAccount] = useState<Account | null>(null)
+    const currentUserId = useCurrentUserId()
+    const owned = isOwnedBy(account?.user_id, currentUserId)
     const [loading, setLoading] = useState(true)
     const [linkedLocations, setLinkedLocations] = useState<Location[]>([])
     const { data: allLocationsData } = useCachedResource("locations:list", () => listLocations({ pageSize: 100 }))
@@ -187,7 +190,7 @@ function AccountEditPage() {
                         <CardTitle>Account: {account_id}</CardTitle>
                         {account && <p className="text-sm text-muted-foreground mt-1">Code: {account.code}</p>}
                     </div>
-                    {account && (
+                    {account && owned && (
                         account.is_active ? (
                             <Alert
                                 button_text={<><Ban />Deactivate</>}
@@ -206,11 +209,16 @@ function AccountEditPage() {
                     )}
                 </CardHeader>
                 {
-                    loading ?
+                    loading || currentUserId === undefined ?
                         <div className="w-full">
                             <Skeleton className="h-6 w-full my-2" />
                             <Skeleton className="h-6 w-full my-2" />
                         </div>
+                    :
+                    !owned ?
+                    <p className="text-sm text-muted-foreground">
+                        This account belongs to another user, so it can&apos;t be edited here.
+                    </p>
                     :
                     <Form {...form}>
                         <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
@@ -280,7 +288,7 @@ function AccountEditPage() {
                 }
 
                 {/* Locations sub-section */}
-                {!loading && (
+                {!loading && owned && (
                     <div className="w-full max-w-screen-md mt-8 pt-6 border-t flex flex-col gap-3">
                         <h3 className="font-semibold">Linked Locations</h3>
                         <div className="flex flex-wrap gap-2">

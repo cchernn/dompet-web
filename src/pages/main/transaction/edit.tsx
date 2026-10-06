@@ -29,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { LinkedItemsSection } from "@/components/linked-items-section"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import Alert from "@/lib/alertDialog"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -91,6 +92,8 @@ function TransactionEditPage() {
     const navigate = useNavigate()
 
     const [transaction, setTransaction] = useState<Transaction | null>(null)
+    const currentUserId = useCurrentUserId()
+    const owned = isOwnedBy(transaction?.user_id, currentUserId)
     const [loading, setLoading] = useState(true)
 
     const { data: accountsData } = useCachedResource("accounts:search", () => searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
@@ -333,7 +336,7 @@ function TransactionEditPage() {
                 <CardHeader className="pt-0 pb-4 w-full">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                         <CardTitle>Transaction ID: {transaction_id}</CardTitle>
-                        {transaction && (
+                        {transaction && owned && (
                             <div className="flex items-center gap-2">
                                 <Badge variant={transaction.is_active ? "secondary" : "outline"}>
                                     {transaction.is_active ? "Active" : "Inactive"}
@@ -360,11 +363,15 @@ function TransactionEditPage() {
                         )}
                     </div>
                 </CardHeader>
-                {loading ? (
+                {loading || currentUserId === undefined ? (
                     <div className="w-full">
                         <Skeleton className="h-6 w-full my-2" />
                         <Skeleton className="h-6 w-full my-2" />
                     </div>
+                ) : !owned ? (
+                    <p className="text-sm text-muted-foreground">
+                        This transaction belongs to another user (you can see it through a shared budget), so it can&apos;t be edited here.
+                    </p>
                 ) : (
                     <Form {...form}>
                         <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
