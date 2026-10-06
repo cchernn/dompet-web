@@ -156,7 +156,7 @@ function CategoryListPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={ALL}>All</SelectItem>
-                                <SelectItem value="mine">Mine</SelectItem>
+                                <SelectItem value="mine" disabled={!currentUserId}>Mine</SelectItem>
                                 <SelectItem value="global">Global</SelectItem>
                             </SelectContent>
                         </Select>
