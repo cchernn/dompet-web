@@ -1,0 +1,41 @@
+import apiClient from "@/lib/apiClient"
+import { invalidateResource } from "@/lib/resourceCache"
+import type { Account, AccountInput, AccountPatch, AccountSearchResult, AccountType } from "@/api/types"
+
+export interface ListParams {
+    page?: number
+    pageSize?: number
+    includeInactive?: boolean
+}
+
+// Shared by accounts/categories/tags/budgets' */search endpoints — page_size
+// may go up to 1000 here (vs. 100 on the plain list endpoints above), and
+// there's no includeInactive (the backing view is pre-filtered to active
+// rows only).
+export interface SearchParams {
+    page?: number
+    pageSize?: number
+    q?: string
+}
+
+export const listAccounts = ({ page = 1, pageSize = 25, includeInactive = false }: ListParams = {}) =>
+    apiClient.get<Account[]>("/accounts", { page, page_size: pageSize, include_inactive: includeInactive || undefined })
+
+// Filter-dropdown source: up to 1000 rows in one call, ordered by
+// transaction_count desc then name asc (most-used accounts sort first).
+export const searchAccounts = ({ page = 1, pageSize = 25, q, type }: SearchParams & { type?: AccountType } = {}) =>
+    apiClient.get<AccountSearchResult[]>("/accounts/search", { page, page_size: pageSize, q, type })
+
+export const getAccount = (accountId: string) => apiClient.get<Account>(`/accounts/${accountId}`)
+
+export const createAccount = (body: AccountInput) =>
+    apiClient.post<Account>("/accounts", body).then((result) => { invalidateResource("accounts"); return result })
+
+export const updateAccount = (accountId: string, body: AccountPatch) =>
+    apiClient.put<Account>(`/accounts/${accountId}`, body).then((result) => { invalidateResource("accounts"); return result })
+
+export const deactivateAccount = (accountId: string) =>
+    apiClient.post<Account>(`/accounts/${accountId}/deactivate`).then((result) => { invalidateResource("accounts"); return result })
+
+export const reactivateAccount = (accountId: string) =>
+    apiClient.post<Account>(`/accounts/${accountId}/reactivate`).then((result) => { invalidateResource("accounts"); return result })
