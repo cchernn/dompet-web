@@ -91,15 +91,29 @@ function LocationListPage() {
 
     const openLocation = (location: LocationSearchResult) => {
         setSelectedLocation(location)
-        setSelectedUrl(null)
         setSheetOpen(true)
-        // The search view doesn't carry google_maps_url/url — fetch the full
-        // record on demand, same pattern as the attachments page's on-demand
-        // presigned download_url fetch.
-        getLocation(location.id)
-            .then(({ data }) => setSelectedUrl((data.type === "physical" ? data.google_maps_url : data.url) ?? null))
-            .catch((error: Error) => toast.error(error.message))
     }
+
+    // The search view doesn't carry google_maps_url/url — fetch the full
+    // record on demand. Keyed on the selected id with a cancel flag so a
+    // slow response for a previously-clicked row can't overwrite the URL
+    // of the one currently shown.
+    const selectedLocationId = selectedLocation?.id
+    useEffect(() => {
+        if (!selectedLocationId) return
+        let cancelled = false
+        setSelectedUrl(null)
+        getLocation(selectedLocationId)
+            .then(({ data }) => {
+                if (!cancelled) setSelectedUrl((data.type === "physical" ? data.google_maps_url : data.url) ?? null)
+            })
+            .catch((error: Error) => {
+                if (!cancelled) toast.error(error.message)
+            })
+        return () => {
+            cancelled = true
+        }
+    }, [selectedLocationId])
 
     const handleDelete = async (id: string) => {
         try {

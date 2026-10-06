@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import authService from "@/lib/authService"
+import { clearResourceCache } from "@/lib/resourceCache"
 
 function SignOutPage() {
     const navigate = useNavigate()
@@ -12,6 +13,7 @@ function SignOutPage() {
             } catch (error) {
                 console.error("SignOut Failed", error)
             } finally {
+                clearResourceCache()
                 navigate("/signin")
             }
         }

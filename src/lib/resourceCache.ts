@@ -28,3 +28,10 @@ export function invalidateResource(resource: string): void {
         if (key === resource || key.startsWith(`${resource}:`)) cache.delete(key)
     }
 }
+
+// Used on sign-out so the next signed-in user doesn't see the previous
+// user's reference data (previously masked by the full page reload that
+// every sidebar click used to trigger).
+export function clearResourceCache(): void {
+    cache.clear()
+}
