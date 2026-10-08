@@ -24,7 +24,7 @@ export default function Layout({ children, route, paths }: LayoutProps) {
                     <Separator orientation="vertical" className="mr-2 h-4" />
                     <AppHeader route={route} paths={paths}/>
                 </header>
-                <main className="overflow-auto min-h-[calc(100vh-4rem)]">
+                <main className="overflow-auto min-w-0 min-h-[calc(100vh-4rem)]">
                     {children}
                 </main>
             </SidebarInset>

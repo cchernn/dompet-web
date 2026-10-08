@@ -24,6 +24,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarHeader,
+    useSidebar,
 } from "@/components/ui/sidebar"
 
 const items = [
@@ -70,6 +71,11 @@ const items = [
 ]
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
+    const { isMobile, setOpenMobile } = useSidebar()
+    const closeOnMobile = () => {
+        if (isMobile) setOpenMobile(false)
+    }
+
     return (
         <Sidebar collapsible="icon" { ...props }>
         <SidebarHeader>
@@ -95,7 +101,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                     <SidebarMenu>
                         {items.map((item) => (
                             <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton asChild>
+                                <SidebarMenuButton asChild onClick={closeOnMobile}>
                                     <Link to={item.url}>
                                         <item.icon />
                                         <span>{item.title}</span>
