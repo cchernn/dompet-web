@@ -37,7 +37,7 @@ export function NavUser() {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton>
                             <Avatar>
-                                <AvatarImage />
+                                <AvatarImage src={profile?.avatar_url ?? undefined} />
                                 <AvatarFallback>
                                     {profile?.username ? profile.username[0].toUpperCase() : <CircleUserRound />}
                                 </AvatarFallback>

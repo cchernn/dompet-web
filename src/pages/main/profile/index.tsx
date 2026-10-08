@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState, type ChangeEvent } from "react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,13 +12,14 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { LoadingState } from "@/components/loading-state"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "@/lib/toast"
 import { ApiError } from "@/lib/apiClient"
-import { getMe, createProfile, updateProfile } from "@/api/users"
+import { getMe, createProfile, updateProfile, ALLOWED_AVATAR_CONTENT_TYPES } from "@/api/users"
 import type { User } from "@/api/types"
 
 // Matches the backend's USERNAME_RE (app/db/user.py) exactly.
@@ -34,6 +35,10 @@ const formSchema = z.object({
 function ProfilePage() {
     const [profile, setProfile] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
+    const [avatarFile, setAvatarFile] = useState<File | null>(null)
+    const [avatarError, setAvatarError] = useState("")
+    const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -63,14 +68,39 @@ function ProfilePage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    // Local preview for a newly-picked (not-yet-uploaded) file — revoked
+    // whenever it's replaced or cleared, including on unmount.
+    useEffect(() => {
+        if (!avatarFile) {
+            setAvatarPreviewUrl(null)
+            return
+        }
+        const url = URL.createObjectURL(avatarFile)
+        setAvatarPreviewUrl(url)
+        return () => URL.revokeObjectURL(url)
+    }, [avatarFile])
+
+    const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] ?? null
+        event.target.value = ""
+        if (!file) return
+        if (!ALLOWED_AVATAR_CONTENT_TYPES.includes(file.type)) {
+            setAvatarError("Avatar must be a PNG, JPEG, WEBP, or GIF image.")
+            return
+        }
+        setAvatarError("")
+        setAvatarFile(file)
+    }
+
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
             if (!profile) {
-                const { data: created } = await createProfile({
-                    username: data.username,
-                    display_name: data.display_name || undefined,
-                })
+                const created = await createProfile(
+                    { username: data.username, display_name: data.display_name || undefined },
+                    avatarFile
+                )
                 setProfile(created)
+                setAvatarFile(null)
                 toast.success("Profile created.")
                 return
             }
@@ -80,13 +110,14 @@ function ProfilePage() {
             if ((data.display_name || null) !== (profile.display_name ?? null)) {
                 patch.display_name = data.display_name || null
             }
-            if (Object.keys(patch).length === 0) {
+            if (Object.keys(patch).length === 0 && !avatarFile) {
                 toast.success("No changes to save.")
                 return
             }
 
-            const { data: updated } = await updateProfile(patch)
+            const updated = await updateProfile(patch, avatarFile)
             setProfile(updated)
+            setAvatarFile(null)
             toast.success("Profile updated.")
         } catch (error) {
             toast.error((error as Error).message)
@@ -117,6 +148,29 @@ function ProfilePage() {
                                 Member since {format(new Date(profile.created_at), "d MMM yyyy")}.
                             </p>
                         )}
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={avatarPreviewUrl ?? profile?.avatar_url ?? undefined} />
+                                <AvatarFallback className="text-lg">
+                                    {profile?.username ? profile.username[0].toUpperCase() : "?"}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col gap-1">
+                                <Input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept={ALLOWED_AVATAR_CONTENT_TYPES.join(",")}
+                                    className="hidden"
+                                    onChange={handleAvatarChange}
+                                />
+                                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                                    {profile?.avatar_url || avatarFile ? "Change Photo" : "Upload Photo"}
+                                </Button>
+                                {avatarError && <p className="text-sm font-medium text-destructive">{avatarError}</p>}
+                            </div>
+                        </div>
+
                         <Form {...form}>
                             <form className="w-full max-w-sm flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                                 <FormField

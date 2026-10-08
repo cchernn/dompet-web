@@ -262,9 +262,21 @@ export interface User {
     id: string
     username: string
     display_name?: string | null
+    // Short-lived presigned S3 GET URL, regenerated on every read — null if
+    // no picture has been uploaded. Don't cache/persist this across reloads.
+    avatar_url?: string | null
     configuration: Record<string, unknown>
     created_at: string
     updated_at: string
+}
+
+// POST /users and PUT /users/me return this instead of a flat User — unlike
+// a plain GET, a create/edit call can also request a new avatar upload (via
+// avatar_content_type on the request), so the response hands back a
+// presigned PUT url alongside the updated profile.
+export interface UserProfileResult {
+    user: User
+    avatar_upload_url: string | null
 }
 
 // --- Request bodies -------------------------------------------------------
@@ -354,5 +366,9 @@ export interface UserInput {
     username: string
     display_name?: string | null
     configuration?: Record<string, unknown>
+    // Set to request a presigned upload URL for a new avatar (restricted
+    // server-side to image/png|jpeg|webp|gif) — stored at a fixed
+    // profiles/{user_id}/avatar key, so a new upload just overwrites the old one.
+    avatar_content_type?: string
 }
 export type UserPatch = Partial<UserInput>
