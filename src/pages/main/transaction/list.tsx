@@ -44,7 +44,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import Alert from "@/lib/alertDialog"
@@ -496,10 +496,7 @@ function TransactionListPage() {
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     ) : transactions.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
                             <h2>No Transactions Available</h2>

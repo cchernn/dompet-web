@@ -24,7 +24,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -210,10 +210,7 @@ function AccountEditPage() {
                 </CardHeader>
                 {
                     loading || currentUserId === undefined ?
-                        <div className="w-full">
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     :
                     !owned ?
                     <p className="text-sm text-muted-foreground">

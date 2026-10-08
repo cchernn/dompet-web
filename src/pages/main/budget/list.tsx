@@ -36,7 +36,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import Alert from "@/lib/alertDialog"
 import { toast } from "@/lib/toast"
 import { searchBudgets, deleteBudget, getBudget } from "@/api/budgets"
@@ -154,10 +154,7 @@ function BudgetListPage() {
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     ) : budgets.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
                             <h2>No Budgets Available</h2>

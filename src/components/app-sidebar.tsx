@@ -12,7 +12,6 @@ import {
     PiggyBank,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
-import { NotificationBell } from "@/components/notification-bell"
 import {
     Sidebar,
     SidebarContent,
@@ -114,7 +113,6 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-            <NotificationBell />
             <NavUser />
         </SidebarFooter>
         </Sidebar>

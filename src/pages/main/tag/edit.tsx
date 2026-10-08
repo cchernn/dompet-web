@@ -13,7 +13,7 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -82,10 +82,7 @@ function TagEditPage() {
                     <CardTitle>Tag ID: {tag_id}</CardTitle>
                 </CardHeader>
                 {loading || !tag || currentUserId === undefined ? (
-                    <div className="w-full">
-                        <Skeleton className="h-6 w-full my-2" />
-                        <Skeleton className="h-6 w-full my-2" />
-                    </div>
+                    <LoadingState />
                 ) : !owned ? (
                     <p className="text-sm text-muted-foreground">
                         This tag belongs to another user, so it can&apos;t be edited here.

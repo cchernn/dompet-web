@@ -25,7 +25,7 @@ import { format } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { LinkedItemsSection } from "@/components/linked-items-section"
@@ -364,10 +364,7 @@ function TransactionEditPage() {
                     </div>
                 </CardHeader>
                 {loading || currentUserId === undefined ? (
-                    <div className="w-full">
-                        <Skeleton className="h-6 w-full my-2" />
-                        <Skeleton className="h-6 w-full my-2" />
-                    </div>
+                    <LoadingState />
                 ) : !owned ? (
                     <p className="text-sm text-muted-foreground">
                         This transaction belongs to another user (you can see it through a shared budget), so it can&apos;t be edited here.

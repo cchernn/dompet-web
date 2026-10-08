@@ -1,11 +1,18 @@
 import { fetchAuthSession } from "aws-amplify/auth"
+import { reportConnectionError, clearConnectionError } from "@/lib/connectionError"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export class ApiError extends Error {
-    constructor(message?: string) {
+    // HTTP status, when the request reached the server (undefined for a
+    // network-level failure). Lets callers distinguish e.g. a 404 "not
+    // found" from other failures without parsing the message string.
+    status?: number
+
+    constructor(message?: string, status?: number) {
         super(message || "Request failed")
         this.name = "ApiError"
+        this.status = status
     }
 }
 
@@ -67,6 +74,7 @@ async function request<T>(
     try {
         response = await fetch(url, options)
     } catch {
+        reportConnectionError()
         throw new ApiError("Network error — please check your connection and try again.")
     }
 
@@ -78,9 +86,10 @@ async function request<T>(
     }
 
     if (!envelope.success) {
-        throw new ApiError(envelope.message || "Request failed.")
+        throw new ApiError(envelope.message || "Request failed.", response.status)
     }
 
+    clearConnectionError()
     return { data: envelope.data, metadata: envelope.metadata || {} }
 }
 
@@ -100,11 +109,13 @@ const apiClient = {
                 headers: { "Content-Type": contentType },
             })
         } catch {
+            reportConnectionError()
             throw new ApiError("Network error while uploading the file — please try again.")
         }
         if (!response.ok) {
             throw new ApiError(`File upload failed (status ${response.status}).`)
         }
+        clearConnectionError()
     },
 }
 

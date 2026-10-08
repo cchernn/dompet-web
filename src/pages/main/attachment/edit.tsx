@@ -17,7 +17,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -103,10 +103,7 @@ function AttachmentEditPage() {
                     <CardTitle>Attachment ID: {attachment_id}</CardTitle>
                 </CardHeader>
                 {loading ? (
-                    <div className="w-full">
-                        <Skeleton className="h-6 w-full my-2" />
-                        <Skeleton className="h-6 w-full my-2" />
-                    </div>
+                    <LoadingState />
                 ) : (
                     <>
                         <div className="flex flex-wrap items-center gap-2 mb-4">

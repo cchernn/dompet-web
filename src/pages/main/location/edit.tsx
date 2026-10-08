@@ -23,7 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -126,10 +126,7 @@ function LocationEditPage() {
                 </CardHeader>
                 {
                     loading ?
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     :
                     <>
                     {!canEdit && currentUserId !== undefined && (

@@ -38,7 +38,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
@@ -174,10 +174,7 @@ function CategoryListPage() {
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     ) : categories.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
                             <h2>No Categories Available</h2>

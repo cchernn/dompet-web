@@ -8,6 +8,8 @@ import {
     SignUpPage,
 } from "@/pages/auth"
 import HomePage from "@/pages/main/home"
+import ProfilePage from "@/pages/main/profile"
+import NotificationsPage from "@/pages/main/notifications"
 import {
     TransactionListPage,
     TransactionEditPage,
@@ -69,6 +71,22 @@ function AppRouter() {
             element: <AuthRoute>
                         <Layout route="overview" paths={['/']}>
                             <HomePage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/profile',
+            element: <AuthRoute>
+                        <Layout route="profile" paths={['/profile']}>
+                            <ProfilePage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/notifications',
+            element: <AuthRoute>
+                        <Layout route="notifications" paths={['/notifications']}>
+                            <NotificationsPage />
                         </Layout>
                     </AuthRoute>
         },

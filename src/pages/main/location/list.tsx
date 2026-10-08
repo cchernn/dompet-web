@@ -37,7 +37,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/lib/toast"
 import Alert from "@/lib/alertDialog"
@@ -231,10 +231,7 @@ function LocationListPage() {
                 <div className="overflow-x-auto w-full">
                     {
                         loading ?
-                            <div>
-                                <Skeleton className="h-6 w-full my-2" />
-                                <Skeleton className="h-6 w-full my-2" />
-                            </div>
+                            <LoadingState />
                         :
                         locations.length === 0 ?
                             <div className="h-20 flex text-center items-center justify-center w-full">

@@ -13,7 +13,7 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -114,10 +114,7 @@ function CategoryEditPage() {
                     <CardTitle>Category ID: {category_id}</CardTitle>
                 </CardHeader>
                 {loading || !category || currentUserId === undefined ? (
-                    <div className="w-full">
-                        <Skeleton className="h-6 w-full my-2" />
-                        <Skeleton className="h-6 w-full my-2" />
-                    </div>
+                    <LoadingState />
                 ) : !owned ? (
                     <p className="text-sm text-muted-foreground">
                         This category is shared or belongs to another user, so it can&apos;t be edited here.

@@ -31,7 +31,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import Alert from "@/lib/alertDialog"
 import { searchTags, deleteTag } from "@/api/tags"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
@@ -127,10 +127,7 @@ function TagListPage() {
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     ) : tags.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
                             <h2>No Tags Available</h2>

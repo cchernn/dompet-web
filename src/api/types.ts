@@ -49,7 +49,13 @@ export interface Transaction {
 // download_url on list results — see AttachmentRef).
 export interface TransactionSearchResult {
     id: string
-    user_id?: string | null
+    user_id: string
+    // Resolved from the owner's public profile (dompet.vw_users_public) —
+    // null if that user hasn't created one yet. Prefer these over user_id
+    // for anything shown on screen (e.g. whose transaction this is in a
+    // shared budget) — user_id itself is never displayed, only compared.
+    username?: string | null
+    display_name?: string | null
     date: string
     datetime: string
     name: string
@@ -103,6 +109,10 @@ export interface CategorySearchResult {
     // null = global/shared (visible to everyone, immutable through the app);
     // a real id = owned by that user, normal CRUD applies.
     user_id?: string | null
+    // Resolved from the owner's public profile — null for global categories,
+    // or if the owner hasn't created a profile yet.
+    username?: string | null
+    display_name?: string | null
 }
 
 export interface TagSearchResult {
@@ -129,6 +139,10 @@ export interface LocationSearchResult {
     // null = public/shared (read-only through the app, see Location.user_id);
     // a real id = private to that user, normal CRUD applies.
     user_id?: string | null
+    // Resolved from the owner's public profile — null for public/shared
+    // locations, or if the owner hasn't created a profile yet.
+    username?: string | null
+    display_name?: string | null
 }
 
 // vw_attachments has no download_url (that's only ever generated for a
@@ -223,7 +237,12 @@ export interface Budget {
 
 export interface BudgetMember {
     budget_id: string
+    // Cognito UUID — internal identifier, never shown in the UI; prefer
+    // username/display_name for anything displayed.
     user_id: string
+    // null if the member hasn't created a user profile yet.
+    username?: string | null
+    display_name?: string | null
     created_at: string
 }
 
@@ -231,6 +250,21 @@ export interface TransactionBudgetLink {
     transaction_id: string
     budget_id: string
     created_at: string
+}
+
+// id is the same Cognito sub used as user_id everywhere else — there's no
+// separate surrogate key. Only GET/PUT /users/me returns this full shape
+// (including configuration) — there's no endpoint to look up another
+// user's profile directly; usernames only ever surface already-resolved,
+// as username/display_name fields on other resources (see e.g.
+// TransactionSearchResult, BudgetMember above).
+export interface User {
+    id: string
+    username: string
+    display_name?: string | null
+    configuration: Record<string, unknown>
+    created_at: string
+    updated_at: string
 }
 
 // --- Request bodies -------------------------------------------------------
@@ -312,3 +346,13 @@ export interface NotificationInput {
     entity_type?: string
     entity_id?: string
 }
+
+export interface UserInput {
+    // 3-30 chars, letters/numbers/underscore only (enforced server-side) — the
+    // public handle other users address this account by. Unrelated to the
+    // Cognito sign-in username, which is the account's email.
+    username: string
+    display_name?: string | null
+    configuration?: Record<string, unknown>
+}
+export type UserPatch = Partial<UserInput>

@@ -38,7 +38,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import Alert from "@/lib/alertDialog"
 import { toast } from "@/lib/toast"
 import { searchAttachments, deleteAttachment, getAttachment } from "@/api/attachments"
@@ -162,10 +162,7 @@ function AttachmentListPage() {
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     ) : attachments.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
                             <h2>No Attachments Available</h2>

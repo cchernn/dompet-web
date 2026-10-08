@@ -36,7 +36,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import Alert from "@/lib/alertDialog"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -95,7 +95,7 @@ function BudgetEditPage() {
     const currentUserId = useCurrentUserId()
     const owned = isOwnedBy(budget?.user_id, currentUserId)
     const [loading, setLoading] = useState(true)
-    const [newMemberUserId, setNewMemberUserId] = useState("")
+    const [newMemberUsername, setNewMemberUsername] = useState("")
     const [addingMember, setAddingMember] = useState(false)
 
     const form = useForm<z.infer<typeof nameFormSchema>>({
@@ -146,13 +146,13 @@ function BudgetEditPage() {
     }
 
     const handleAddMember = async () => {
-        const userId = newMemberUserId.trim()
-        if (!userId) return
+        const username = newMemberUsername.trim()
+        if (!username) return
         setAddingMember(true)
         try {
-            await addBudgetMember(budget_id!, userId)
+            await addBudgetMember(budget_id!, username)
             toast.success("Member added")
-            setNewMemberUserId("")
+            setNewMemberUsername("")
             members.reload()
         } catch (error) {
             toast.error((error as Error).message)
@@ -180,10 +180,7 @@ function BudgetEditPage() {
                     <CardTitle>Budget ID: {budget_id}</CardTitle>
                 </CardHeader>
                 {loading ? (
-                    <div className="w-full">
-                        <Skeleton className="h-6 w-full my-2" />
-                        <Skeleton className="h-6 w-full my-2" />
-                    </div>
+                    <LoadingState />
                 ) : (
                     <>
                         <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -231,7 +228,7 @@ function BudgetEditPage() {
                 <div className="w-full flex flex-col gap-4">
                     <div className="overflow-x-auto w-full">
                         {members.loading ? (
-                            <Skeleton className="h-6 w-full my-2" />
+                            <LoadingState className="py-4" />
                         ) : members.items.length === 0 ? (
                             <div className="h-16 flex text-center items-center justify-center w-full">
                                 <h2 className="text-sm text-muted-foreground">No Members Yet</h2>
@@ -248,14 +245,16 @@ function BudgetEditPage() {
                                 </TableCaption>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="font-semibold text-sm text-muted-foreground">User ID</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Member</TableHead>
                                         <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {members.items.map((member) => (
                                         <TableRow key={member.user_id}>
-                                            <TableCell className="text-sm">{member.user_id}</TableCell>
+                                            <TableCell className="text-sm">
+                                                {member.display_name || member.username || "(no profile yet)"}
+                                            </TableCell>
                                             <TableCell className="flex justify-center items-center gap-1">
                                                 {owned && (
                                                 <Alert
@@ -275,20 +274,20 @@ function BudgetEditPage() {
 
                     {owned && (
                     <div className="flex flex-col gap-2 max-w-sm">
-                        <Label htmlFor="new-member-user-id">Add Member</Label>
+                        <Label htmlFor="new-member-username">Add Member</Label>
                         <div className="flex gap-2">
                             <Input
-                                id="new-member-user-id"
-                                placeholder="Cognito user ID"
-                                value={newMemberUserId}
-                                onChange={(event) => setNewMemberUserId(event.target.value)}
+                                id="new-member-username"
+                                placeholder="Username"
+                                value={newMemberUsername}
+                                onChange={(event) => setNewMemberUsername(event.target.value)}
                             />
                             <Button type="button" onClick={handleAddMember} disabled={addingMember}>
                                 <UserPlus />
                             </Button>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                            Members are added by their raw Cognito user ID — there is no user search yet.
+                            Members are added by their dompet username — they&apos;ll need to have set one up on their Profile page first.
                         </p>
                     </div>
                     )}
@@ -301,7 +300,7 @@ function BudgetEditPage() {
                 </CardHeader>
                 <div className="w-full overflow-x-auto">
                     {transactions.loading ? (
-                        <Skeleton className="h-6 w-full my-2" />
+                        <LoadingState className="py-4" />
                     ) : transactions.items.length === 0 ? (
                         <div className="h-16 flex text-center items-center justify-center w-full">
                             <h2 className="text-sm text-muted-foreground">No Transactions Yet</h2>
