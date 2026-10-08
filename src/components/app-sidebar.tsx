@@ -10,6 +10,7 @@ import {
     MapPin,
     Wallet,
     PiggyBank,
+    type LucideIcon,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
 import {
@@ -26,17 +27,28 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"
 
-const items = [
+// The modules that get real analytics/summary pages (vs. Catalog below,
+// which stays plain lists with a totals widget at most).
+const financeItems = [
     {
         title: "Overview",
         url: "/",
         icon: ChartColumn,
     },
     {
+        title: "Budgets",
+        url: "/budgets",
+        icon: PiggyBank,
+    },
+    {
         title: "Transactions",
         url: "/transactions",
         icon: FileText,
     },
+]
+
+// Supporting records that transactions reference — not activity in themselves.
+const catalogItems = [
     {
         title: "Accounts",
         url: "/accounts",
@@ -62,12 +74,41 @@ const items = [
         url: "/locations",
         icon: MapPin,
     },
-    {
-        title: "Budgets",
-        url: "/budgets",
-        icon: PiggyBank,
-    },
 ]
+
+interface NavItem {
+    title: string
+    url: string
+    icon: LucideIcon
+}
+
+interface NavGroupProps {
+    label: string
+    items: NavItem[]
+    onNavigate: () => void
+}
+
+function NavGroup({ label, items, onNavigate }: NavGroupProps) {
+    return (
+        <SidebarGroup>
+            <SidebarGroupLabel>{label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+                <SidebarMenu>
+                    {items.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton asChild onClick={onNavigate}>
+                                <Link to={item.url}>
+                                    <item.icon />
+                                    <span>{item.title}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+            </SidebarGroupContent>
+        </SidebarGroup>
+    )
+}
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
     const { isMobile, setOpenMobile } = useSidebar()
@@ -94,23 +135,8 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
-            <SidebarGroup>
-                <SidebarGroupLabel>Expenditure</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        {items.map((item) => (
-                            <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton asChild onClick={closeOnMobile}>
-                                    <Link to={item.url}>
-                                        <item.icon />
-                                        <span>{item.title}</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        ))}
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
+            <NavGroup label="Finances" items={financeItems} onNavigate={closeOnMobile} />
+            <NavGroup label="Catalog" items={catalogItems} onNavigate={closeOnMobile} />
         </SidebarContent>
         <SidebarFooter>
             <NavUser />
