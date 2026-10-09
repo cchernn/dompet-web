@@ -6,7 +6,9 @@ import {
     FilePlus,
     X,
     FileText,
+    Clock,
 } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -37,9 +39,11 @@ import {
     SheetDescription,
 } from "@/components/ui/sheet"
 import { LoadingState } from "@/components/loading-state"
+import { Badge } from "@/components/ui/badge"
+import { UserBadge } from "@/components/user-badge"
 import Alert from "@/lib/alertDialog"
 import { toast } from "@/lib/toast"
-import { searchBudgets, deleteBudget, getBudget } from "@/api/budgets"
+import { searchBudgets, deleteBudget } from "@/api/budgets"
 import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import type { BudgetSearchResult } from "@/api/types"
@@ -48,8 +52,6 @@ function BudgetListPage() {
     const navigate = useNavigate()
     const [sheetOpen, setSheetOpen] = useState(false)
     const [selectedBudget, setSelectedBudget] = useState<BudgetSearchResult | null>(null)
-    // Budget search rows don't carry the owner, so it's fetched when the panel opens.
-    const [selectedBudgetOwnerId, setSelectedBudgetOwnerId] = useState<string | null | undefined>(undefined)
     const currentUserId = useCurrentUserId()
     const [search, setSearch] = useState("")
 
@@ -92,23 +94,6 @@ function BudgetListPage() {
         setSelectedBudget(budget)
         setSheetOpen(true)
     }
-
-    const selectedBudgetId = selectedBudget?.id
-    useEffect(() => {
-        if (!selectedBudgetId) return
-        let cancelled = false
-        setSelectedBudgetOwnerId(undefined)
-        getBudget(selectedBudgetId)
-            .then(({ data }) => {
-                if (!cancelled) setSelectedBudgetOwnerId(data.user_id ?? null)
-            })
-            .catch(() => {
-                if (!cancelled) setSelectedBudgetOwnerId(null)
-            })
-        return () => {
-            cancelled = true
-        }
-    }, [selectedBudgetId])
 
     const handleDelete = async (id: string) => {
         try {
@@ -187,6 +172,7 @@ function BudgetListPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Budget</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Owner</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -207,10 +193,26 @@ function BudgetListPage() {
                                         <TableCell className="py-3">
                                             <div className="flex flex-col gap-0.5 min-w-0">
                                                 <span className="font-medium truncate">{budget.name}</span>
-                                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                                                    <FileText className="size-3" />{budget.transaction_count}
+                                                <span className="flex items-center gap-3 text-xs text-muted-foreground">
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <FileText className="size-3" />{budget.transaction_count}
+                                                    </span>
+                                                    {(budget.members ?? []).length > 1 && (
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <Users className="size-3" />{budget.members.length}
+                                                        </span>
+                                                    )}
+                                                    {budget.last_updated && (
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <Clock className="size-3" />
+                                                            {formatDistanceToNow(new Date(budget.last_updated), { addSuffix: true })}
+                                                        </span>
+                                                    )}
                                                 </span>
                                             </div>
+                                        </TableCell>
+                                        <TableCell className="py-3">
+                                            <UserBadge username={budget.owner_username} displayName={budget.owner_display_name} />
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -226,21 +228,52 @@ function BudgetListPage() {
                         <SheetTitle>Budget</SheetTitle>
                         <SheetDescription className="sr-only">Budget details</SheetDescription>
                     </SheetHeader>
-                    {selectedBudget && (
+                    {selectedBudget && (() => {
+                        // create_budget always adds the owner as a budget_members
+                        // row too (so list_budgets/get_budget's own JOIN finds it),
+                        // so `members` already includes them — filter their entry
+                        // out here since the Owner row above already shows them.
+                        const otherMembers = (selectedBudget.members ?? []).filter(
+                            (username) => username !== selectedBudget.owner_username
+                        )
+                        return (
                         <>
                             <div className="flex flex-col gap-6 mt-4">
                                 <div className="text-xl font-semibold">{selectedBudget.name}</div>
 
                                 <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">Owner</span>
+                                    <UserBadge username={selectedBudget.owner_username} displayName={selectedBudget.owner_display_name} />
+
                                     <span className="text-muted-foreground">Transactions</span>
                                     <span className="inline-flex items-center gap-1">
                                         <FileText className="size-3" />{selectedBudget.transaction_count.toLocaleString()}
+                                    </span>
+
+                                    <span className="text-muted-foreground">Last Activity</span>
+                                    <span>
+                                        {selectedBudget.last_updated
+                                            ? formatDistanceToNow(new Date(selectedBudget.last_updated), { addSuffix: true })
+                                            : "No transactions yet"}
+                                    </span>
+
+                                    <span className="text-muted-foreground">Shared With</span>
+                                    <span>
+                                        {otherMembers.length > 0 ? (
+                                            <div className="flex flex-wrap gap-1">
+                                                {otherMembers.map((username, index) => (
+                                                    <Badge key={`${username ?? "unknown"}-${index}`} variant="outline">
+                                                        {username ?? "No profile yet"}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        ) : "Just you"}
                                     </span>
                                 </div>
                             </div>
 
                             <SheetFooter className="mt-6">
-                                {isOwnedBy(selectedBudgetOwnerId, currentUserId) && (
+                                {isOwnedBy(selectedBudget.owner_user_id, currentUserId) && (
                                     <>
                                         <Button onClick={() => navigate(`/budgets/${selectedBudget.id}`)}>
                                             <Users />Manage
@@ -261,7 +294,8 @@ function BudgetListPage() {
                                 </Button>
                             </SheetFooter>
                         </>
-                    )}
+                        )
+                    })()}
                 </SheetContent>
             </Sheet>
         </div>

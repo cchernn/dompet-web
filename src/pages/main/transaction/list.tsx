@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/sheet"
 import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
+import { UserBadge } from "@/components/user-badge"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import Alert from "@/lib/alertDialog"
 import { cn } from "@/lib/utils"
@@ -538,6 +539,12 @@ function TransactionListPage() {
                                         <TableCell>
                                             <div className="flex flex-col gap-0.5 py-1 min-w-0">
                                                 <span className="font-medium truncate">{tx.name}</span>
+                                                <UserBadge
+                                                    username={tx.username}
+                                                    displayName={tx.display_name}
+                                                    className="text-xs text-muted-foreground"
+                                                    avatarClassName="h-4 w-4"
+                                                />
                                                 <span
                                                     className="text-sm text-muted-foreground flex items-center gap-1 truncate"
                                                     onClick={(e) => e.stopPropagation()}
@@ -654,6 +661,9 @@ function TransactionListPage() {
                                 </div>
 
                                 <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">Owner</span>
+                                    <UserBadge username={selectedTransaction.username} displayName={selectedTransaction.display_name} />
+
                                     <span className="text-muted-foreground">Date</span>
                                     <span>{format(new Date(selectedTransaction.datetime), "d MMM yyyy, HH:mm")}</span>
 

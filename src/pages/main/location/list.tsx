@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/sheet"
 import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
+import { UserBadge } from "@/components/user-badge"
 import { toast } from "@/lib/toast"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
@@ -301,7 +302,11 @@ function LocationListPage() {
                                             <Badge variant="outline">{LOCATION_TYPE_LABELS[location.type]}</Badge>
                                         </TableCell>
                                         <TableCell className="py-3">
-                                            <Badge variant="outline">{location.user_id == null ? "Public" : "Private"}</Badge>
+                                            {location.user_id == null ? (
+                                                <Badge variant="outline">Public</Badge>
+                                            ) : (
+                                                <UserBadge username={location.username} displayName={location.display_name} />
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -323,7 +328,11 @@ function LocationListPage() {
                                 <div className="flex items-center gap-2">
                                     <div className="text-xl font-semibold">{selectedLocation.name}</div>
                                     <Badge variant="outline">{LOCATION_TYPE_LABELS[selectedLocation.type]}</Badge>
-                                    {selectedLocation.user_id == null && <Badge variant="outline">Public</Badge>}
+                                    {selectedLocation.user_id == null ? (
+                                        <Badge variant="outline">Public</Badge>
+                                    ) : (
+                                        <UserBadge username={selectedLocation.username} displayName={selectedLocation.display_name} />
+                                    )}
                                 </div>
 
                                 {selectedLocation.user_id == null && (

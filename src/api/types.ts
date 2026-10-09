@@ -125,6 +125,20 @@ export interface BudgetSearchResult {
     id: string
     name: string
     transaction_count: number
+    owner_user_id: string
+    // Resolved from the owner's public profile — null if they haven't
+    // created one yet.
+    owner_username?: string | null
+    owner_display_name?: string | null
+    // Usernames of this budget's members (not including the owner),
+    // ordered by when they joined — a null entry is a member who hasn't
+    // created a profile yet. No display_name available for these (the
+    // view only resolves username here).
+    members: (string | null)[]
+    // Datetime of the most recently linked transaction (what the list is
+    // now sorted by, DESC) — not the budget row's own updated_at, and null
+    // if the budget has no transactions.
+    last_updated?: string | null
 }
 
 export interface LocationSearchResult {

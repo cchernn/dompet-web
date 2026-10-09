@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/sheet"
 import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
+import { UserBadge } from "@/components/user-badge"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
 import { isOwnedBy } from "@/hooks/use-current-user-id"
@@ -241,7 +242,11 @@ function CategoryListPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="py-3">
-                                                <Badge variant="outline">{isGlobal ? "Global" : "Mine"}</Badge>
+                                                {isGlobal ? (
+                                                    <Badge variant="outline">Global</Badge>
+                                                ) : (
+                                                    <UserBadge username={category.username} displayName={category.display_name} />
+                                                )}
                                             </TableCell>
                                         </TableRow>
                                     )
@@ -265,7 +270,11 @@ function CategoryListPage() {
                                 <div className="flex flex-col gap-6 mt-4">
                                     <div className="flex items-center gap-2">
                                         <div className="text-xl font-semibold">{selectedCategory.name}</div>
-                                        <Badge variant="secondary">{isGlobal ? "Global" : "Mine"}</Badge>
+                                        {isGlobal ? (
+                                            <Badge variant="secondary">Global</Badge>
+                                        ) : (
+                                            <UserBadge username={selectedCategory.username} displayName={selectedCategory.display_name} />
+                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
