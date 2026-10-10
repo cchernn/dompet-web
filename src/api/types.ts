@@ -458,3 +458,7 @@ export interface UserInput {
     avatar_content_type?: string
 }
 export type UserPatch = Partial<UserInput>
+
+export interface AssistantReply {
+    reply: string
+}
