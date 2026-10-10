@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { addDays, endOfMonth, format } from "date-fns"
 import { PiggyBank, TrendingDown, TrendingUp, Wallet } from "lucide-react"
@@ -7,6 +7,7 @@ import { DonutChart, type DonutChartDatum } from "@/components/charts/donut-char
 import { TrendChart } from "@/components/charts/trend-chart"
 import { LoadingState } from "@/components/loading-state"
 import { formatAmount } from "@/lib/format"
+import { fillTrendGaps } from "@/lib/trend"
 import { useAsyncData } from "@/hooks/use-async-data"
 import { getBudgetSummary, getBudgetTrend } from "@/api/budgets"
 import type { BudgetBreakdown, TrendBucket, TrendPoint } from "@/api/types"
@@ -59,12 +60,16 @@ export function BudgetInsights({ filters, onDrilldown }: BudgetInsightsProps) {
     }
 
     const { data: summary, loading: summaryLoading } = useAsyncData(
-        () => getBudgetSummary(filters.budget || undefined),
-        [filters.budget]
+        () => getBudgetSummary({ q: filters.budget || undefined, from: filters.from || undefined, to: filters.to || undefined }),
+        [filterKey]
     )
     const { data: trend, loading: trendLoading } = useAsyncData(
         () => getBudgetTrend(bucket, { from: filters.from || undefined, to: filters.to || undefined, q: filters.budget || undefined }),
         [filterKey, bucket]
+    )
+    const trendSeries = useMemo(
+        () => fillTrendGaps(trend?.series ?? [], bucket, filters.from, filters.to),
+        [trend, bucket, filters.from, filters.to]
     )
 
     if (summaryLoading && !summary) return <LoadingState />
@@ -88,7 +93,7 @@ export function BudgetInsights({ filters, onDrilldown }: BudgetInsightsProps) {
             <TrendChart
                 bucket={bucket}
                 onBucketChange={setBucket}
-                series={trend?.series ?? []}
+                series={trendSeries}
                 loading={trendLoading}
                 onBarClick={goToTransactionsInsights}
             />

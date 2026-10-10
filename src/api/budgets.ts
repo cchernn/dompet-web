@@ -11,9 +11,18 @@ export const listBudgets = ({ page = 1, pageSize = 25, includeInactive = false }
 export const searchBudgets = ({ page = 1, pageSize = 25, q }: SearchParams = {}) =>
     apiClient.get<BudgetSearchResult[]>("/budgets/search", { page, page_size: pageSize, q })
 
-export const getBudgetSummary = (q?: string) => apiClient.get<BudgetSummary>("/budgets/summary", { q })
+// Same filter contract as searchBudgets's `q`, plus a date range — the
+// backend reuses this on both the summary and trend queries.
+export interface BudgetInsightsParams {
+    from?: string
+    to?: string
+    q?: string
+}
 
-export const getBudgetTrend = (bucket: TrendBucket, { from, to, q }: { from?: string; to?: string; q?: string } = {}) =>
+export const getBudgetSummary = ({ from, to, q }: BudgetInsightsParams = {}) =>
+    apiClient.get<BudgetSummary>("/budgets/summary", { from, to, q })
+
+export const getBudgetTrend = (bucket: TrendBucket, { from, to, q }: BudgetInsightsParams = {}) =>
     apiClient.get<BudgetTrend>("/budgets/trend", { bucket, from, to, q })
 
 export const getBudget = (budgetId: string) => apiClient.get<Budget>(`/budgets/${budgetId}`)

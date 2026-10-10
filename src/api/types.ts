@@ -176,6 +176,13 @@ export interface AccountBreakdown {
     count: number
 }
 
+export interface DestinationAccountBreakdown {
+    // Grouped by destination account — where money went.
+    account: string
+    total: string
+    count: number
+}
+
 export interface TransactionSummary {
     total_income: string
     total_expense: string
@@ -183,6 +190,7 @@ export interface TransactionSummary {
     transaction_count: number
     by_category: CategoryBreakdown[]
     by_account: AccountBreakdown[]
+    by_destination_account: DestinationAccountBreakdown[]
     by_budget: BudgetBreakdown[]
 }
 
