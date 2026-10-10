@@ -1,5 +1,8 @@
 import apiClient from "@/lib/apiClient"
-import type { Transaction, TransactionInput, TransactionPatch, TransactionSearchResult, TransactionType } from "@/api/types"
+import type {
+    Transaction, TransactionInput, TransactionPatch, TransactionSearchResult, TransactionType,
+    TransactionSummary, TransactionTrend, TrendBucket,
+} from "@/api/types"
 import type { ListParams } from "@/api/accounts"
 
 export const listTransactions = ({ page = 1, pageSize = 25, includeInactive = false }: ListParams = {}) =>
@@ -36,6 +39,28 @@ export const searchTransactions = ({
         page, page_size: pageSize, from, to, category, type, source, destination, tags, budgets,
         source_location, destination_location,
     })
+
+// Same filter contract as searchTransactions, minus pagination — the
+// backend reuses transaction_search's WHERE-building for these.
+export interface TransactionInsightsParams {
+    from?: string
+    to?: string
+    category?: string
+    type?: TransactionType | ""
+    source?: string
+    destination?: string
+    tags?: string
+    budgets?: string
+}
+
+export const getTransactionSummary = ({ from, to, category, type, source, destination, tags, budgets }: TransactionInsightsParams = {}) =>
+    apiClient.get<TransactionSummary>("/transactions/summary", { from, to, category, type, source, destination, tags, budgets })
+
+export const getTransactionTrend = (
+    bucket: TrendBucket,
+    { from, to, category, type, source, destination, tags, budgets }: TransactionInsightsParams = {}
+) =>
+    apiClient.get<TransactionTrend>("/transactions/trend", { bucket, from, to, category, type, source, destination, tags, budgets })
 
 export const getTransaction = (transactionId: string) => apiClient.get<Transaction>(`/transactions/${transactionId}`)
 

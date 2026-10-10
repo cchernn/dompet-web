@@ -141,6 +141,70 @@ export interface BudgetSearchResult {
     last_updated?: string | null
 }
 
+// --- Insights (GET /transactions/summary|trend, /budgets/summary|trend) ---
+// Decimal fields serialize as strings, same convention as Transaction.amount.
+
+export type TrendBucket = "day" | "week" | "month"
+
+export interface TrendPoint {
+    period_start: string
+    // Backend-formatted for display (e.g. "10 Mar", "Week of Mar 3", "Mar 2026") —
+    // don't reconstruct a label from period_start on the frontend.
+    period_label: string
+    income: string
+    expense: string
+    net: string
+    count: number
+}
+
+export interface BudgetBreakdown {
+    budget: string
+    total: string
+    count: number
+}
+
+export interface CategoryBreakdown {
+    category: string
+    total: string
+    count: number
+}
+
+export interface AccountBreakdown {
+    // Grouped by source account — where money left from, not destination.
+    account: string
+    total: string
+    count: number
+}
+
+export interface TransactionSummary {
+    total_income: string
+    total_expense: string
+    net: string
+    transaction_count: number
+    by_category: CategoryBreakdown[]
+    by_account: AccountBreakdown[]
+    by_budget: BudgetBreakdown[]
+}
+
+export interface TransactionTrend {
+    bucket: TrendBucket
+    series: TrendPoint[]
+}
+
+export interface BudgetSummary {
+    budget_count: number
+    total_transactions: number
+    total_income: string
+    total_expense: string
+    net: string
+    by_budget: BudgetBreakdown[]
+}
+
+export interface BudgetTrend {
+    bucket: TrendBucket
+    series: TrendPoint[]
+}
+
 export interface LocationSearchResult {
     id: string
     name: string

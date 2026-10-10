@@ -1,6 +1,6 @@
 import apiClient from "@/lib/apiClient"
 import { invalidateResource } from "@/lib/resourceCache"
-import type { Budget, BudgetInput, BudgetPatch, BudgetSearchResult, Transaction } from "@/api/types"
+import type { Budget, BudgetInput, BudgetPatch, BudgetSearchResult, BudgetSummary, BudgetTrend, Transaction, TrendBucket } from "@/api/types"
 import type { ListParams, SearchParams } from "@/api/accounts"
 
 export const listBudgets = ({ page = 1, pageSize = 25, includeInactive = false }: ListParams = {}) =>
@@ -10,6 +10,11 @@ export const listBudgets = ({ page = 1, pageSize = 25, includeInactive = false }
 // transaction_count desc then name asc (most-used budgets sort first).
 export const searchBudgets = ({ page = 1, pageSize = 25, q }: SearchParams = {}) =>
     apiClient.get<BudgetSearchResult[]>("/budgets/search", { page, page_size: pageSize, q })
+
+export const getBudgetSummary = (q?: string) => apiClient.get<BudgetSummary>("/budgets/summary", { q })
+
+export const getBudgetTrend = (bucket: TrendBucket, { from, to, q }: { from?: string; to?: string; q?: string } = {}) =>
+    apiClient.get<BudgetTrend>("/budgets/trend", { bucket, from, to, q })
 
 export const getBudget = (budgetId: string) => apiClient.get<Budget>(`/budgets/${budgetId}`)
 

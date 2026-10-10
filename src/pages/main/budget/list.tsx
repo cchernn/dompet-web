@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import type { DateRange } from "react-day-picker"
 import {
     Users,
     Trash2,
@@ -7,10 +8,10 @@ import {
     X,
     FileText,
     Clock,
+    CalendarIcon,
 } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { format, formatDistanceToNow, parse, startOfMonth } from "date-fns"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
     Table,
@@ -30,6 +31,8 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 import {
     Sheet,
     SheetContent,
@@ -41,19 +44,75 @@ import {
 import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import { UserBadge } from "@/components/user-badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
 import Alert from "@/lib/alertDialog"
 import { toast } from "@/lib/toast"
 import { searchBudgets, deleteBudget } from "@/api/budgets"
 import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
+import { useCachedResource } from "@/hooks/use-cached-resource"
 import type { BudgetSearchResult } from "@/api/types"
+import { BudgetInsights } from "./insights"
+
+// Same raised page-size ceiling the Transactions filter dropdowns use — one
+// call fetches every budget for the picker instead of paginating.
+const FILTER_OPTIONS_PAGE_SIZE = 1000
+
+const ALL = "__all__"
+
+interface Filters {
+    budget: string
+    from: string
+    to: string
+}
+
+// A stored "YYYY-MM-DD" string must never go through `new Date(str)` — that
+// parses as UTC midnight and can render as the wrong local day.
+const parseFilterDate = (value?: string) => (value ? parse(value, "yyyy-MM-dd", new Date()) : undefined)
+
+function formatDateRangeLabel(from?: string, to?: string) {
+    const fromDate = parseFilterDate(from)
+    const toDate = parseFilterDate(to)
+    if (!fromDate && !toDate) return "All dates"
+    if (fromDate && toDate) {
+        return fromDate.getFullYear() === toDate.getFullYear()
+            ? `${format(fromDate, "d MMM")} – ${format(toDate, "d MMM yyyy")}`
+            : `${format(fromDate, "d MMM yyyy")} – ${format(toDate, "d MMM yyyy")}`
+    }
+    if (fromDate) return `From ${format(fromDate, "d MMM yyyy")}`
+    return `Until ${format(toDate!, "d MMM yyyy")}`
+}
 
 function BudgetListPage() {
     const navigate = useNavigate()
     const [sheetOpen, setSheetOpen] = useState(false)
     const [selectedBudget, setSelectedBudget] = useState<BudgetSearchResult | null>(null)
     const currentUserId = useCurrentUserId()
-    const [search, setSearch] = useState("")
+    const [searchParams, setSearchParams] = useSearchParams()
+    const tab = searchParams.get("tab") === "list" ? "list" : "insights"
+    const setTab = (value: string) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev)
+            if (value === "list") next.set("tab", "list")
+            else next.delete("tab")
+            return next
+        }, { replace: true })
+    }
+
+    const { data: budgetOptionsData } = useCachedResource("budgets:search", () => searchBudgets({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
+    const budgetOptions: ComboboxOption[] = [
+        { value: ALL, label: "All budgets" },
+        ...(budgetOptionsData ?? []).map((b) => ({ value: b.name, label: b.name })),
+    ]
+
+    const [filters, setFilters] = useState<Filters>(() => ({
+        budget: "",
+        // Defaults to Month to Date for the Insights trend, rather than "All dates".
+        from: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+        to: format(new Date(), "yyyy-MM-dd"),
+    }))
+    const [dateRangeOpen, setDateRangeOpen] = useState(false)
 
     const {
         items: budgets,
@@ -65,28 +124,61 @@ function BudgetListPage() {
         nextPage,
         previousPage,
         reload,
-    } = usePaginatedList(({ page, pageSize }) => searchBudgets({ page, pageSize, q: search || undefined }))
+    } = usePaginatedList(({ page, pageSize }) => searchBudgets({ page, pageSize, q: filters.budget || undefined }))
 
-    // Debounce the name search so typing doesn't fire a request per keystroke.
-    const didMount = useRef(false)
-    useEffect(() => {
-        if (!didMount.current) {
-            didMount.current = true
-            return
-        }
-        const timeout = setTimeout(() => {
-            setPage(1)
-            reload()
-        }, 300)
-        return () => clearTimeout(timeout)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search])
-
-    const clearFilters = () => {
-        setSearch("")
+    const updateBudgetFilter = (value: string) => {
+        setFilters((prev) => ({ ...prev, budget: value === ALL ? "" : value }))
         setPage(1)
         reload()
     }
+
+    // react-day-picker's range onSelect fires once with {from, to: undefined}
+    // after the first click, then {from, to} after the second.
+    const handleDateRangeSelect = (range: DateRange | undefined) => {
+        setFilters((prev) => ({
+            ...prev,
+            from: range?.from ? format(range.from, "yyyy-MM-dd") : "",
+            to: range?.to ? format(range.to, "yyyy-MM-dd") : "",
+        }))
+        if (range?.from && range?.to) setDateRangeOpen(false)
+    }
+
+    const clearDateRange = () => {
+        setFilters((prev) => ({ ...prev, from: "", to: "" }))
+        setDateRangeOpen(false)
+    }
+
+    const clearFilters = () => {
+        setFilters({ budget: "", from: "", to: "" })
+        setPage(1)
+        reload()
+    }
+
+    const hasFilters = filters.budget || filters.from || filters.to
+
+    // Clicking the donut in the Insights tab scopes this same page down to
+    // that one budget — stays on Insights, no tab switch.
+    const handleDrilldown = (patch: Partial<Filters>) => {
+        setFilters((prev) => ({ ...prev, ...patch }))
+        setPage(1)
+        reload()
+    }
+
+    interface Chip {
+        key: string
+        label: string
+        value: string
+        onRemove: () => void
+    }
+
+    const chips: Chip[] = (
+        [
+            filters.budget && { key: "budget", label: "Budget", value: filters.budget, onRemove: () => updateBudgetFilter(ALL) },
+            (filters.from || filters.to) && {
+                key: "date", label: "Date", value: formatDateRangeLabel(filters.from, filters.to), onRemove: clearDateRange,
+            },
+        ] as (Chip | "" | false)[]
+    ).filter((chip): chip is Chip => Boolean(chip))
 
     const handleAdd = () => navigate(`/budgets/add`)
 
@@ -112,30 +204,82 @@ function BudgetListPage() {
                 <h1 className="text-2xl font-semibold tracking-tight">Budgets</h1>
                 <span className="text-2xl font-semibold text-muted-foreground">{totalCount.toLocaleString()}</span>
             </div>
-            <div className="m-2">
+            <div className="flex flex-wrap items-center justify-between gap-4 m-2">
                 <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add budget</Button>
+                <Tabs value={tab} onValueChange={setTab}>
+                    <TabsList>
+                        <TabsTrigger value="insights">Insights</TabsTrigger>
+                        <TabsTrigger value="list">List</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
 
             <Card className="p-4 m-2 rounded-2xl shadow-md border">
                 <div className="flex flex-wrap items-end gap-4">
-                    <div className="flex flex-col gap-1">
-                        <Label>Search</Label>
-                        <Input
-                            className="w-56"
-                            placeholder="Search by name"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                    <div className="flex flex-col gap-1 w-56">
+                        <Label>Budget</Label>
+                        <Combobox
+                            options={budgetOptions}
+                            value={filters.budget || ALL}
+                            onChange={updateBudgetFilter}
+                            placeholder="All budgets"
+                            searchPlaceholder="Search budgets"
+                            emptyText="No budget found"
                         />
                     </div>
 
-                    {search && (
+                    <div className="flex flex-col gap-1">
+                        <Label>Date (Insights only)</Label>
+                        <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
+                            <PopoverTrigger asChild>
+                                <Button type="button" variant="outline" className="w-64 justify-start font-normal">
+                                    <CalendarIcon className="size-4" />
+                                    {formatDateRangeLabel(filters.from, filters.to)}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className="w-auto p-0">
+                                <Calendar
+                                    mode="range"
+                                    selected={{ from: parseFilterDate(filters.from), to: parseFilterDate(filters.to) }}
+                                    onSelect={handleDateRangeSelect}
+                                    defaultMonth={parseFilterDate(filters.from) ?? new Date()}
+                                    initialFocus
+                                />
+                                <div className="p-2 border-t flex justify-end">
+                                    <Button type="button" variant="ghost" size="sm" onClick={clearDateRange}>Clear</Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    {hasFilters && (
                         <Button type="button" variant="outline" onClick={clearFilters}>
                             <X />Clear filters
                         </Button>
                     )}
                 </div>
+
+                {chips.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                        {chips.map((chip) => (
+                            <Badge key={chip.key} variant="secondary" className="gap-1 pr-1">
+                                <span className="text-muted-foreground">{chip.label}:</span> {chip.value}
+                                <button type="button" onClick={chip.onRemove} className="ml-1 hover:text-destructive">
+                                    <X className="size-3" />
+                                </button>
+                            </Badge>
+                        ))}
+                    </div>
+                )}
             </Card>
 
+            {tab === "insights" && (
+                <div className="m-2">
+                    <BudgetInsights filters={filters} onDrilldown={handleDrilldown} />
+                </div>
+            )}
+
+            {tab === "list" && (
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
@@ -221,6 +365,7 @@ function BudgetListPage() {
                     )}
                 </div>
             </Card>
+            )}
 
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="w-full sm:max-w-md overflow-y-auto">
