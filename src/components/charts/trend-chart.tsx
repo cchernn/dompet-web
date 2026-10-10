@@ -74,7 +74,11 @@ export function TrendChart({ bucket, onBucketChange, series, loading, onBarClick
                             {series.map((point, index) => (
                                 <Cell
                                     key={index}
-                                    fill={Number(point.net) >= 0 ? "hsl(142 71% 45%)" : "hsl(0 72% 51%)"}
+                                    // Recharts still renders a visible sliver for a net=0 bar (its
+                                    // computed bar height isn't reliably 0 here) — making it
+                                    // transparent is what actually reads as a flat line, regardless
+                                    // of whatever height it ends up drawing.
+                                    fill={Number(point.net) === 0 ? "transparent" : Number(point.net) > 0 ? "hsl(142 71% 45%)" : "hsl(0 72% 51%)"}
                                     style={{ cursor: onBarClick ? "pointer" : "default" }}
                                 />
                             ))}
