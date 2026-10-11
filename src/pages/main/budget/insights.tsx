@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/loading-state"
 import { formatAmount } from "@/lib/format"
 import { fillTrendGaps } from "@/lib/trend"
 import { useAsyncData } from "@/hooks/use-async-data"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { getBudgetSummary, getBudgetTrend } from "@/api/budgets"
 import type { BudgetBreakdown, TrendBucket, TrendPoint } from "@/api/types"
 
@@ -48,6 +49,9 @@ export function BudgetInsights({ filters, onDrilldown }: BudgetInsightsProps) {
     const navigate = useNavigate()
     const [bucket, setBucket] = useState<TrendBucket>("day")
     const filterKey = `${filters.budget}|${filters.from}|${filters.to}`
+    // Click-to-filter is disabled on mobile — slices/bars are too small to
+    // tap precisely there, and it fights with scroll gestures.
+    const isMobile = useIsMobile()
 
     // The trend chart has no equivalent on this page (budgets aren't dated
     // themselves) — clicking a bar hands the date range (and the active
@@ -87,7 +91,7 @@ export function BudgetInsights({ filters, onDrilldown }: BudgetInsightsProps) {
             <DonutChart
                 title="Spend Share by Budget"
                 data={toDonutData(summary.by_budget)}
-                onSliceClick={(label) => onDrilldown({ budget: label })}
+                onSliceClick={isMobile ? undefined : (label) => onDrilldown({ budget: label })}
             />
 
             <TrendChart
@@ -95,7 +99,7 @@ export function BudgetInsights({ filters, onDrilldown }: BudgetInsightsProps) {
                 onBucketChange={setBucket}
                 series={trendSeries}
                 loading={trendLoading}
-                onBarClick={goToTransactionsInsights}
+                onBarClick={isMobile ? undefined : goToTransactionsInsights}
             />
         </div>
     )

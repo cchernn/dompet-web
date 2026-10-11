@@ -8,6 +8,7 @@ import { LoadingState } from "@/components/loading-state"
 import { formatAmount } from "@/lib/format"
 import { fillTrendGaps } from "@/lib/trend"
 import { useAsyncData } from "@/hooks/use-async-data"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { getTransactionSummary, getTransactionTrend, type TransactionInsightsParams } from "@/api/transactions"
 import type { TrendBucket, TrendPoint } from "@/api/types"
 
@@ -41,6 +42,9 @@ interface TransactionInsightsProps {
 export function TransactionInsights({ filters, onDrilldown }: TransactionInsightsProps) {
     const [bucket, setBucket] = useState<TrendBucket>("day")
     const filterKey = JSON.stringify(filters)
+    // Click-to-filter is disabled on mobile — slices/bars are too small to
+    // tap precisely there, and it fights with scroll gestures.
+    const isMobile = useIsMobile()
 
     const { data: summary, loading: summaryLoading } = useAsyncData(() => getTransactionSummary(filters), [filterKey])
     const { data: trend, loading: trendLoading } = useAsyncData(() => getTransactionTrend(bucket, filters), [filterKey, bucket])
@@ -65,17 +69,17 @@ export function TransactionInsights({ filters, onDrilldown }: TransactionInsight
                 <DonutChart
                     title="By Category"
                     data={toDonutData(summary.by_category, (item) => item.category)}
-                    onSliceClick={(label) => onDrilldown({ category: label })}
+                    onSliceClick={isMobile ? undefined : (label) => onDrilldown({ category: label })}
                 />
                 <DonutChart
                     title="By Account"
                     data={toDonutData(summary.by_account, (item) => item.account)}
-                    onSliceClick={(label) => onDrilldown({ source: label })}
+                    onSliceClick={isMobile ? undefined : (label) => onDrilldown({ source: label })}
                 />
                 <DonutChart
                     title="By Budget"
                     data={toDonutData(summary.by_budget, (item) => item.budget)}
-                    onSliceClick={(label) => onDrilldown({ budgets: label })}
+                    onSliceClick={isMobile ? undefined : (label) => onDrilldown({ budgets: label })}
                 />
             </div>
 
@@ -84,7 +88,7 @@ export function TransactionInsights({ filters, onDrilldown }: TransactionInsight
                 onBucketChange={setBucket}
                 series={trendSeries}
                 loading={trendLoading}
-                onBarClick={(point) => onDrilldown(bucketDateRange(bucket, point))}
+                onBarClick={isMobile ? undefined : (point) => onDrilldown(bucketDateRange(bucket, point))}
             />
         </div>
     )
