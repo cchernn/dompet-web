@@ -28,7 +28,9 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
+import { CreatableCombobox, isNewComboboxValue, comboboxNewValueName } from "@/components/ui/creatable-combobox"
 import { LinkedItemsSection } from "@/components/linked-items-section"
+import { resolveAccountId, resolveLocationId } from "@/lib/creatable"
 import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import Alert from "@/lib/alertDialog"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -69,8 +71,8 @@ const formSchema = z.object({
         .transform((val) => parseFloat(val.toFixed(2))),
     currency_code: z.string().length(3, { message: "Select a currency" }),
     category_id: z.string().nullable().optional(),
-    source_account_id: z.string({ required_error: "Source account is required" }),
-    destination_account_id: z.string({ required_error: "Destination account is required" }),
+    source_account_id: z.string({ required_error: "Source account is required" }).min(1, { message: "Source account is required" }),
+    destination_account_id: z.string({ required_error: "Destination account is required" }).min(1, { message: "Destination account is required" }),
     source_location_id: z.string().nullable().optional(),
     destination_location_id: z.string().nullable().optional(),
 })
@@ -138,7 +140,9 @@ function TransactionEditPage() {
     // fetchTransaction's form.reset — that shouldn't wipe its own location).
     const previousSourceAccountIdRef = useRef<string | undefined>(undefined)
     useEffect(() => {
-        if (!sourceAccountId) {
+        // A brand-new (not-yet-created) account has no linked locations to
+        // fetch — any location typed for it is necessarily a new one too.
+        if (!sourceAccountId || isNewComboboxValue(sourceAccountId)) {
             setSourceLocationOptions([])
             return
         }
@@ -165,7 +169,7 @@ function TransactionEditPage() {
 
     const previousDestinationAccountIdRef = useRef<string | undefined>(undefined)
     useEffect(() => {
-        if (!destinationAccountId) {
+        if (!destinationAccountId || isNewComboboxValue(destinationAccountId)) {
             setDestinationLocationOptions([])
             return
         }
@@ -269,6 +273,14 @@ function TransactionEditPage() {
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
+            // Any account/location typed with no match gets created here,
+            // before the transaction patch — resolveLocationId needs the
+            // leg's own (now-real) account id to link the new location to.
+            const sourceAccountId = await resolveAccountId(data.source_account_id)
+            const destinationAccountId = await resolveAccountId(data.destination_account_id)
+            const sourceLocationId = await resolveLocationId(data.source_location_id, sourceAccountId)
+            const destinationLocationId = await resolveLocationId(data.destination_location_id, destinationAccountId)
+
             const datePart = data.date.toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" })
             const patch: TransactionPatch = {
                 // Explicit +08:00 offset required — Asia/Kuala_Lumpur has no
@@ -282,10 +294,10 @@ function TransactionEditPage() {
                 amount: data.amount,
                 currency_code: data.currency_code,
                 category_id: data.category_id || undefined,
-                source_account_id: data.source_account_id,
-                destination_account_id: data.destination_account_id,
-                source_location_id: data.source_location_id || null,
-                destination_location_id: data.destination_location_id || null,
+                source_account_id: sourceAccountId,
+                destination_account_id: destinationAccountId,
+                source_location_id: sourceLocationId,
+                destination_location_id: destinationLocationId,
             }
             // Never send a blank name — omit it rather than trust the backend to reject it.
             if (data.name && data.name.trim() !== "") {
@@ -555,15 +567,20 @@ function TransactionEditPage() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Source Account</FormLabel>
-                                                <Combobox
+                                                <CreatableCombobox
                                                     options={accountOptions}
                                                     value={field.value}
                                                     onChange={field.onChange}
-                                                    placeholder="Select the source account"
-                                                    searchPlaceholder="Search accounts"
+                                                    placeholder="Select or type the source account"
+                                                    searchPlaceholder="Search or type a new account name"
                                                     emptyText="No account found"
                                                 />
                                                 <FormDescription>Account the money/activity originates from.</FormDescription>
+                                                {isNewComboboxValue(field.value) && (
+                                                    <p className="text-xs text-destructive">
+                                                        &quot;{comboboxNewValueName(field.value)}&quot; doesn&apos;t exist — a new account will be created when you submit.
+                                                    </p>
+                                                )}
                                                 <FormMessage>{errors.source_account_id?.message}</FormMessage>
                                             </FormItem>
                                         )}
@@ -575,15 +592,20 @@ function TransactionEditPage() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Source Location</FormLabel>
-                                                <Combobox
+                                                <CreatableCombobox
                                                     options={sourceLocationOptions}
                                                     value={field.value}
                                                     onChange={field.onChange}
                                                     placeholder="No location (optional)"
-                                                    searchPlaceholder="Search locations"
+                                                    searchPlaceholder="Search or type a new location name"
                                                     emptyText={sourceAccountId ? "No locations linked to this account" : "Select an account first"}
                                                 />
                                                 <FormDescription>Must be linked to this account.</FormDescription>
+                                                {isNewComboboxValue(field.value) && (
+                                                    <p className="text-xs text-destructive">
+                                                        &quot;{comboboxNewValueName(field.value)}&quot; doesn&apos;t exist — a new location will be created and linked to this account when you submit.
+                                                    </p>
+                                                )}
                                                 <FormMessage>{errors.source_location_id?.message}</FormMessage>
                                             </FormItem>
                                         )}
@@ -599,15 +621,20 @@ function TransactionEditPage() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Destination Account</FormLabel>
-                                                <Combobox
+                                                <CreatableCombobox
                                                     options={accountOptions}
                                                     value={field.value}
                                                     onChange={field.onChange}
-                                                    placeholder="Select the destination account"
-                                                    searchPlaceholder="Search accounts"
+                                                    placeholder="Select or type the destination account"
+                                                    searchPlaceholder="Search or type a new account name"
                                                     emptyText="No account found"
                                                 />
                                                 <FormDescription>Account the money/activity goes to.</FormDescription>
+                                                {isNewComboboxValue(field.value) && (
+                                                    <p className="text-xs text-destructive">
+                                                        &quot;{comboboxNewValueName(field.value)}&quot; doesn&apos;t exist — a new account will be created when you submit.
+                                                    </p>
+                                                )}
                                                 <FormMessage>{errors.destination_account_id?.message}</FormMessage>
                                             </FormItem>
                                         )}
@@ -619,15 +646,20 @@ function TransactionEditPage() {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Destination Location</FormLabel>
-                                                <Combobox
+                                                <CreatableCombobox
                                                     options={destinationLocationOptions}
                                                     value={field.value}
                                                     onChange={field.onChange}
                                                     placeholder="No location (optional)"
-                                                    searchPlaceholder="Search locations"
+                                                    searchPlaceholder="Search or type a new location name"
                                                     emptyText={destinationAccountId ? "No locations linked to this account" : "Select an account first"}
                                                 />
                                                 <FormDescription>Must be linked to this account.</FormDescription>
+                                                {isNewComboboxValue(field.value) && (
+                                                    <p className="text-xs text-destructive">
+                                                        &quot;{comboboxNewValueName(field.value)}&quot; doesn&apos;t exist — a new location will be created and linked to this account when you submit.
+                                                    </p>
+                                                )}
                                                 <FormMessage>{errors.destination_location_id?.message}</FormMessage>
                                             </FormItem>
                                         )}
