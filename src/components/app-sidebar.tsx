@@ -10,6 +10,7 @@ import {
     MapPin,
     Wallet,
     PiggyBank,
+    Receipt,
     type LucideIcon,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
@@ -39,6 +40,11 @@ const financeItems = [
         title: "Budgets",
         url: "/budgets",
         icon: PiggyBank,
+    },
+    {
+        title: "Bills",
+        url: "/bills",
+        icon: Receipt,
     },
     {
         title: "Transactions",

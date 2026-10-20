@@ -7,6 +7,8 @@ export type TransactionType = "expenditure" | "income" | "transfer"
 export type LocationType = "physical" | "online"
 export type NotificationType = "success" | "error" | "warning" | "info"
 export type AccountType = "bank" | "wallet" | "merchant" | "online" | "utility" | "subscription" | "other"
+export type BillRecurrenceUnit = "day" | "week" | "month" | "year"
+export type BillStatus = "unpaid" | "partial" | "paid"
 
 export interface Account {
     id: string
@@ -73,6 +75,14 @@ export interface TransactionSearchResult {
     tags: string[]
     budgets: string[]
     attachments: AttachmentRef[]
+    // Names of any bills this transaction's linked bill_payments rows pay
+    // toward (see dompet.vw_transactions) — not the same as `budgets`, and
+    // a transaction can pay more than one bill if a single payment was
+    // split across several bill_payments rows.
+    bills: string[]
+    // Attachments belonging to those bills (e.g. the invoice/receipt
+    // itself), distinct from this transaction's own `attachments`.
+    bill_attachments: AttachmentRef[]
 }
 
 export interface AttachmentRef {
@@ -424,6 +434,116 @@ export interface BudgetInput {
     name: string
 }
 export type BudgetPatch = Partial<BudgetInput>
+
+export interface BillInput {
+    name: string
+    amount: number
+    currency_code: string
+    category_id?: string | null
+    account_id?: string | null
+    due_date: string
+}
+export type BillPatch = Partial<BillInput>
+
+export interface BillSeriesInput {
+    name: string
+    amount: number
+    currency_code: string
+    category_id?: string | null
+    account_id?: string | null
+    recurrence_unit: BillRecurrenceUnit
+    recurrence_count: number
+    anchor_date: string
+}
+// anchor_date is create-only server-side -- see BillSeries above.
+export type BillSeriesPatch = Partial<Omit<BillSeriesInput, "anchor_date">>
+
+export interface BillPaymentInput {
+    // Omitted amount_paid defaults to the bill's full amount server-side;
+    // omitted paid_date defaults to today.
+    amount_paid?: number
+    paid_date?: string
+    notes?: string
+    transaction_id?: string
+}
+
+// One occurrence -- either a one-off bill (series_id null) or a single
+// cycle lazily generated from a BillSeries (see sync_bills on the backend,
+// called at the top of every bill/notification read). An occurrence copies
+// its series' name/amount/etc. at generation time rather than reading it
+// live, so editing a series later never rewrites history.
+export interface Bill {
+    id: string
+    user_id?: string | null
+    series_id?: string | null
+    name: string
+    amount: string
+    currency_code: string
+    category_id?: string | null
+    account_id?: string | null
+    due_date: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+}
+
+// The recurring template a Bill occurrence is generated from. anchor_date
+// is create-only -- the backend's UPDATABLE_FIELDS for bill_series omits it,
+// since every occurrence's due date is computed fresh from it each sync.
+export interface BillSeries {
+    id: string
+    user_id?: string | null
+    name: string
+    amount: string
+    currency_code: string
+    category_id?: string | null
+    account_id?: string | null
+    recurrence_unit: BillRecurrenceUnit
+    recurrence_count: number
+    anchor_date: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+}
+
+// A payment applied toward a bill -- optionally linked to a real
+// transaction, but doesn't have to be. Multiple payments can apply to one
+// bill (partial payments).
+export interface BillPayment {
+    id: string
+    user_id?: string | null
+    bill_id: string
+    transaction_id?: string | null
+    amount_paid: string
+    paid_date: string
+    notes?: string | null
+    created_at: string
+}
+
+// Shape of a row from GET /bills/search (dompet.vw_bills) -- joined
+// category/account names, plus status/paid_amount/is_overdue derived from
+// bill_payments rather than stored. Active bills only (the view is
+// pre-filtered, same as the other */search endpoints).
+export interface BillSearchResult {
+    id: string
+    name: string
+    due_date: string
+    amount: string
+    currency: string
+    category?: string | null
+    account?: string | null
+    is_recurring: boolean
+    paid_amount: string
+    status: BillStatus
+    is_overdue: boolean
+    attachment_count: number
+}
+
+export interface BillAttachmentLink {
+    bill_id: string
+    attachment_id: string
+    created_at: string
+}
 
 export interface Notification {
     id: string

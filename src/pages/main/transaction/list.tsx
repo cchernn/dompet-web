@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import type { DateRange } from "react-day-picker"
 import {
     FilePenLine, FilePlus, Ban, X, ArrowUp, ArrowDown, ArrowUpDown, Paperclip,
-    Tag as TagIcon, ArrowRight, SlidersHorizontal, CalendarIcon, PiggyBank,
+    Tag as TagIcon, ArrowRight, SlidersHorizontal, CalendarIcon, PiggyBank, Receipt,
 } from "lucide-react"
 import { toast } from "@/lib/toast"
 import { format, parse, startOfMonth } from "date-fns"
@@ -607,7 +607,7 @@ function TransactionListPage() {
                                                         </PopoverContent>
                                                     </Popover>
                                                 </span>
-                                                {(tx.category || tx.tags.length > 0 || tx.attachments.length > 0 || tx.budgets.length > 0) && (
+                                                {(tx.category || tx.tags.length > 0 || tx.attachments.length > 0 || tx.budgets.length > 0 || (tx.bills ?? []).length > 0) && (
                                                     <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                                                         <span className="truncate">{tx.category ?? "—"}</span>
                                                         <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -661,6 +661,22 @@ function TransactionListPage() {
                                                                         <div className="flex flex-wrap gap-1">
                                                                             {tx.budgets.map((budget) => (
                                                                                 <Badge key={budget} variant="outline">{budget}</Badge>
+                                                                            ))}
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            )}
+                                                            {(tx.bills ?? []).length > 0 && (
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <button type="button" className="inline-flex items-center gap-1 hover:text-foreground">
+                                                                            <Receipt className="size-3" />{tx.bills.length}
+                                                                        </button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent align="end" className="w-56 p-2">
+                                                                        <div className="flex flex-wrap gap-1">
+                                                                            {tx.bills.map((bill) => (
+                                                                                <Badge key={bill} variant="outline">{bill}</Badge>
                                                                             ))}
                                                                         </div>
                                                                     </PopoverContent>
@@ -735,6 +751,17 @@ function TransactionListPage() {
                                         {selectedTransaction.budgets.length > 0 ? (
                                             <div className="flex flex-wrap gap-1">
                                                 {selectedTransaction.budgets.map((b) => (
+                                                    <Badge key={b} variant="outline">{b}</Badge>
+                                                ))}
+                                            </div>
+                                        ) : "—"}
+                                    </span>
+
+                                    <span className="text-muted-foreground">Bills</span>
+                                    <span>
+                                        {(selectedTransaction.bills ?? []).length > 0 ? (
+                                            <div className="flex flex-wrap gap-1">
+                                                {selectedTransaction.bills.map((b) => (
                                                     <Badge key={b} variant="outline">{b}</Badge>
                                                 ))}
                                             </div>
