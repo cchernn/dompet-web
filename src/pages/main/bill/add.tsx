@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
@@ -25,6 +26,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
+import { LinkedItemsSection } from "@/components/linked-items-section"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -32,10 +34,12 @@ import { cn } from "@/lib/utils"
 import { useCachedResource } from "@/hooks/use-cached-resource"
 import { createBill } from "@/api/bills"
 import { createBillSeries } from "@/api/billSeries"
+import { linkBillBudget } from "@/api/billBudgets"
 import { searchAccounts } from "@/api/accounts"
 import { searchCategories } from "@/api/categories"
+import { listBudgets } from "@/api/budgets"
 import { CURRENCIES } from "@/lib/currencies"
-import type { BillRecurrenceUnit } from "@/api/types"
+import type { BillRecurrenceUnit, Budget } from "@/api/types"
 
 // Shared with the transaction forms — same cache keys, so switching between
 // pages doesn't re-fetch.
@@ -84,8 +88,18 @@ function BillAddPage() {
     const navigate = useNavigate()
     const { data: accountsData } = useCachedResource("accounts:search", () => searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
     const { data: categoriesData } = useCachedResource("categories:search", () => searchCategories({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
+    const { data: budgetsData } = useCachedResource("budgets:list", () => listBudgets({ pageSize: 100 }))
     const accountOptions: ComboboxOption[] = (accountsData ?? []).map((a) => ({ value: a.id, label: a.name }))
     const categoryOptions: ComboboxOption[] = (categoriesData ?? []).map((c) => ({ value: c.id, label: c.name }))
+    const budgets = budgetsData ?? []
+    const budgetOptions: ComboboxOption[] = budgets.map((b) => ({ value: b.id, label: b.name }))
+
+    // Only a one-off bill gets a real id back synchronously on create — a
+    // recurring series' first occurrence is generated server-side after the
+    // fact (see createBillSeries), so there's no bill id yet to link a
+    // budget to here. Budget sharing for a recurring bill has to happen
+    // from that occurrence's own Edit page once it shows up on the list.
+    const [pendingBudgets, setPendingBudgets] = useState<Budget[]>([])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -112,7 +126,7 @@ function BillAddPage() {
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
             if (data.mode === "one_off") {
-                await createBill({
+                const { data: created } = await createBill({
                     name: data.name,
                     amount: data.amount,
                     currency_code: data.currency_code,
@@ -120,7 +134,21 @@ function BillAddPage() {
                     account_id: data.account_id || undefined,
                     due_date: format(data.due_date!, "yyyy-MM-dd"),
                 })
-                toast.success("Bill created")
+
+                // The bill now exists, so pending budget selections can
+                // actually be linked. A failure here shouldn't block
+                // navigation — the bill itself was created fine — so each
+                // link is caught individually and reported.
+                let linkFailures = 0
+                for (const budget of pendingBudgets) {
+                    try {
+                        await linkBillBudget(created.id, budget.id)
+                    } catch (error) {
+                        linkFailures += 1
+                        toast.error(`Couldn't share with budget "${budget.name}": ${(error as Error).message}`)
+                    }
+                }
+                toast.success(linkFailures > 0 ? "Bill created (some budget links failed)" : "Bill created")
             } else {
                 await createBillSeries({
                     name: data.name,
@@ -394,6 +422,31 @@ function BillAddPage() {
                                     />
                                 </div>
                             </div>
+                        )}
+
+                        {mode === "one_off" ? (
+                            <div className="pt-6 border-t">
+                                <LinkedItemsSection
+                                    title="Budgets"
+                                    linkedItems={pendingBudgets}
+                                    linkedLoading={false}
+                                    options={budgetOptions}
+                                    comboboxPlaceholder="Select a budget to share this bill with"
+                                    renderItemLabel={(budget) => budget.name}
+                                    onLink={(id) => {
+                                        const budget = budgets.find((b) => b.id === id)
+                                        if (budget) setPendingBudgets((prev) => [...prev, budget])
+                                    }}
+                                    onUnlink={(budget) => setPendingBudgets((prev) => prev.filter((b) => b.id !== budget.id))}
+                                />
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Linked after the bill is created. Budget members will see this bill (and its payments) in their own Bills list.
+                                </p>
+                            </div>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">
+                                Budget sharing isn&apos;t available here for a recurring bill — set it up from the first generated occurrence&apos;s Edit page once it appears on the Bills list.
+                            </p>
                         )}
 
                         <div className="flex flex-col gap-2 w-full max-w-xs">

@@ -545,6 +545,12 @@ export interface BillAttachmentLink {
     created_at: string
 }
 
+export interface BillBudgetLink {
+    bill_id: string
+    budget_id: string
+    created_at: string
+}
+
 export interface Notification {
     id: string
     user_id: string

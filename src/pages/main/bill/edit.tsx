@@ -57,11 +57,14 @@ import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { getBill, updateBill, deleteBill } from "@/api/bills"
 import { listBillPayments, addBillPayment, deleteBillPayment } from "@/api/billPayments"
 import { listBillAttachments, linkBillAttachment, unlinkBillAttachment } from "@/api/billAttachments"
+import { listBillBudgets, linkBillBudget, unlinkBillBudget } from "@/api/billBudgets"
 import { listAttachments, getAttachment } from "@/api/attachments"
+import { listBudgets } from "@/api/budgets"
 import { searchAccounts } from "@/api/accounts"
 import { searchCategories } from "@/api/categories"
 import { CURRENCIES } from "@/lib/currencies"
-import type { Attachment, Bill, BillPatch, BillStatus } from "@/api/types"
+import type { ApiResult } from "@/lib/apiClient"
+import type { Attachment, Bill, BillPatch, BillPayment, BillStatus, Budget } from "@/api/types"
 
 const ACCOUNT_CATEGORY_PAGE_SIZE = 1000
 
@@ -102,12 +105,16 @@ function BillEditPage() {
     const { data: accountsData } = useCachedResource("accounts:search", () => searchAccounts({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
     const { data: categoriesData } = useCachedResource("categories:search", () => searchCategories({ pageSize: ACCOUNT_CATEGORY_PAGE_SIZE }))
     const { data: attachmentsData } = useCachedResource("attachments:list", () => listAttachments({ pageSize: 100 }))
+    const { data: budgetsData } = useCachedResource("budgets:list", () => listBudgets({ pageSize: 100 }))
     const accountOptions: ComboboxOption[] = (accountsData ?? []).map((a) => ({ value: a.id, label: a.name }))
     const categoryOptions: ComboboxOption[] = (categoriesData ?? []).map((c) => ({ value: c.id, label: c.name }))
     const attachmentOptions: ComboboxOption[] = (attachmentsData ?? []).map((a) => ({ value: a.id, label: a.filename }))
+    const budgetOptions: ComboboxOption[] = (budgetsData ?? []).map((b) => ({ value: b.id, label: b.name }))
 
     const [linkedAttachments, setLinkedAttachments] = useState<Attachment[]>([])
     const [linkedAttachmentsLoading, setLinkedAttachmentsLoading] = useState(true)
+    const [linkedBudgets, setLinkedBudgets] = useState<Budget[]>([])
+    const [linkedBudgetsLoading, setLinkedBudgetsLoading] = useState(true)
 
     const form = useForm<z.infer<typeof formSchema>>({ resolver: zodResolver(formSchema) })
     const { formState: { errors, isSubmitting } } = form
@@ -117,8 +124,17 @@ function BillEditPage() {
         defaultValues: { amount_paid: "", paid_date: new Date(), notes: "" },
     })
 
+    // GET .../payments (like .../attachments and .../budgets below) is still
+    // strictly owner-gated server-side regardless of the bill_budgets RLS
+    // widening (see _require_owned_bill in db/bill_payment.py) — a budget
+    // co-member can now see this bill show up in their own Bills list (via
+    // the RLS-only vw_bills view), but opening it here as a non-owner would
+    // 404 on every one of these sub-resource calls. Short-circuit to an
+    // empty page instead of letting that happen; the real fetch kicks in
+    // once `owned` is confirmed, via the effect below.
     const payments = usePaginatedList(
-        ({ page, pageSize }) => listBillPayments(bill_id!, { page, pageSize })
+        ({ page, pageSize }): Promise<ApiResult<BillPayment[]>> =>
+            owned ? listBillPayments(bill_id!, { page, pageSize }) : Promise.resolve({ data: [], metadata: {} })
     )
 
     const fetchBill = async () => {
@@ -152,11 +168,34 @@ function BillEditPage() {
         }
     }
 
+    const fetchLinkedBudgets = async () => {
+        setLinkedBudgetsLoading(true)
+        try {
+            const { data } = await listBillBudgets(bill_id!, { pageSize: 100 })
+            setLinkedBudgets(data)
+        } catch (error) {
+            toast.error((error as Error).message)
+        } finally {
+            setLinkedBudgetsLoading(false)
+        }
+    }
+
     useEffect(() => {
         fetchBill()
-        fetchLinkedAttachments()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [bill_id])
+
+    // Deferred until ownership is confirmed (see the comment on `payments`
+    // above) — avoids a guaranteed 404 toast from these owner-only
+    // sub-resource endpoints when a budget co-member opens a shared bill
+    // they don't own.
+    useEffect(() => {
+        if (!owned) return
+        fetchLinkedAttachments()
+        fetchLinkedBudgets()
+        payments.reload()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [owned])
 
     // Derived client-side from the payments page already on hand — avoids a
     // second round trip just to get what GET /bills/search would've told us.
@@ -552,6 +591,41 @@ function BillEditPage() {
                         Leave Amount blank to record a full payment of {billAmount.toFixed(2)}.
                     </p>
                 </div>
+            </Card>
+            )}
+
+            {owned && (
+            <Card className="flex flex-col p-6 rounded-2xl shadow-md border items-start justify-start w-full max-w-screen-md">
+                <CardHeader className="pt-0 pb-4">
+                    <CardTitle>Budgets</CardTitle>
+                </CardHeader>
+                <LinkedItemsSection
+                    title="Shared With Budgets"
+                    linkedItems={linkedBudgets}
+                    linkedLoading={linkedBudgetsLoading}
+                    options={budgetOptions}
+                    comboboxPlaceholder="Select a budget to share this bill with"
+                    renderItemLabel={(budget) => budget.name}
+                    onLink={async (budgetId) => {
+                        try {
+                            await linkBillBudget(bill_id!, budgetId)
+                            fetchLinkedBudgets()
+                        } catch (error) {
+                            toast.error((error as Error).message)
+                        }
+                    }}
+                    onUnlink={async (budget) => {
+                        try {
+                            await unlinkBillBudget(bill_id!, budget.id)
+                            fetchLinkedBudgets()
+                        } catch (error) {
+                            toast.error((error as Error).message)
+                        }
+                    }}
+                />
+                <p className="text-xs text-muted-foreground">
+                    Members of a shared budget will see this bill (and its payments) in their own Bills list — attachments stay visible to you only.
+                </p>
             </Card>
             )}
 
