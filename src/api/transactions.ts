@@ -11,6 +11,7 @@ export const listTransactions = ({ page = 1, pageSize = 25, includeInactive = fa
 export interface SearchTransactionsParams {
     page?: number
     pageSize?: number
+    q?: string
     from?: string
     to?: string
     category?: string
@@ -30,13 +31,14 @@ export interface SearchTransactionsParams {
 // are only returned per-row, not filterable server-side yet.
 // `tags` and `budgets` are substring matches (LIKE %term%) against the
 // view's pipe-delimited tag/budget strings — a transaction with several
-// tags/budgets still matches on any one of them.
+// tags/budgets still matches on any one of them. `q` is an ILIKE match on
+// name.
 export const searchTransactions = ({
-    page = 1, pageSize = 25, from, to, category, type, source, destination, tags, budgets,
+    page = 1, pageSize = 25, q, from, to, category, type, source, destination, tags, budgets,
     source_location, destination_location,
 }: SearchTransactionsParams = {}) =>
     apiClient.get<TransactionSearchResult[]>("/transactions/search", {
-        page, page_size: pageSize, from, to, category, type, source, destination, tags, budgets,
+        page, page_size: pageSize, q, from, to, category, type, source, destination, tags, budgets,
         source_location, destination_location,
     })
 

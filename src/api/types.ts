@@ -470,6 +470,13 @@ export interface BillPaymentInput {
     transaction_id?: string
 }
 
+// PUT /bills/{id}/payments/{payment_id} -- unlike create, transaction_id
+// can be explicitly set to null here to unlink it while keeping the rest
+// of the payment as-is.
+export type BillPaymentPatch = Partial<Omit<BillPaymentInput, "transaction_id">> & {
+    transaction_id?: string | null
+}
+
 // One occurrence -- either a one-off bill (series_id null) or a single
 // cycle lazily generated from a BillSeries (see sync_bills on the backend,
 // called at the top of every bill/notification read). An occurrence copies

@@ -55,7 +55,8 @@ import { useCachedResource } from "@/hooks/use-cached-resource"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { getBill, updateBill, deleteBill } from "@/api/bills"
-import { listBillPayments, addBillPayment, deleteBillPayment } from "@/api/billPayments"
+import { listBillPayments, addBillPayment, updateBillPayment, deleteBillPayment } from "@/api/billPayments"
+import { TransactionPicker } from "@/components/transaction-picker"
 import { listBillAttachments, linkBillAttachment, unlinkBillAttachment } from "@/api/billAttachments"
 import { listBillBudgets, linkBillBudget, unlinkBillBudget } from "@/api/billBudgets"
 import { listAttachments, getAttachment } from "@/api/attachments"
@@ -84,9 +85,17 @@ const formSchema = z.object({
 })
 
 const paymentFormSchema = z.object({
+    // Mutually exclusive — either record an amount/date by hand, or link an
+    // existing transaction and let the backend derive both from it.
+    mode: z.enum(["manual", "transaction"]),
     amount_paid: z.string(), // left as text — blank means "use the full bill amount" server-side
     paid_date: z.date({ required_error: "Paid date is required" }),
     notes: z.string().optional(),
+    transaction_id: z.string().nullable().optional(),
+}).superRefine((data, ctx) => {
+    if (data.mode === "transaction" && !data.transaction_id) {
+        ctx.addIssue({ path: ["transaction_id"], code: z.ZodIssueCode.custom, message: "Select a transaction" })
+    }
 })
 
 const STATUS_META: Record<BillStatus, { label: string; className: string }> = {
@@ -123,8 +132,10 @@ function BillEditPage() {
 
     const paymentForm = useForm<z.infer<typeof paymentFormSchema>>({
         resolver: zodResolver(paymentFormSchema),
-        defaultValues: { amount_paid: "", paid_date: new Date(), notes: "" },
+        defaultValues: { mode: "manual", amount_paid: "", paid_date: new Date(), notes: "", transaction_id: null },
     })
+
+    const paymentMode = paymentForm.watch("mode")
 
     // GET .../payments (like .../attachments and .../budgets below) is still
     // strictly owner-gated server-side regardless of the bill_budgets RLS
@@ -229,12 +240,23 @@ function BillEditPage() {
     const onRecordPayment = async (data: z.infer<typeof paymentFormSchema>) => {
         try {
             await addBillPayment(bill_id!, {
-                amount_paid: data.amount_paid.trim() ? parseFloat(data.amount_paid) : undefined,
-                paid_date: format(data.paid_date, "yyyy-MM-dd"),
+                amount_paid: data.mode === "manual" && data.amount_paid.trim() ? parseFloat(data.amount_paid) : undefined,
+                paid_date: data.mode === "manual" ? format(data.paid_date, "yyyy-MM-dd") : undefined,
                 notes: data.notes?.trim() || undefined,
+                transaction_id: data.mode === "transaction" ? data.transaction_id! : undefined,
             })
             toast.success("Payment recorded")
-            paymentForm.reset({ amount_paid: "", paid_date: new Date(), notes: "" })
+            paymentForm.reset({ mode: data.mode, amount_paid: "", paid_date: new Date(), notes: "", transaction_id: null })
+            payments.reload()
+        } catch (error) {
+            toast.error((error as Error).message)
+        }
+    }
+
+    const handleUpdatePaymentTransaction = async (paymentId: string, transactionId: string | null) => {
+        try {
+            await updateBillPayment(bill_id!, paymentId, { transaction_id: transactionId })
+            toast.success(transactionId ? "Transaction linked" : "Transaction unlinked")
             payments.reload()
         } catch (error) {
             toast.error((error as Error).message)
@@ -542,6 +564,7 @@ function BillEditPage() {
                                         <TableHead className="font-semibold text-sm text-muted-foreground">Date</TableHead>
                                         <TableHead className="font-semibold text-sm text-muted-foreground">Amount</TableHead>
                                         <TableHead className="font-semibold text-sm text-muted-foreground">Notes</TableHead>
+                                        <TableHead className="font-semibold text-sm text-muted-foreground">Transaction</TableHead>
                                         <TableHead className="font-semibold text-sm text-muted-foreground text-center">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -551,6 +574,13 @@ function BillEditPage() {
                                             <TableCell className="text-sm">{format(parse(p.paid_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")}</TableCell>
                                             <TableCell className="text-sm">{parseFloat(p.amount_paid).toFixed(2)}</TableCell>
                                             <TableCell className="text-sm text-muted-foreground">{p.notes || "—"}</TableCell>
+                                            <TableCell className="min-w-[20rem]">
+                                                <TransactionPicker
+                                                    value={p.transaction_id}
+                                                    onChange={(transactionId) => handleUpdatePaymentTransaction(p.id, transactionId)}
+                                                    placeholder="Link a transaction"
+                                                />
+                                            </TableCell>
                                             <TableCell className="flex justify-center">
                                                 <Alert
                                                     button_text={<Trash2 />}
@@ -568,66 +598,121 @@ function BillEditPage() {
 
                     <Form {...paymentForm}>
                         <form
-                            className="flex flex-wrap items-end gap-2"
+                            className="flex flex-col gap-3"
                             onSubmit={paymentForm.handleSubmit(onRecordPayment)}
                         >
                             <FormField
                                 control={paymentForm.control}
-                                name="amount_paid"
-                                render={({ field }) => (
-                                    <FormItem className="w-36">
-                                        <FormLabel>Amount</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" step="0.01" placeholder={billAmount.toFixed(2)} {...field} />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={paymentForm.control}
-                                name="paid_date"
+                                name="mode"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Paid Date</FormLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Button variant="outline" className={cn("w-40 justify-start font-normal")}>
-                                                        <CalendarIcon />
-                                                        {field.value ? format(field.value, "d MMM yyyy") : <span>Pick a date</span>}
-                                                    </Button>
-                                                </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={field.value}
-                                                    onSelect={field.onChange}
-                                                    defaultMonth={field.value}
-                                                    initialFocus
+                                        <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
+                                            <button
+                                                type="button"
+                                                onClick={() => field.onChange("manual")}
+                                                className={cn(
+                                                    "flex items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-sm font-medium transition-colors",
+                                                    field.value === "manual" ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"
+                                                )}
+                                            >
+                                                Enter amount/date
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => field.onChange("transaction")}
+                                                className={cn(
+                                                    "flex items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-sm font-medium transition-colors",
+                                                    field.value === "transaction" ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"
+                                                )}
+                                            >
+                                                Link a transaction
+                                            </button>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="flex flex-wrap items-end gap-2">
+                                {paymentMode === "manual" ? (
+                                    <>
+                                        <FormField
+                                            control={paymentForm.control}
+                                            name="amount_paid"
+                                            render={({ field }) => (
+                                                <FormItem className="w-36">
+                                                    <FormLabel>Amount</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="number" step="0.01" placeholder={billAmount.toFixed(2)} {...field} />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={paymentForm.control}
+                                            name="paid_date"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Paid Date</FormLabel>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <FormControl>
+                                                                <Button variant="outline" className={cn("w-40 justify-start font-normal")}>
+                                                                    <CalendarIcon />
+                                                                    {field.value ? format(field.value, "d MMM yyyy") : <span>Pick a date</span>}
+                                                                </Button>
+                                                            </FormControl>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent align="start">
+                                                            <Calendar
+                                                                mode="single"
+                                                                selected={field.value}
+                                                                onSelect={field.onChange}
+                                                                defaultMonth={field.value}
+                                                                initialFocus
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </>
+                                ) : (
+                                    <FormField
+                                        control={paymentForm.control}
+                                        name="transaction_id"
+                                        render={({ field }) => (
+                                            <FormItem className="min-w-[20rem]">
+                                                <FormLabel>Transaction</FormLabel>
+                                                <TransactionPicker
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Select a transaction"
                                                 />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </FormItem>
+                                                <FormMessage>{paymentForm.formState.errors.transaction_id?.message}</FormMessage>
+                                            </FormItem>
+                                        )}
+                                    />
                                 )}
-                            />
-                            <FormField
-                                control={paymentForm.control}
-                                name="notes"
-                                render={({ field }) => (
-                                    <FormItem className="flex-1 min-w-[10rem]">
-                                        <FormLabel>Notes</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Optional" {...field} />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <Button type="submit" disabled={paymentForm.formState.isSubmitting}>Record Payment</Button>
+                                <FormField
+                                    control={paymentForm.control}
+                                    name="notes"
+                                    render={({ field }) => (
+                                        <FormItem className="flex-1 min-w-[10rem]">
+                                            <FormLabel>Notes</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Optional" {...field} />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit" disabled={paymentForm.formState.isSubmitting}>Record Payment</Button>
+                            </div>
                         </form>
                     </Form>
                     <p className="text-xs text-muted-foreground">
-                        Leave Amount blank to record a full payment of {billAmount.toFixed(2)}.
+                        {paymentMode === "manual"
+                            ? `Leave Amount blank to record a full payment of ${billAmount.toFixed(2)}.`
+                            : "Amount and date are taken from the linked transaction."}
                     </p>
                 </div>
             </Card>
