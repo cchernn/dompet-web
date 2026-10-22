@@ -625,6 +625,7 @@ function BillEditPage() {
                 />
                 <p className="text-xs text-muted-foreground">
                     Members of a shared budget will see this bill (and its payments) in their own Bills list — attachments stay visible to you only.
+                    {bill?.series_id && " Since this is a recurring bill, linking or unlinking here applies to every occurrence in the series — past and future — not just this one."}
                 </p>
             </Card>
             )}

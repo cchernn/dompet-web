@@ -445,7 +445,7 @@ function BillAddPage() {
                             </div>
                         ) : (
                             <p className="text-xs text-muted-foreground">
-                                Budget sharing isn&apos;t available here for a recurring bill — set it up from the first generated occurrence&apos;s Edit page once it appears on the Bills list.
+                                Budget sharing isn&apos;t available here for a recurring bill — set it up from the first generated occurrence&apos;s Edit page once it appears on the Bills list. It only needs doing once: linking (or unlinking) there applies to every occurrence in the series, past and future.
                             </p>
                         )}
 
