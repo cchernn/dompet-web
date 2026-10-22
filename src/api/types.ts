@@ -441,7 +441,9 @@ export interface BillInput {
     currency_code: string
     category_id?: string | null
     account_id?: string | null
-    due_date: string
+    bill_date: string
+    // Defaults to bill_date server-side if omitted.
+    due_date?: string
 }
 export type BillPatch = Partial<BillInput>
 
@@ -453,6 +455,7 @@ export interface BillSeriesInput {
     account_id?: string | null
     recurrence_unit: BillRecurrenceUnit
     recurrence_count: number
+    // First occurrence's bill_date (issue date), not due_date.
     anchor_date: string
 }
 // anchor_date is create-only server-side -- see BillSeries above.
@@ -481,6 +484,7 @@ export interface Bill {
     currency_code: string
     category_id?: string | null
     account_id?: string | null
+    bill_date: string
     due_date: string
     is_active: boolean
     created_at: string
@@ -527,6 +531,7 @@ export interface BillPayment {
 export interface BillSearchResult {
     id: string
     name: string
+    bill_date: string
     due_date: string
     amount: string
     currency: string

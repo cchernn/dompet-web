@@ -163,7 +163,7 @@ function BillSeriesEditPage() {
                                 {series?.is_active ? "Active" : "Deactivated"}
                             </Badge>
                             <span className="text-sm text-muted-foreground">
-                                First due {series && format(parse(series.anchor_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")} (fixed)
+                                First bill date {series && format(parse(series.anchor_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")} (fixed)
                             </span>
                         </div>
 

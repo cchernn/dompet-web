@@ -63,17 +63,19 @@ const formSchema = z.object({
     currency_code: z.string().length(3, { message: "Select a currency" }),
     category_id: z.string().nullable().optional(),
     account_id: z.string().nullable().optional(),
+    bill_date: z.date().nullable().optional(),
+    // Optional -- defaults to bill_date server-side if left blank.
     due_date: z.date().nullable().optional(),
     recurrence_unit: z.enum(["day", "week", "month", "year"]).optional(),
     recurrence_count: z.coerce.number().int().optional(),
     anchor_date: z.date().nullable().optional(),
 }).superRefine((data, ctx) => {
-    if (data.mode === "one_off" && !data.due_date) {
-        ctx.addIssue({ path: ["due_date"], code: z.ZodIssueCode.custom, message: "Due date is required" })
+    if (data.mode === "one_off" && !data.bill_date) {
+        ctx.addIssue({ path: ["bill_date"], code: z.ZodIssueCode.custom, message: "Bill date is required" })
     }
     if (data.mode === "recurring") {
         if (!data.anchor_date) {
-            ctx.addIssue({ path: ["anchor_date"], code: z.ZodIssueCode.custom, message: "First due date is required" })
+            ctx.addIssue({ path: ["anchor_date"], code: z.ZodIssueCode.custom, message: "First bill date is required" })
         }
         if (!data.recurrence_unit) {
             ctx.addIssue({ path: ["recurrence_unit"], code: z.ZodIssueCode.custom, message: "Required" })
@@ -110,6 +112,7 @@ function BillAddPage() {
             currency_code: "MYR",
             category_id: null,
             account_id: null,
+            bill_date: null,
             due_date: null,
             recurrence_unit: "month",
             recurrence_count: 1,
@@ -132,7 +135,8 @@ function BillAddPage() {
                     currency_code: data.currency_code,
                     category_id: data.category_id || undefined,
                     account_id: data.account_id || undefined,
-                    due_date: format(data.due_date!, "yyyy-MM-dd"),
+                    bill_date: format(data.bill_date!, "yyyy-MM-dd"),
+                    due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : undefined,
                 })
 
                 // The bill now exists, so pending budget selections can
@@ -319,36 +323,71 @@ function BillAddPage() {
                         </div>
 
                         {mode === "one_off" ? (
-                            <FormField
-                                control={form.control}
-                                name="due_date"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Due Date</FormLabel>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <FormControl>
-                                                    <Button variant="outline" className="w-full sm:w-64 justify-start font-normal">
-                                                        <CalendarIcon />
-                                                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                    </Button>
-                                                </FormControl>
-                                            </PopoverTrigger>
-                                            <PopoverContent align="start">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={field.value ?? undefined}
-                                                    onSelect={field.onChange}
-                                                    defaultMonth={field.value ?? new Date()}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <FormDescription />
-                                        <FormMessage>{errors.due_date?.message}</FormMessage>
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="bill_date"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Bill Date</FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button variant="outline" className="w-full sm:w-64 justify-start font-normal">
+                                                            <CalendarIcon />
+                                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value ?? undefined}
+                                                        onSelect={field.onChange}
+                                                        defaultMonth={field.value ?? new Date()}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormDescription>When the bill was issued.</FormDescription>
+                                            <FormMessage>{errors.bill_date?.message}</FormMessage>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="due_date"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Due Date</FormLabel>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button variant="outline" className="w-full sm:w-64 justify-start font-normal">
+                                                            <CalendarIcon />
+                                                            {field.value ? format(field.value, "PPP") : <span>Same as bill date</span>}
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value ?? undefined}
+                                                        onSelect={field.onChange}
+                                                        defaultMonth={field.value ?? form.getValues("bill_date") ?? new Date()}
+                                                        initialFocus
+                                                    />
+                                                    <div className="p-2 border-t flex justify-end">
+                                                        <Button type="button" variant="ghost" size="sm" onClick={() => field.onChange(null)}>Clear</Button>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormDescription>Optional — defaults to the bill date.</FormDescription>
+                                            <FormMessage>{errors.due_date?.message}</FormMessage>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                         ) : (
                             <div className="flex flex-col gap-4">
                                 <FormField
@@ -356,7 +395,7 @@ function BillAddPage() {
                                     name="anchor_date"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>First Due Date</FormLabel>
+                                            <FormLabel>First Bill Date</FormLabel>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>
@@ -377,7 +416,7 @@ function BillAddPage() {
                                                 </PopoverContent>
                                             </Popover>
                                             <FormDescription>
-                                                Can&apos;t be changed later — every future occurrence&apos;s due date is computed from this.
+                                                Can&apos;t be changed later — every occurrence&apos;s bill date is computed from this. Each occurrence&apos;s due date defaults to the day before the following occurrence&apos;s bill date (e.g. a statement issued on the 15th each month is due the 14th of the next month).
                                             </FormDescription>
                                             <FormMessage>{errors.anchor_date?.message}</FormMessage>
                                         </FormItem>

@@ -78,7 +78,9 @@ const formSchema = z.object({
     currency_code: z.string().length(3, { message: "Select a currency" }),
     category_id: z.string().nullable().optional(),
     account_id: z.string().nullable().optional(),
-    due_date: z.date({ required_error: "Due date is required" }),
+    bill_date: z.date({ required_error: "Bill date is required" }),
+    // Optional — defaults to bill_date server-side if left blank.
+    due_date: z.date().nullable().optional(),
 })
 
 const paymentFormSchema = z.object({
@@ -147,6 +149,7 @@ function BillEditPage() {
                 currency_code: data.currency_code,
                 category_id: data.category_id ?? null,
                 account_id: data.account_id ?? null,
+                bill_date: parse(data.bill_date, "yyyy-MM-dd", new Date()),
                 due_date: parse(data.due_date, "yyyy-MM-dd", new Date()),
             })
         } catch (error) {
@@ -212,7 +215,8 @@ function BillEditPage() {
                 currency_code: data.currency_code,
                 category_id: data.category_id || undefined,
                 account_id: data.account_id || undefined,
-                due_date: format(data.due_date, "yyyy-MM-dd"),
+                bill_date: format(data.bill_date, "yyyy-MM-dd"),
+                due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : undefined,
             }
             const { data: updated } = await updateBill(bill_id!, patch)
             setBill(updated)
@@ -415,40 +419,75 @@ function BillEditPage() {
                                     />
                                 </div>
 
-                                <FormField
-                                    control={form.control}
-                                    name="due_date"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Due Date</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <FormControl>
-                                                        <Button variant="outline" className="w-full sm:w-64 justify-start font-normal">
-                                                            <CalendarIcon />
-                                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                        </Button>
-                                                    </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={field.value}
-                                                        onSelect={field.onChange}
-                                                        defaultMonth={field.value}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                            {bill?.series_id && (
-                                                <FormDescription>
-                                                    Only changes this occurrence — future ones still follow the series.
-                                                </FormDescription>
-                                            )}
-                                            <FormMessage>{errors.due_date?.message}</FormMessage>
-                                        </FormItem>
-                                    )}
-                                />
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="bill_date"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Bill Date</FormLabel>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button variant="outline" className="w-full sm:w-64 justify-start font-normal">
+                                                                <CalendarIcon />
+                                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                            </Button>
+                                                        </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                            defaultMonth={field.value}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                                {bill?.series_id && (
+                                                    <FormDescription>
+                                                        Only changes this occurrence — future ones still follow the series.
+                                                    </FormDescription>
+                                                )}
+                                                <FormMessage>{errors.bill_date?.message}</FormMessage>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="due_date"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Due Date</FormLabel>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button variant="outline" className="w-full sm:w-64 justify-start font-normal">
+                                                                <CalendarIcon />
+                                                                {field.value ? format(field.value, "PPP") : <span>Same as bill date</span>}
+                                                            </Button>
+                                                        </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={field.value ?? undefined}
+                                                            onSelect={field.onChange}
+                                                            defaultMonth={field.value ?? form.getValues("bill_date")}
+                                                            initialFocus
+                                                        />
+                                                        <div className="p-2 border-t flex justify-end">
+                                                            <Button type="button" variant="ghost" size="sm" onClick={() => field.onChange(null)}>Clear</Button>
+                                                        </div>
+                                                    </PopoverContent>
+                                                </Popover>
+                                                <FormDescription>Optional — defaults to the bill date.</FormDescription>
+                                                <FormMessage>{errors.due_date?.message}</FormMessage>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
 
                                 <div className="flex flex-col gap-2 w-full max-w-xs">
                                     <Button type="submit" disabled={isSubmitting}>Save</Button>

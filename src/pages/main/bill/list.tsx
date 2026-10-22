@@ -81,7 +81,7 @@ const parseFilterDate = (value?: string) => (value ? parse(value, "yyyy-MM-dd", 
 function formatDateRangeLabel(from?: string, to?: string) {
     const fromDate = parseFilterDate(from)
     const toDate = parseFilterDate(to)
-    if (!fromDate && !toDate) return "All due dates"
+    if (!fromDate && !toDate) return "All bill dates"
     if (fromDate && toDate) {
         return fromDate.getFullYear() === toDate.getFullYear()
             ? `${format(fromDate, "d MMM")} – ${format(toDate, "d MMM yyyy")}`
@@ -183,7 +183,7 @@ function BillListPage() {
             filters.status && { key: "status", label: "Status", value: STATUS_LABELS[filters.status as BillStatus], onRemove: () => updateFilter("status", "") },
             filters.recurring && { key: "recurring", label: "Recurring", value: filters.recurring === "true" ? "Yes" : "No", onRemove: () => updateFilter("recurring", "") },
             (filters.from || filters.to) && {
-                key: "date", label: "Due", value: formatDateRangeLabel(filters.from, filters.to), onRemove: clearDateRange,
+                key: "date", label: "Bill Date", value: formatDateRangeLabel(filters.from, filters.to), onRemove: clearDateRange,
             },
         ] as (Chip | "" | false)[]
     ).filter((chip): chip is Chip => Boolean(chip))
@@ -281,7 +281,7 @@ function BillListPage() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                        <Label>Due Date</Label>
+                        <Label>Bill Date</Label>
                         <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
                             <PopoverTrigger asChild>
                                 <Button type="button" variant="outline" className="w-64 justify-start font-normal">
@@ -360,7 +360,7 @@ function BillListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Due Date</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Bill Date</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Amount</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
@@ -382,9 +382,14 @@ function BillListPage() {
                                         }}
                                     >
                                         <TableCell className="py-3 text-sm">
-                                            <div className="flex items-center gap-1.5">
-                                                {format(parse(bill.due_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")}
-                                                {bill.is_overdue && <AlertTriangle className="size-3.5 text-destructive" />}
+                                            <div className="flex flex-col gap-0.5">
+                                                <div className="flex items-center gap-1.5">
+                                                    {format(parse(bill.bill_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")}
+                                                    {bill.is_overdue && <AlertTriangle className="size-3.5 text-destructive" />}
+                                                </div>
+                                                <span className="text-xs text-muted-foreground">
+                                                    Due {format(parse(bill.due_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")}
+                                                </span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="py-3">
@@ -442,6 +447,9 @@ function BillListPage() {
                                 </div>
 
                                 <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">Bill Date</span>
+                                    <span>{format(parse(selectedBill.bill_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")}</span>
+
                                     <span className="text-muted-foreground">Due Date</span>
                                     <span>{format(parse(selectedBill.due_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")}</span>
 
