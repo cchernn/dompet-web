@@ -119,7 +119,7 @@ function BillEditPage() {
     const { data: budgetsData } = useCachedResource("budgets:list", () => listBudgets({ pageSize: 100 }))
     const accountOptions: ComboboxOption[] = (accountsData ?? []).map((a) => ({ value: a.id, label: a.name }))
     const categoryOptions: ComboboxOption[] = (categoriesData ?? []).map((c) => ({ value: c.id, label: c.name }))
-    const attachmentOptions: ComboboxOption[] = (attachmentsData ?? []).map((a) => ({ value: a.id, label: a.filename }))
+    const attachmentOptions: ComboboxOption[] = (attachmentsData ?? []).map((a) => ({ value: a.id, label: a.name }))
     const budgetOptions: ComboboxOption[] = (budgetsData ?? []).map((b) => ({ value: b.id, label: b.name }))
 
     const [linkedAttachments, setLinkedAttachments] = useState<Attachment[]>([])
@@ -765,7 +765,7 @@ function BillEditPage() {
                     linkedLoading={linkedAttachmentsLoading}
                     options={attachmentOptions}
                     comboboxPlaceholder="Select an attachment to link"
-                    renderItemLabel={(attachment) => attachment.filename}
+                    renderItemLabel={(attachment) => attachment.name}
                     renderItemExtra={(attachment) => (
                         <button type="button" title="Download" onClick={() => handleOpenAttachment(attachment.id)}>
                             <Download className="size-3" />

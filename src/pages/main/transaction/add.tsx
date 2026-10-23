@@ -196,7 +196,7 @@ function TransactionAddPage() {
     const accountOptions: ComboboxOption[] = accounts.map((a) => ({ value: a.id, label: a.name }))
     const categoryOptions: ComboboxOption[] = categories.map((c) => ({ value: c.id, label: c.name }))
     const tagOptions: ComboboxOption[] = tags.map((t) => ({ value: t.id, label: t.name }))
-    const attachmentOptions: ComboboxOption[] = attachments.map((a) => ({ value: a.id, label: a.filename }))
+    const attachmentOptions: ComboboxOption[] = attachments.map((a) => ({ value: a.id, label: a.name }))
     const budgetOptions: ComboboxOption[] = budgets.map((b) => ({ value: b.id, label: b.name }))
 
     const addPending = <T extends { id: string }>(setter: Dispatch<SetStateAction<T[]>>, source: T[]) => (id: string) => {
@@ -255,7 +255,7 @@ function TransactionAddPage() {
                     await linkAttachment(created.id, attachment.id)
                 } catch (error) {
                     linkFailures += 1
-                    toast.error(`Couldn't link attachment "${attachment.filename}": ${(error as Error).message}`)
+                    toast.error(`Couldn't link attachment "${attachment.name}": ${(error as Error).message}`)
                 }
             }
             for (const budget of pendingBudgets) {
@@ -589,7 +589,7 @@ function TransactionAddPage() {
                                 linkedLoading={false}
                                 options={attachmentOptions}
                                 comboboxPlaceholder="Select an attachment to link"
-                                renderItemLabel={(attachment) => attachment.filename}
+                                renderItemLabel={(attachment) => attachment.name}
                                 onLink={addPending(setPendingAttachments, attachments)}
                                 onUnlink={removePending(setPendingAttachments)}
                             />

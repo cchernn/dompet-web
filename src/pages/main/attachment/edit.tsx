@@ -28,9 +28,9 @@ import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import type { Attachment } from "@/api/types"
 
 const formSchema = z.object({
-    filename: z.string()
-        .min(1, { message: "Filename is required" })
-        .max(255, { message: "Filename must be less than 255 characters" }),
+    name: z.string()
+        .min(1, { message: "Name is required" })
+        .max(255, { message: "Name must be less than 255 characters" }),
 })
 
 function formatSize(bytes?: number | null): string {
@@ -70,7 +70,7 @@ function AttachmentEditPage() {
         try {
             const { data } = await getAttachment(attachment_id!)
             setAttachment(data)
-            form.reset({ filename: data.filename ?? "" })
+            form.reset({ name: data.name ?? "" })
         } catch (error) {
             toast.error((error as Error).message)
         } finally {
@@ -79,14 +79,14 @@ function AttachmentEditPage() {
     }
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        const filename = values.filename?.trim()
-        if (!filename || filename === attachment?.filename) {
+        const name = values.name?.trim()
+        if (!name || name === attachment?.name) {
             toast.info("Nothing to update")
             navigate("/attachments")
             return
         }
         try {
-            await updateAttachment(attachment_id!, { filename })
+            await updateAttachment(attachment_id!, { name })
             toast.success("Attachment updated")
             navigate("/attachments")
         } catch (error) {
@@ -107,6 +107,7 @@ function AttachmentEditPage() {
                 ) : (
                     <>
                         <div className="flex flex-wrap items-center gap-2 mb-4">
+                            <Badge variant="secondary">{attachment?.filename}</Badge>
                             <Badge variant="secondary">{attachment?.content_type || "unknown type"}</Badge>
                             <Badge variant="secondary">{formatSize(attachment?.size_bytes)}</Badge>
                             <Badge variant={attachment?.is_active ? "secondary" : "outline"}>
@@ -132,17 +133,17 @@ function AttachmentEditPage() {
                             <form className="w-full max-w-screen-md flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                                 <FormField
                                     control={form.control}
-                                    name="filename"
+                                    name="name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Filename</FormLabel>
+                                            <FormLabel>Name</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Filename" {...field} />
+                                                <Input placeholder="Display name" {...field} />
                                             </FormControl>
                                             <FormDescription>
-                                                Renames the attachment&apos;s metadata only. To replace the file itself, upload a new attachment.
+                                                Display label only — doesn&apos;t change the stored file ({attachment?.filename}). To replace the file itself, upload a new attachment.
                                             </FormDescription>
-                                            <FormMessage>{errors.filename?.message}</FormMessage>
+                                            <FormMessage>{errors.name?.message}</FormMessage>
                                         </FormItem>
                                     )}
                                 />

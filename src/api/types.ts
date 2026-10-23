@@ -87,6 +87,9 @@ export interface TransactionSearchResult {
 
 export interface AttachmentRef {
     id: string
+    // User-given display label, separate from filename (the stored file
+    // reference) -- defaults to filename unless given explicitly at upload.
+    name: string
     filename: string
 }
 
@@ -245,6 +248,7 @@ export interface LocationSearchResult {
 // single GET /attachments/{id}, not eagerly for a list).
 export interface AttachmentSearchResult {
     id: string
+    name: string
     filename: string
     content_type?: string | null
     size_bytes?: number | null
@@ -306,6 +310,11 @@ export interface Attachment {
     id: string
     // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
     user_id?: string | null
+    // User-given display label, separate from filename -- defaults to
+    // filename unless given explicitly at upload. Editable via PUT.
+    name: string
+    // The file name used for the S3 storage key at upload time -- never
+    // changes after upload (re-uploading a new file is a new Attachment).
     filename: string
     content_type?: string | null
     size_bytes?: number | null
@@ -427,7 +436,7 @@ export interface TagInput {
 export type TagPatch = Partial<TagInput>
 
 export interface AttachmentPatch {
-    filename: string
+    name: string
 }
 
 export interface BudgetInput {

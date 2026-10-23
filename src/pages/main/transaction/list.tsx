@@ -643,7 +643,7 @@ function TransactionListPage() {
                                                                                     onClick={() => handleOpenAttachment(a.id)}
                                                                                     className="text-left text-sm truncate hover:underline"
                                                                                 >
-                                                                                    {a.filename}
+                                                                                    {a.name}
                                                                                 </button>
                                                                             ))}
                                                                         </div>
@@ -779,7 +779,7 @@ function TransactionListPage() {
                                                         onClick={() => handleOpenAttachment(a.id)}
                                                         className="text-left hover:underline"
                                                     >
-                                                        {a.filename}
+                                                        {a.name}
                                                     </button>
                                                 ))}
                                             </div>

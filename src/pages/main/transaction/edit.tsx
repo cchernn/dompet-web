@@ -106,7 +106,7 @@ function TransactionEditPage() {
     const accounts = accountsData ?? []
     const categories = categoriesData ?? []
     const tagOptions: ComboboxOption[] = (tagsData ?? []).map((t) => ({ value: t.id, label: t.name }))
-    const attachmentOptions: ComboboxOption[] = (attachmentsData ?? []).map((a) => ({ value: a.id, label: a.filename }))
+    const attachmentOptions: ComboboxOption[] = (attachmentsData ?? []).map((a) => ({ value: a.id, label: a.name }))
     const budgetOptions: ComboboxOption[] = (budgetsData ?? []).map((b) => ({ value: b.id, label: b.name }))
 
     const [linkedTags, setLinkedTags] = useState<Tag[]>([])
@@ -699,7 +699,7 @@ function TransactionEditPage() {
                                     linkedLoading={linkedAttachmentsLoading}
                                     options={attachmentOptions}
                                     comboboxPlaceholder="Select an attachment to link"
-                                    renderItemLabel={(attachment) => attachment.filename}
+                                    renderItemLabel={(attachment) => attachment.name}
                                     renderItemExtra={(attachment) => (
                                         <button
                                             type="button"
