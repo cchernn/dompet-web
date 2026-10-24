@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import type { DateRange } from "react-day-picker"
 import {
-    FilePlus, X, CalendarIcon, Trash2, Repeat, Paperclip, FilePenLine, AlertTriangle,
+    FilePlus, X, CalendarIcon, Trash2, Repeat, Paperclip, FilePenLine, AlertTriangle, ArrowLeftRight,
 } from "lucide-react"
 import { format, parse, startOfMonth } from "date-fns"
 import { Button } from "@/components/ui/button"
@@ -44,6 +44,7 @@ import { toast } from "@/lib/toast"
 import { searchBills, deleteBill } from "@/api/bills"
 import { searchCategories } from "@/api/categories"
 import { searchAccounts } from "@/api/accounts"
+import { getAttachment } from "@/api/attachments"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { useCachedResource } from "@/hooks/use-cached-resource"
 import { CURRENCIES } from "@/lib/currencies"
@@ -193,6 +194,20 @@ function BillListPage() {
     const openBill = (bill: BillSearchResult) => {
         setSelectedBill(bill)
         setSheetOpen(true)
+    }
+
+    const handleOpenAttachment = async (attachmentId: string) => {
+        // Search results only carry the attachment id, not a download_url
+        // (that's only ever generated for a single GET /attachments/{id}) —
+        // same pattern as the Transactions list page.
+        const newTab = window.open("", "_blank")
+        try {
+            const { data } = await getAttachment(attachmentId)
+            if (newTab && data.download_url) newTab.location.href = data.download_url
+        } catch (error) {
+            if (newTab) newTab.close()
+            toast.error((error as Error).message)
+        }
     }
 
     const handleDelete = async (id: string) => {
@@ -362,6 +377,7 @@ function BillListPage() {
                                 <TableRow>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Bill Date</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Account</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Amount</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
                                 </TableRow>
@@ -396,19 +412,65 @@ function BillListPage() {
                                             <div className="flex flex-col gap-0.5 min-w-0">
                                                 <span className="font-medium truncate">{bill.name}</span>
                                                 <span className="flex items-center gap-3 text-xs text-muted-foreground">
-                                                    <span className="truncate">{bill.category ?? bill.account ?? "—"}</span>
-                                                    {bill.is_recurring && (
-                                                        <span className="inline-flex items-center gap-1">
-                                                            <Repeat className="size-3" />
-                                                        </span>
-                                                    )}
-                                                    {bill.attachment_count > 0 && (
-                                                        <span className="inline-flex items-center gap-1">
-                                                            <Paperclip className="size-3" />{bill.attachment_count}
-                                                        </span>
-                                                    )}
+                                                    <span className="truncate">{bill.category ?? "—"}</span>
+                                                    <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                        {bill.is_recurring && (
+                                                            <span className="inline-flex items-center gap-1">
+                                                                <Repeat className="size-3" />
+                                                            </span>
+                                                        )}
+                                                        {bill.attachments.length > 0 && (
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <button type="button" className="inline-flex items-center gap-1 hover:text-foreground">
+                                                                        <Paperclip className="size-3" />{bill.attachments.length}
+                                                                    </button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent align="end" className="w-56 p-2">
+                                                                    <div className="flex flex-col gap-1">
+                                                                        {bill.attachments.map((a) => (
+                                                                            <button
+                                                                                key={a.id}
+                                                                                type="button"
+                                                                                onClick={() => handleOpenAttachment(a.id)}
+                                                                                className="text-left text-sm truncate hover:underline"
+                                                                            >
+                                                                                {a.name}
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )}
+                                                        {bill.transactions.length > 0 && (
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <button type="button" className="inline-flex items-center gap-1 hover:text-foreground">
+                                                                        <ArrowLeftRight className="size-3" />{bill.transactions.length}
+                                                                    </button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent align="end" className="w-56 p-2">
+                                                                    <div className="flex flex-col gap-1">
+                                                                        {bill.transactions.map((t) => (
+                                                                            <button
+                                                                                key={t.id}
+                                                                                type="button"
+                                                                                onClick={() => navigate(`/transactions/${t.id}`)}
+                                                                                className="text-left text-sm truncate hover:underline"
+                                                                            >
+                                                                                {t.name}
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )}
+                                                    </div>
                                                 </span>
                                             </div>
+                                        </TableCell>
+                                        <TableCell className="py-3 text-sm text-muted-foreground">
+                                            {bill.account ?? "—"}
                                         </TableCell>
                                         <TableCell className="py-3 text-sm">
                                             {CURRENCIES.find((c) => c.code === bill.currency)?.symbol ?? bill.currency} {parseFloat(bill.amount).toFixed(2)}
@@ -470,7 +532,40 @@ function BillListPage() {
                                     <span>{selectedBill.account ?? "—"}</span>
 
                                     <span className="text-muted-foreground">Attachments</span>
-                                    <span>{selectedBill.attachment_count}</span>
+                                    <span>
+                                        {selectedBill.attachments.length > 0 ? (
+                                            <div className="flex flex-col gap-1">
+                                                {selectedBill.attachments.map((a) => (
+                                                    <button
+                                                        key={a.id}
+                                                        type="button"
+                                                        onClick={() => handleOpenAttachment(a.id)}
+                                                        className="text-left hover:underline"
+                                                    >
+                                                        {a.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : "—"}
+                                    </span>
+
+                                    <span className="text-muted-foreground">Transactions</span>
+                                    <span>
+                                        {selectedBill.transactions.length > 0 ? (
+                                            <div className="flex flex-col gap-1">
+                                                {selectedBill.transactions.map((t) => (
+                                                    <button
+                                                        key={t.id}
+                                                        type="button"
+                                                        onClick={() => navigate(`/transactions/${t.id}`)}
+                                                        className="text-left hover:underline"
+                                                    >
+                                                        {t.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : "—"}
+                                    </span>
                                 </div>
                             </div>
 

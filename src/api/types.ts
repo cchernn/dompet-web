@@ -557,7 +557,26 @@ export interface BillSearchResult {
     paid_amount: string
     status: BillStatus
     is_overdue: boolean
+    // Kept alongside `attachments` for backward compatibility -- equal to
+    // attachments.length.
     attachment_count: number
+    attachments: AttachmentRef[]
+    // Count of distinct transactions linked via a bill_payments row, not
+    // the count of payments (a bill can have several payments, and more
+    // than one can link the same transaction).
+    transaction_count: number
+    transactions: TransactionRef[]
+}
+
+// Minimal transaction reference, same spirit as AttachmentRef -- enough to
+// show the linked transaction inline and navigate to GET /transactions/{id}
+// without a round trip per row.
+export interface TransactionRef {
+    id: string
+    name: string
+    datetime: string
+    amount: string
+    currency_code: string
 }
 
 export interface BillAttachmentLink {
