@@ -628,3 +628,12 @@ export type UserPatch = Partial<UserInput>
 export interface AssistantReply {
     reply: string
 }
+
+// The backend holds no conversation state between requests -- the full
+// history (oldest first, alternating user/assistant) is sent back on
+// every call. Each assistant entry's text must be the exact reply string
+// the backend returned for that turn.
+export interface AssistantHistoryEntry {
+    role: "user" | "assistant"
+    text: string
+}

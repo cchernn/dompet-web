@@ -1,7 +1,8 @@
 import apiClient from "@/lib/apiClient"
-import type { AssistantReply } from "@/api/types"
+import type { AssistantReply, AssistantHistoryEntry } from "@/api/types"
 
-// Stateless — each call is an independent question, no conversation history
-// is sent or kept server-side.
-export const askAssistant = (message: string) =>
-    apiClient.post<AssistantReply>("/assistant/query", { message })
+// The backend keeps no conversation state itself -- the caller resends the
+// full history (oldest first, alternating user/assistant) on every call.
+// Omitting history (or passing []) starts a new conversation.
+export const askAssistant = (message: string, history: AssistantHistoryEntry[] = []) =>
+    apiClient.post<AssistantReply>("/assistant/query", { message, history })
