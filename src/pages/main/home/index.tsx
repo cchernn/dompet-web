@@ -75,6 +75,14 @@ function HomePage() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
     }, [messages, sending])
 
+    // Mobile keyboards push the viewport up, which can leave the newest
+    // message hidden behind it even though the scroll container itself
+    // hasn't changed size yet -- nudge again once the keyboard has
+    // finished animating in.
+    const handleFocus = () => {
+        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 300)
+    }
+
     const resizeTextarea = () => {
         const el = textareaRef.current
         if (!el) return
@@ -112,10 +120,10 @@ function HomePage() {
     const overLimit = question.length > MAX_MESSAGE_LENGTH
 
     return (
-        <div className="flex flex-col gap-4 m-2 max-w-2xl">
-            <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
+        <div className="flex flex-col gap-4 h-[calc(100dvh-4rem)] sm:h-auto sm:m-2 sm:max-w-2xl">
+            <h1 className="hidden sm:block text-2xl font-semibold tracking-tight">Overview</h1>
 
-            <Card className="flex flex-col h-[60vh]">
+            <Card className="flex flex-col flex-1 min-h-0 rounded-none border-x-0 sm:flex-none sm:h-[60vh] sm:rounded-2xl sm:border-x">
                 <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
                     <div className="flex items-center gap-2">
                         <Sparkles className="size-4 text-muted-foreground" />
@@ -187,7 +195,7 @@ function HomePage() {
                     <div ref={bottomRef} />
                 </div>
 
-                <div className="flex flex-col gap-1 border-t px-4 py-3">
+                <div className="flex flex-col gap-1 border-t px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                     <div className="flex items-end gap-2">
                         <Textarea
                             ref={textareaRef}
@@ -196,6 +204,7 @@ function HomePage() {
                             disabled={sending}
                             rows={1}
                             className="resize-none max-h-[200px]"
+                            onFocus={handleFocus}
                             onChange={(e) => {
                                 setQuestion(e.target.value)
                                 resizeTextarea()
