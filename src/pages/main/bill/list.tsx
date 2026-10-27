@@ -45,6 +45,7 @@ import { searchBills, deleteBill } from "@/api/bills"
 import { searchCategories } from "@/api/categories"
 import { searchAccounts } from "@/api/accounts"
 import { getAttachment } from "@/api/attachments"
+import { cn } from "@/lib/utils"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { useCachedResource } from "@/hooks/use-cached-resource"
 import { CURRENCIES } from "@/lib/currencies"
@@ -375,9 +376,8 @@ function BillListPage() {
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Bill Date</TableHead>
+                                    <TableHead className="font-semibold text-sm text-muted-foreground">Date</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Name</TableHead>
-                                    <TableHead className="font-semibold text-sm text-muted-foreground">Account</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Amount</TableHead>
                                     <TableHead className="font-semibold text-sm text-muted-foreground">Status</TableHead>
                                 </TableRow>
@@ -406,11 +406,17 @@ function BillListPage() {
                                                 <span className="text-xs text-muted-foreground">
                                                     Due {format(parse(bill.due_date, "yyyy-MM-dd", new Date()), "d MMM yyyy")}
                                                 </span>
+                                                {bill.status === "paid" && bill.transactions.length > 0 && (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Paid {format(new Date(bill.transactions[bill.transactions.length - 1].datetime), "d MMM yyyy")}
+                                                    </span>
+                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell className="py-3">
                                             <div className="flex flex-col gap-0.5 min-w-0">
                                                 <span className="font-medium truncate">{bill.name}</span>
+                                                <span className="text-xs text-muted-foreground truncate">{bill.account ?? "—"}</span>
                                                 <span className="flex items-center gap-3 text-xs text-muted-foreground">
                                                     <span className="truncate">{bill.category ?? "—"}</span>
                                                     <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -469,11 +475,21 @@ function BillListPage() {
                                                 </span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="py-3 text-sm text-muted-foreground">
-                                            {bill.account ?? "—"}
-                                        </TableCell>
                                         <TableCell className="py-3 text-sm">
-                                            {CURRENCIES.find((c) => c.code === bill.currency)?.symbol ?? bill.currency} {parseFloat(bill.amount).toFixed(2)}
+                                            <div className="flex flex-col gap-0.5">
+                                                <span>
+                                                    {CURRENCIES.find((c) => c.code === bill.currency)?.symbol ?? bill.currency} {parseFloat(bill.amount).toFixed(2)}
+                                                </span>
+                                                {(() => {
+                                                    const balance = Math.max(0, parseFloat(bill.amount) - parseFloat(bill.paid_amount))
+                                                    const symbol = CURRENCIES.find((c) => c.code === bill.currency)?.symbol ?? bill.currency
+                                                    return (
+                                                        <span className={cn("text-xs", balance > 0 ? "text-destructive" : "text-green-600")}>
+                                                            {balance > 0 ? `-${symbol} ${balance.toFixed(2)}` : `${symbol} 0.00`}
+                                                        </span>
+                                                    )
+                                                })()}
+                                            </div>
                                         </TableCell>
                                         <TableCell className="py-3">
                                             <Badge variant={bill.status === "unpaid" ? "secondary" : "default"} className={STATUS_BADGE_CLASS[bill.status]}>
