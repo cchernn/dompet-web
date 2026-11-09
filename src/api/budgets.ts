@@ -1,6 +1,6 @@
 import apiClient from "@/lib/apiClient"
 import { invalidateResource } from "@/lib/resourceCache"
-import type { Budget, BudgetInput, BudgetPatch, BudgetSearchResult, Transaction } from "@/api/types"
+import type { Budget, BudgetInput, BudgetPatch, BudgetSearchResult, BudgetSummary, BudgetTrend, Transaction, TrendBucket } from "@/api/types"
 import type { ListParams, SearchParams } from "@/api/accounts"
 
 export const listBudgets = ({ page = 1, pageSize = 25, includeInactive = false }: ListParams = {}) =>
@@ -10,6 +10,20 @@ export const listBudgets = ({ page = 1, pageSize = 25, includeInactive = false }
 // transaction_count desc then name asc (most-used budgets sort first).
 export const searchBudgets = ({ page = 1, pageSize = 25, q }: SearchParams = {}) =>
     apiClient.get<BudgetSearchResult[]>("/budgets/search", { page, page_size: pageSize, q })
+
+// Same filter contract as searchBudgets's `q`, plus a date range — the
+// backend reuses this on both the summary and trend queries.
+export interface BudgetInsightsParams {
+    from?: string
+    to?: string
+    q?: string
+}
+
+export const getBudgetSummary = ({ from, to, q }: BudgetInsightsParams = {}) =>
+    apiClient.get<BudgetSummary>("/budgets/summary", { from, to, q })
+
+export const getBudgetTrend = (bucket: TrendBucket, { from, to, q }: BudgetInsightsParams = {}) =>
+    apiClient.get<BudgetTrend>("/budgets/trend", { bucket, from, to, q })
 
 export const getBudget = (budgetId: string) => apiClient.get<Budget>(`/budgets/${budgetId}`)
 

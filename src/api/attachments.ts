@@ -17,6 +17,9 @@ interface CreateAttachmentRecordParams {
     filename: string
     contentType?: string
     sizeBytes?: number
+    // Display label, separate from filename -- defaults to filename
+    // server-side if omitted.
+    name?: string
 }
 
 interface CreateAttachmentRecordResult {
@@ -27,27 +30,28 @@ interface CreateAttachmentRecordResult {
 // POST /attachments returns { attachment, upload_url } — the record is created
 // before the file exists in S3, and the caller must PUT the file to upload_url
 // (a presigned URL — no Authorization header) to finish the upload.
-export const createAttachmentRecord = ({ filename, contentType, sizeBytes }: CreateAttachmentRecordParams) =>
+export const createAttachmentRecord = ({ filename, contentType, sizeBytes, name }: CreateAttachmentRecordParams) =>
     apiClient.post<CreateAttachmentRecordResult>("/attachments", {
-        filename, content_type: contentType, size_bytes: sizeBytes,
+        filename, content_type: contentType, size_bytes: sizeBytes, name,
     })
 
 export const uploadAttachmentFile = (uploadUrl: string, file: File, contentType: string) =>
     apiClient.uploadToPresignedUrl(uploadUrl, file, contentType)
 
 // Convenience wrapper for the full two-step flow used by the Attachments add page.
-export const createAndUploadAttachment = async (file: File): Promise<Attachment> => {
+export const createAndUploadAttachment = async (file: File, name?: string): Promise<Attachment> => {
     const { data } = await createAttachmentRecord({
         filename: file.name,
         contentType: file.type,
         sizeBytes: file.size,
+        name,
     })
     await uploadAttachmentFile(data.upload_url, file, file.type)
     invalidateResource("attachments")
     return data.attachment
 }
 
-// filename rename only — re-uploading a new file is a new Attachment, not an edit.
+// Renames the display name only — re-uploading a new file is a new Attachment, not an edit.
 export const updateAttachment = (attachmentId: string, body: AttachmentPatch) =>
     apiClient.put<Attachment>(`/attachments/${attachmentId}`, body).then((result) => { invalidateResource("attachments"); return result })
 

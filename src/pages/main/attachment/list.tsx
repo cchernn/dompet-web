@@ -38,7 +38,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import Alert from "@/lib/alertDialog"
 import { toast } from "@/lib/toast"
 import { searchAttachments, deleteAttachment, getAttachment } from "@/api/attachments"
@@ -145,7 +145,7 @@ function AttachmentListPage() {
                         <Label>Search</Label>
                         <Input
                             className="w-56"
-                            placeholder="Search by filename"
+                            placeholder="Search by name"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -162,10 +162,7 @@ function AttachmentListPage() {
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     ) : attachments.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
                             <h2>No Attachments Available</h2>
@@ -218,9 +215,9 @@ function AttachmentListPage() {
                                     >
                                         <TableCell className="py-3">
                                             <div className="flex flex-col gap-0.5 min-w-0">
-                                                <span className="font-medium truncate">{attachment.filename}</span>
+                                                <span className="font-medium truncate">{attachment.name}</span>
                                                 <span className="text-sm text-muted-foreground truncate">
-                                                    {formatSize(attachment.size_bytes)}
+                                                    {attachment.filename} · {formatSize(attachment.size_bytes)}
                                                 </span>
                                                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                                                     <FileText className="size-3" />{attachment.transaction_count}
@@ -247,9 +244,12 @@ function AttachmentListPage() {
                     {selectedAttachment && (
                         <>
                             <div className="flex flex-col gap-6 mt-4">
-                                <div className="text-xl font-semibold break-all">{selectedAttachment.filename}</div>
+                                <div className="text-xl font-semibold break-all">{selectedAttachment.name}</div>
 
                                 <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">File</span>
+                                    <span className="break-all">{selectedAttachment.filename}</span>
+
                                     <span className="text-muted-foreground">Type</span>
                                     <span>{selectedAttachment.content_type || "—"}</span>
 

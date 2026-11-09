@@ -3,10 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import type { DateRange } from "react-day-picker"
 import {
     FilePenLine, FilePlus, Ban, X, ArrowUp, ArrowDown, ArrowUpDown, Paperclip,
-    Tag as TagIcon, ArrowRight, SlidersHorizontal, CalendarIcon, PiggyBank,
+    Tag as TagIcon, ArrowRight, SlidersHorizontal, CalendarIcon, PiggyBank, Receipt,
 } from "lucide-react"
 import { toast } from "@/lib/toast"
-import { format, parse } from "date-fns"
+import { format, parse, startOfMonth } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
@@ -44,20 +44,23 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
+import { UserBadge } from "@/components/user-badge"
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TransactionInsights } from "./insights"
 import Alert from "@/lib/alertDialog"
 import { cn } from "@/lib/utils"
 import { AmountDisplay } from "@/components/amount-display"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { useCachedResource } from "@/hooks/use-cached-resource"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import { searchTransactions, deactivateTransaction } from "@/api/transactions"
 import { searchCategories } from "@/api/categories"
 import { searchAccounts } from "@/api/accounts"
 import { searchTags } from "@/api/tags"
 import { searchBudgets } from "@/api/budgets"
-import { searchLocations } from "@/api/locations"
 import { getAttachment } from "@/api/attachments"
 import type {
     TransactionSearchResult, TransactionType,
@@ -85,11 +88,10 @@ interface Filters {
     destination: string
     tags: string
     budgets: string
-    source_location: string
 }
 
 const EMPTY_FILTERS: Filters = {
-    from: "", to: "", category: "", type: "", source: "", destination: "", tags: "", budgets: "", source_location: "",
+    from: "", to: "", category: "", type: "", source: "", destination: "", tags: "", budgets: "",
 }
 
 // A stored "YYYY-MM-DD" string must never go through `new Date(str)` — that
@@ -148,28 +150,41 @@ function SortableHeader({ column, label, sort, onToggle, className }: SortableHe
 
 function TransactionListPage() {
     const navigate = useNavigate()
-    // Only read once, to seed the initial filters when arriving from another
+    const currentUserId = useCurrentUserId()
+    // Also used once, to seed the initial filters when arriving from another
     // page's "View Transactions" button (e.g. /transactions?source=...) —
     // the URL isn't kept in sync with further filter changes after that.
-    const [initialSearchParams] = useSearchParams()
+    // Only the "tab" param stays synced (see setTab below).
+    const [searchParams, setSearchParams] = useSearchParams()
+    const tab = searchParams.get("tab") === "list" ? "list" : "insights"
+    const setTab = (value: string) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev)
+            if (value === "list") next.set("tab", "list")
+            else next.delete("tab")
+            return next
+        }, { replace: true })
+    }
     const { data: categoriesData } = useCachedResource("categories:search", () => searchCategories({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
     const { data: accountsData } = useCachedResource("accounts:search", () => searchAccounts({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
     const { data: tagsData } = useCachedResource("tags:search", () => searchTags({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
     const { data: budgetsData } = useCachedResource("budgets:search", () => searchBudgets({ pageSize: FILTER_OPTIONS_PAGE_SIZE }))
-    const { data: locationsData } = useCachedResource("locations:search", () => searchLocations({ pageSize: 100 }))
     const categories = categoriesData ?? []
     const accounts = accountsData ?? []
     const tags = tagsData ?? []
     const budgets = budgetsData ?? []
-    const locations = locationsData ?? []
     const [filters, setFilters] = useState<Filters>(() => ({
         ...EMPTY_FILTERS,
-        category: initialSearchParams.get("category") ?? "",
-        source: initialSearchParams.get("source") ?? "",
-        destination: initialSearchParams.get("destination") ?? "",
-        tags: initialSearchParams.get("tags") ?? "",
-        budgets: initialSearchParams.get("budgets") ?? "",
-        source_location: initialSearchParams.get("source_location") ?? "",
+        // Defaults to Month to Date rather than "All dates" — a URL-carried
+        // from/to (none of today's cross-links set one, but kept for safety)
+        // still wins.
+        from: searchParams.get("from") ?? format(startOfMonth(new Date()), "yyyy-MM-dd"),
+        to: searchParams.get("to") ?? format(new Date(), "yyyy-MM-dd"),
+        category: searchParams.get("category") ?? "",
+        source: searchParams.get("source") ?? "",
+        destination: searchParams.get("destination") ?? "",
+        tags: searchParams.get("tags") ?? "",
+        budgets: searchParams.get("budgets") ?? "",
     }))
     const [dateRangeOpen, setDateRangeOpen] = useState(false)
     const [extraFiltersOpen, setExtraFiltersOpen] = useState(false)
@@ -198,7 +213,6 @@ function TransactionListPage() {
             destination: filters.destination || undefined,
             tags: filters.tags || undefined,
             budgets: filters.budgets || undefined,
-            source_location: filters.source_location || undefined,
         })
     )
 
@@ -210,6 +224,14 @@ function TransactionListPage() {
 
     const clearFilters = () => {
         setFilters(EMPTY_FILTERS)
+        setPage(1)
+        reload()
+    }
+
+    // Clicking a chart in the Insights tab scopes this same page's filters
+    // down to that value — stays on Insights, no tab switch.
+    const handleDrilldown = (patch: Partial<Filters>) => {
+        setFilters((prev) => ({ ...prev, ...patch }))
         setPage(1)
         reload()
     }
@@ -238,7 +260,7 @@ function TransactionListPage() {
     }
 
     const hasFilters = filters.from || filters.to || filters.category || filters.type
-        || filters.source || filters.destination || filters.tags || filters.budgets || filters.source_location
+        || filters.source || filters.destination || filters.tags || filters.budgets
 
     interface Chip {
         key: string
@@ -258,14 +280,12 @@ function TransactionListPage() {
             filters.destination && { key: "destination", label: "Destination", value: filters.destination, onRemove: () => updateFilter("destination", "") },
             filters.tags && { key: "tags", label: "Tags", value: filters.tags, onRemove: () => updateFilter("tags", "") },
             filters.budgets && { key: "budgets", label: "Budget", value: filters.budgets, onRemove: () => updateFilter("budgets", "") },
-            filters.source_location && { key: "source_location", label: "Source Location", value: filters.source_location, onRemove: () => updateFilter("source_location", "") },
         ] as (Chip | "" | false)[]
     ).filter((chip): chip is Chip => Boolean(chip))
 
     const accountOptions: ComboboxOption[] = [{ value: ALL, label: "Any" }, ...accounts.map((a) => ({ value: a.name, label: a.name }))]
     const tagOptions: ComboboxOption[] = [{ value: ALL, label: "Any" }, ...tags.map((t) => ({ value: t.name, label: t.name }))]
     const budgetOptions: ComboboxOption[] = [{ value: ALL, label: "Any" }, ...budgets.map((b) => ({ value: b.name, label: b.name }))]
-    const locationOptions: ComboboxOption[] = [{ value: ALL, label: "Any" }, ...locations.map((l) => ({ value: l.name, label: l.name }))]
 
     const [sort, setSort] = useState<SortState>({ column: null, direction: "asc" })
 
@@ -337,8 +357,14 @@ function TransactionListPage() {
                 <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
                 <span className="text-2xl font-semibold text-muted-foreground">{totalCount.toLocaleString()}</span>
             </div>
-            <div className="m-2">
+            <div className="flex flex-wrap items-center justify-between gap-4 m-2">
                 <Button className="min-w-[12rem]" onClick={handleAdd}><FilePlus />Add transaction</Button>
+                <Tabs value={tab} onValueChange={setTab}>
+                    <TabsList>
+                        <TabsTrigger value="insights">Insights</TabsTrigger>
+                        <TabsTrigger value="list">List</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
 
             <Card className="p-4 m-2 rounded-2xl shadow-md border">
@@ -367,42 +393,6 @@ function TransactionListPage() {
                         </Popover>
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                        <Label>Category</Label>
-                        <Select
-                            value={filters.category || ALL}
-                            onValueChange={(value) => updateFilter("category", value === ALL ? "" : value)}
-                        >
-                            <SelectTrigger className="w-48">
-                                <SelectValue placeholder="All categories" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={ALL}>All categories</SelectItem>
-                                {categories.map((c) => (
-                                    <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                        <Label>Type</Label>
-                        <Select
-                            value={filters.type || ALL}
-                            onValueChange={(value) => updateFilter("type", value === ALL ? "" : value)}
-                        >
-                            <SelectTrigger className="w-40">
-                                <SelectValue placeholder="All types" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={ALL}>All types</SelectItem>
-                                {(Object.entries(TYPE_LABELS) as [TransactionType, string][]).map(([value, label]) => (
-                                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
                     <Popover open={extraFiltersOpen} onOpenChange={setExtraFiltersOpen}>
                         <PopoverTrigger asChild>
                             <Button type="button" variant="outline">
@@ -411,6 +401,40 @@ function TransactionListPage() {
                         </PopoverTrigger>
                         <PopoverContent align="start" className="w-80">
                             <div className="flex flex-col gap-3">
+                                <div className="flex flex-col gap-1">
+                                    <Label>Category</Label>
+                                    <Select
+                                        value={filters.category || ALL}
+                                        onValueChange={(value) => updateFilter("category", value === ALL ? "" : value)}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="All categories" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value={ALL}>All categories</SelectItem>
+                                            {categories.map((c) => (
+                                                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <Label>Type</Label>
+                                    <Select
+                                        value={filters.type || ALL}
+                                        onValueChange={(value) => updateFilter("type", value === ALL ? "" : value)}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="All types" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value={ALL}>All types</SelectItem>
+                                            {(Object.entries(TYPE_LABELS) as [TransactionType, string][]).map(([value, label]) => (
+                                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                                 <div className="flex flex-col gap-1">
                                     <Label>Source</Label>
                                     <Combobox
@@ -455,17 +479,6 @@ function TransactionListPage() {
                                         emptyText="No budget found"
                                     />
                                 </div>
-                                <div className="flex flex-col gap-1">
-                                    <Label>Source Location</Label>
-                                    <Combobox
-                                        options={locationOptions}
-                                        value={filters.source_location || ALL}
-                                        onChange={(value) => updateFilter("source_location", value === ALL ? "" : value)}
-                                        placeholder="Any location"
-                                        searchPlaceholder="Search locations"
-                                        emptyText="No location found"
-                                    />
-                                </div>
                             </div>
                         </PopoverContent>
                     </Popover>
@@ -491,13 +504,17 @@ function TransactionListPage() {
                 )}
             </Card>
 
+            {tab === "insights" && (
+                <div className="m-2">
+                    <TransactionInsights filters={filters} onDrilldown={handleDrilldown} />
+                </div>
+            )}
+
+            {tab === "list" && (
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     ) : transactions.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
                             <h2>No Transactions Available</h2>
@@ -558,6 +575,12 @@ function TransactionListPage() {
                                         <TableCell>
                                             <div className="flex flex-col gap-0.5 py-1 min-w-0">
                                                 <span className="font-medium truncate">{tx.name}</span>
+                                                <UserBadge
+                                                    username={tx.username}
+                                                    displayName={tx.display_name}
+                                                    className="text-xs text-muted-foreground"
+                                                    avatarClassName="h-4 w-4"
+                                                />
                                                 <span
                                                     className="text-sm text-muted-foreground flex items-center gap-1 truncate"
                                                     onClick={(e) => e.stopPropagation()}
@@ -584,7 +607,7 @@ function TransactionListPage() {
                                                         </PopoverContent>
                                                     </Popover>
                                                 </span>
-                                                {(tx.category || tx.tags.length > 0 || tx.attachments.length > 0 || tx.budgets.length > 0) && (
+                                                {(tx.category || tx.tags.length > 0 || tx.attachments.length > 0 || tx.budgets.length > 0 || (tx.bills ?? []).length > 0) && (
                                                     <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                                                         <span className="truncate">{tx.category ?? "—"}</span>
                                                         <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -620,7 +643,7 @@ function TransactionListPage() {
                                                                                     onClick={() => handleOpenAttachment(a.id)}
                                                                                     className="text-left text-sm truncate hover:underline"
                                                                                 >
-                                                                                    {a.filename}
+                                                                                    {a.name}
                                                                                 </button>
                                                                             ))}
                                                                         </div>
@@ -643,6 +666,22 @@ function TransactionListPage() {
                                                                     </PopoverContent>
                                                                 </Popover>
                                                             )}
+                                                            {(tx.bills ?? []).length > 0 && (
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <button type="button" className="inline-flex items-center gap-1 hover:text-foreground">
+                                                                            <Receipt className="size-3" />{tx.bills.length}
+                                                                        </button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent align="end" className="w-56 p-2">
+                                                                        <div className="flex flex-wrap gap-1">
+                                                                            {tx.bills.map((bill) => (
+                                                                                <Badge key={bill} variant="outline">{bill}</Badge>
+                                                                            ))}
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )}
@@ -658,6 +697,7 @@ function TransactionListPage() {
                     )}
                 </div>
             </Card>
+            )}
 
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetContent className="w-full sm:max-w-md overflow-y-auto">
@@ -674,6 +714,9 @@ function TransactionListPage() {
                                 </div>
 
                                 <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
+                                    <span className="text-muted-foreground">Owner</span>
+                                    <UserBadge username={selectedTransaction.username} displayName={selectedTransaction.display_name} />
+
                                     <span className="text-muted-foreground">Date</span>
                                     <span>{format(new Date(selectedTransaction.datetime), "d MMM yyyy, HH:mm")}</span>
 
@@ -714,6 +757,17 @@ function TransactionListPage() {
                                         ) : "—"}
                                     </span>
 
+                                    <span className="text-muted-foreground">Bills</span>
+                                    <span>
+                                        {(selectedTransaction.bills ?? []).length > 0 ? (
+                                            <div className="flex flex-wrap gap-1">
+                                                {selectedTransaction.bills.map((b) => (
+                                                    <Badge key={b} variant="outline">{b}</Badge>
+                                                ))}
+                                            </div>
+                                        ) : "—"}
+                                    </span>
+
                                     <span className="text-muted-foreground">Attachments</span>
                                     <span>
                                         {selectedTransaction.attachments.length > 0 ? (
@@ -725,7 +779,7 @@ function TransactionListPage() {
                                                         onClick={() => handleOpenAttachment(a.id)}
                                                         className="text-left hover:underline"
                                                     >
-                                                        {a.filename}
+                                                        {a.name}
                                                     </button>
                                                 ))}
                                             </div>
@@ -734,17 +788,19 @@ function TransactionListPage() {
                                 </div>
                             </div>
 
-                            <SheetFooter className="mt-6">
-                                <Button onClick={() => navigate(`/transactions/${selectedTransaction.id}`)}>
-                                    <FilePenLine />Edit
-                                </Button>
-                                <Alert
-                                    button_text={<><Ban />Deactivate</>}
-                                    title="Deactivate Transaction"
-                                    description="This will mark the transaction inactive. It can be reactivated later from its edit page."
-                                    action={() => handleDeactivate(selectedTransaction)}
-                                />
-                            </SheetFooter>
+                            {isOwnedBy(selectedTransaction.user_id, currentUserId) && (
+                                <SheetFooter className="mt-6">
+                                    <Button onClick={() => navigate(`/transactions/${selectedTransaction.id}`)}>
+                                        <FilePenLine />Edit
+                                    </Button>
+                                    <Alert
+                                        button_text={<><Ban />Deactivate</>}
+                                        title="Deactivate Transaction"
+                                        description="This will mark the transaction inactive. It can be reactivated later from its edit page."
+                                        action={() => handleDeactivate(selectedTransaction)}
+                                    />
+                                </SheetFooter>
+                            )}
                         </>
                     )}
                 </SheetContent>

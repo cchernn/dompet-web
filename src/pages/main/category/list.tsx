@@ -38,10 +38,12 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
+import { UserBadge } from "@/components/user-badge"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
+import { isOwnedBy } from "@/hooks/use-current-user-id"
 import { searchCategories, deleteCategory } from "@/api/categories"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import type { CategorySearchResult } from "@/api/types"
@@ -173,10 +175,7 @@ function CategoryListPage() {
             <Card className="p-6 rounded-2xl shadow-md border">
                 <div className="overflow-x-auto w-full">
                     {loading ? (
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     ) : categories.length === 0 ? (
                         <div className="h-20 flex text-center items-center justify-center w-full">
                             <h2>No Categories Available</h2>
@@ -243,7 +242,11 @@ function CategoryListPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="py-3">
-                                                <Badge variant="outline">{isGlobal ? "Global" : "Mine"}</Badge>
+                                                {isGlobal ? (
+                                                    <Badge variant="outline">Global</Badge>
+                                                ) : (
+                                                    <UserBadge username={category.username} displayName={category.display_name} />
+                                                )}
                                             </TableCell>
                                         </TableRow>
                                     )
@@ -267,7 +270,11 @@ function CategoryListPage() {
                                 <div className="flex flex-col gap-6 mt-4">
                                     <div className="flex items-center gap-2">
                                         <div className="text-xl font-semibold">{selectedCategory.name}</div>
-                                        <Badge variant="secondary">{isGlobal ? "Global" : "Mine"}</Badge>
+                                        {isGlobal ? (
+                                            <Badge variant="secondary">Global</Badge>
+                                        ) : (
+                                            <UserBadge username={selectedCategory.username} displayName={selectedCategory.display_name} />
+                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-[110px_1fr] gap-y-3 gap-x-4 text-sm">
@@ -282,7 +289,7 @@ function CategoryListPage() {
                                 </div>
 
                                 <SheetFooter className="mt-6">
-                                    {!isGlobal && (
+                                    {isOwnedBy(selectedCategory.user_id, currentUserId) && (
                                         <>
                                             <Button onClick={() => navigate(`/categories/${selectedCategory.id}`, { state: { category: selectedCategory } })}>
                                                 <FilePenLine />Edit

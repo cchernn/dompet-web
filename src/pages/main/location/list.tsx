@@ -37,11 +37,13 @@ import {
     SheetTitle,
     SheetDescription,
 } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { Badge } from "@/components/ui/badge"
+import { UserBadge } from "@/components/user-badge"
 import { toast } from "@/lib/toast"
 import Alert from "@/lib/alertDialog"
 import authService from "@/lib/authService"
+import { isOwnedBy } from "@/hooks/use-current-user-id"
 import { usePaginatedList } from "@/hooks/use-paginated-list"
 import { searchLocations, deleteLocation, getLocation } from "@/api/locations"
 import type { LocationSearchResult, LocationType } from "@/api/types"
@@ -230,10 +232,7 @@ function LocationListPage() {
                 <div className="overflow-x-auto w-full">
                     {
                         loading ?
-                            <div>
-                                <Skeleton className="h-6 w-full my-2" />
-                                <Skeleton className="h-6 w-full my-2" />
-                            </div>
+                            <LoadingState />
                         :
                         locations.length === 0 ?
                             <div className="h-20 flex text-center items-center justify-center w-full">
@@ -303,7 +302,11 @@ function LocationListPage() {
                                             <Badge variant="outline">{LOCATION_TYPE_LABELS[location.type]}</Badge>
                                         </TableCell>
                                         <TableCell className="py-3">
-                                            <Badge variant="outline">{location.user_id == null ? "Public" : "Private"}</Badge>
+                                            {location.user_id == null ? (
+                                                <Badge variant="outline">Public</Badge>
+                                            ) : (
+                                                <UserBadge username={location.username} displayName={location.display_name} />
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -325,7 +328,11 @@ function LocationListPage() {
                                 <div className="flex items-center gap-2">
                                     <div className="text-xl font-semibold">{selectedLocation.name}</div>
                                     <Badge variant="outline">{LOCATION_TYPE_LABELS[selectedLocation.type]}</Badge>
-                                    {selectedLocation.user_id == null && <Badge variant="outline">Public</Badge>}
+                                    {selectedLocation.user_id == null ? (
+                                        <Badge variant="outline">Public</Badge>
+                                    ) : (
+                                        <UserBadge username={selectedLocation.username} displayName={selectedLocation.display_name} />
+                                    )}
                                 </div>
 
                                 {selectedLocation.user_id == null && (
@@ -359,7 +366,7 @@ function LocationListPage() {
                             </div>
 
                             <SheetFooter className="mt-6">
-                                {selectedLocation.user_id != null && (
+                                {isOwnedBy(selectedLocation.user_id, currentUserId) && (
                                     <>
                                         <Button onClick={() => navigate(`/locations/${selectedLocation.id}`)}>
                                             <FilePenLine />Edit

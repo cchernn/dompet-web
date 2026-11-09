@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import { toast } from "@/lib/toast"
 import { Button } from "@/components/ui/button"
 import {
     InputOTP,
@@ -24,15 +25,18 @@ function ConfirmPage() {
 
     const onSubmit = async () => {
         try {
-            const response = await authService.confirmSignUp({
+            // confirmSignUp only verifies the account with Cognito — it
+            // doesn't create a session, so there's no "home" to land on
+            // yet. Send them to sign in with their password instead.
+            await authService.confirmSignUp({
                 username: username!,
                 code: passkey,
             })
-            console.log("Success", response)
+            toast.success("Email verified — please sign in.")
+            navigate("/signin")
         } catch (error) {
-            console.log("SignUp Failed", error)
+            toast.error((error as Error).message)
         }
-        navigate("/login")
     }
 
     return (

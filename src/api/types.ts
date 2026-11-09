@@ -7,9 +7,13 @@ export type TransactionType = "expenditure" | "income" | "transfer"
 export type LocationType = "physical" | "online"
 export type NotificationType = "success" | "error" | "warning" | "info"
 export type AccountType = "bank" | "wallet" | "merchant" | "online" | "utility" | "subscription" | "other"
+export type BillRecurrenceUnit = "day" | "week" | "month" | "year"
+export type BillStatus = "unpaid" | "partial" | "paid"
 
 export interface Account {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     code: string
     name: string
     description?: string
@@ -21,6 +25,8 @@ export interface Account {
 
 export interface Transaction {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     datetime: string
     name: string
     type: TransactionType
@@ -45,6 +51,13 @@ export interface Transaction {
 // download_url on list results — see AttachmentRef).
 export interface TransactionSearchResult {
     id: string
+    user_id: string
+    // Resolved from the owner's public profile (dompet.vw_users_public) —
+    // null if that user hasn't created one yet. Prefer these over user_id
+    // for anything shown on screen (e.g. whose transaction this is in a
+    // shared budget) — user_id itself is never displayed, only compared.
+    username?: string | null
+    display_name?: string | null
     date: string
     datetime: string
     name: string
@@ -62,10 +75,21 @@ export interface TransactionSearchResult {
     tags: string[]
     budgets: string[]
     attachments: AttachmentRef[]
+    // Names of any bills this transaction's linked bill_payments rows pay
+    // toward (see dompet.vw_transactions) — not the same as `budgets`, and
+    // a transaction can pay more than one bill if a single payment was
+    // split across several bill_payments rows.
+    bills: string[]
+    // Attachments belonging to those bills (e.g. the invoice/receipt
+    // itself), distinct from this transaction's own `attachments`.
+    bill_attachments: AttachmentRef[]
 }
 
 export interface AttachmentRef {
     id: string
+    // User-given display label, separate from filename (the stored file
+    // reference) -- defaults to filename unless given explicitly at upload.
+    name: string
     filename: string
 }
 
@@ -98,6 +122,10 @@ export interface CategorySearchResult {
     // null = global/shared (visible to everyone, immutable through the app);
     // a real id = owned by that user, normal CRUD applies.
     user_id?: string | null
+    // Resolved from the owner's public profile — null for global categories,
+    // or if the owner hasn't created a profile yet.
+    username?: string | null
+    display_name?: string | null
 }
 
 export interface TagSearchResult {
@@ -110,6 +138,92 @@ export interface BudgetSearchResult {
     id: string
     name: string
     transaction_count: number
+    owner_user_id: string
+    // Resolved from the owner's public profile — null if they haven't
+    // created one yet.
+    owner_username?: string | null
+    owner_display_name?: string | null
+    // Usernames of this budget's members (not including the owner),
+    // ordered by when they joined — a null entry is a member who hasn't
+    // created a profile yet. No display_name available for these (the
+    // view only resolves username here).
+    members: (string | null)[]
+    // Datetime of the most recently linked transaction (what the list is
+    // now sorted by, DESC) — not the budget row's own updated_at, and null
+    // if the budget has no transactions.
+    last_updated?: string | null
+}
+
+// --- Insights (GET /transactions/summary|trend, /budgets/summary|trend) ---
+// Decimal fields serialize as strings, same convention as Transaction.amount.
+
+export type TrendBucket = "day" | "week" | "month"
+
+export interface TrendPoint {
+    period_start: string
+    // Backend-formatted for display (e.g. "10 Mar", "Week of Mar 3", "Mar 2026") —
+    // don't reconstruct a label from period_start on the frontend.
+    period_label: string
+    income: string
+    expense: string
+    net: string
+    count: number
+}
+
+export interface BudgetBreakdown {
+    budget: string
+    total: string
+    count: number
+}
+
+export interface CategoryBreakdown {
+    category: string
+    total: string
+    count: number
+}
+
+export interface AccountBreakdown {
+    // Grouped by source account — where money left from, not destination.
+    account: string
+    total: string
+    count: number
+}
+
+export interface DestinationAccountBreakdown {
+    // Grouped by destination account — where money went.
+    account: string
+    total: string
+    count: number
+}
+
+export interface TransactionSummary {
+    total_income: string
+    total_expense: string
+    net: string
+    transaction_count: number
+    by_category: CategoryBreakdown[]
+    by_account: AccountBreakdown[]
+    by_destination_account: DestinationAccountBreakdown[]
+    by_budget: BudgetBreakdown[]
+}
+
+export interface TransactionTrend {
+    bucket: TrendBucket
+    series: TrendPoint[]
+}
+
+export interface BudgetSummary {
+    budget_count: number
+    total_transactions: number
+    total_income: string
+    total_expense: string
+    net: string
+    by_budget: BudgetBreakdown[]
+}
+
+export interface BudgetTrend {
+    bucket: TrendBucket
+    series: TrendPoint[]
 }
 
 export interface LocationSearchResult {
@@ -124,12 +238,17 @@ export interface LocationSearchResult {
     // null = public/shared (read-only through the app, see Location.user_id);
     // a real id = private to that user, normal CRUD applies.
     user_id?: string | null
+    // Resolved from the owner's public profile — null for public/shared
+    // locations, or if the owner hasn't created a profile yet.
+    username?: string | null
+    display_name?: string | null
 }
 
 // vw_attachments has no download_url (that's only ever generated for a
 // single GET /attachments/{id}, not eagerly for a list).
 export interface AttachmentSearchResult {
     id: string
+    name: string
     filename: string
     content_type?: string | null
     size_bytes?: number | null
@@ -170,6 +289,8 @@ export interface AccountLocationLink {
 
 export interface Tag {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     name: string
     is_active: boolean
     created_at: string
@@ -187,6 +308,13 @@ export interface TransactionTagLink {
 // _to_attachment_summary on the backend).
 export interface Attachment {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
+    // User-given display label, separate from filename -- defaults to
+    // filename unless given explicitly at upload. Editable via PUT.
+    name: string
+    // The file name used for the S3 storage key at upload time -- never
+    // changes after upload (re-uploading a new file is a new Attachment).
     filename: string
     content_type?: string | null
     size_bytes?: number | null
@@ -204,6 +332,8 @@ export interface TransactionAttachmentLink {
 
 export interface Budget {
     id: string
+    // Owner (Cognito sub). Plain-model reads include it; compare to the current user to gate edits.
+    user_id?: string | null
     name: string
     is_active: boolean
     created_at: string
@@ -212,7 +342,12 @@ export interface Budget {
 
 export interface BudgetMember {
     budget_id: string
+    // Cognito UUID — internal identifier, never shown in the UI; prefer
+    // username/display_name for anything displayed.
     user_id: string
+    // null if the member hasn't created a user profile yet.
+    username?: string | null
+    display_name?: string | null
     created_at: string
 }
 
@@ -220,6 +355,33 @@ export interface TransactionBudgetLink {
     transaction_id: string
     budget_id: string
     created_at: string
+}
+
+// id is the same Cognito sub used as user_id everywhere else — there's no
+// separate surrogate key. Only GET/PUT /users/me returns this full shape
+// (including configuration) — there's no endpoint to look up another
+// user's profile directly; usernames only ever surface already-resolved,
+// as username/display_name fields on other resources (see e.g.
+// TransactionSearchResult, BudgetMember above).
+export interface User {
+    id: string
+    username: string
+    display_name?: string | null
+    // Short-lived presigned S3 GET URL, regenerated on every read — null if
+    // no picture has been uploaded. Don't cache/persist this across reloads.
+    avatar_url?: string | null
+    configuration: Record<string, unknown>
+    created_at: string
+    updated_at: string
+}
+
+// POST /users and PUT /users/me return this instead of a flat User — unlike
+// a plain GET, a create/edit call can also request a new avatar upload (via
+// avatar_content_type on the request), so the response hands back a
+// presigned PUT url alongside the updated profile.
+export interface UserProfileResult {
+    user: User
+    avatar_upload_url: string | null
 }
 
 // --- Request bodies -------------------------------------------------------
@@ -274,13 +436,160 @@ export interface TagInput {
 export type TagPatch = Partial<TagInput>
 
 export interface AttachmentPatch {
-    filename: string
+    name: string
 }
 
 export interface BudgetInput {
     name: string
 }
 export type BudgetPatch = Partial<BudgetInput>
+
+export interface BillInput {
+    name: string
+    amount: number
+    currency_code: string
+    category_id?: string | null
+    account_id?: string | null
+    bill_date: string
+    // Defaults to bill_date server-side if omitted.
+    due_date?: string
+}
+export type BillPatch = Partial<BillInput>
+
+export interface BillSeriesInput {
+    name: string
+    amount: number
+    currency_code: string
+    category_id?: string | null
+    account_id?: string | null
+    recurrence_unit: BillRecurrenceUnit
+    recurrence_count: number
+    // First occurrence's bill_date (issue date), not due_date.
+    anchor_date: string
+}
+// anchor_date is create-only server-side -- see BillSeries above.
+export type BillSeriesPatch = Partial<Omit<BillSeriesInput, "anchor_date">>
+
+export interface BillPaymentInput {
+    // Omitted amount_paid defaults to the bill's full amount server-side;
+    // omitted paid_date defaults to today.
+    amount_paid?: number
+    paid_date?: string
+    notes?: string
+    transaction_id?: string
+}
+
+// PUT /bills/{id}/payments/{payment_id} -- unlike create, transaction_id
+// can be explicitly set to null here to unlink it while keeping the rest
+// of the payment as-is.
+export type BillPaymentPatch = Partial<Omit<BillPaymentInput, "transaction_id">> & {
+    transaction_id?: string | null
+}
+
+// One occurrence -- either a one-off bill (series_id null) or a single
+// cycle lazily generated from a BillSeries (see sync_bills on the backend,
+// called at the top of every bill/notification read). An occurrence copies
+// its series' name/amount/etc. at generation time rather than reading it
+// live, so editing a series later never rewrites history.
+export interface Bill {
+    id: string
+    user_id?: string | null
+    series_id?: string | null
+    name: string
+    amount: string
+    currency_code: string
+    category_id?: string | null
+    account_id?: string | null
+    bill_date: string
+    due_date: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+}
+
+// The recurring template a Bill occurrence is generated from. anchor_date
+// is create-only -- the backend's UPDATABLE_FIELDS for bill_series omits it,
+// since every occurrence's due date is computed fresh from it each sync.
+export interface BillSeries {
+    id: string
+    user_id?: string | null
+    name: string
+    amount: string
+    currency_code: string
+    category_id?: string | null
+    account_id?: string | null
+    recurrence_unit: BillRecurrenceUnit
+    recurrence_count: number
+    anchor_date: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+}
+
+// A payment applied toward a bill -- optionally linked to a real
+// transaction, but doesn't have to be. Multiple payments can apply to one
+// bill (partial payments).
+export interface BillPayment {
+    id: string
+    user_id?: string | null
+    bill_id: string
+    transaction_id?: string | null
+    amount_paid: string
+    paid_date: string
+    notes?: string | null
+    created_at: string
+}
+
+// Shape of a row from GET /bills/search (dompet.vw_bills) -- joined
+// category/account names, plus status/paid_amount/is_overdue derived from
+// bill_payments rather than stored. Active bills only (the view is
+// pre-filtered, same as the other */search endpoints).
+export interface BillSearchResult {
+    id: string
+    name: string
+    bill_date: string
+    due_date: string
+    amount: string
+    currency: string
+    category?: string | null
+    account?: string | null
+    is_recurring: boolean
+    paid_amount: string
+    status: BillStatus
+    is_overdue: boolean
+    // Kept alongside `attachments` for backward compatibility -- equal to
+    // attachments.length.
+    attachment_count: number
+    attachments: AttachmentRef[]
+    // Count of distinct transactions linked via a bill_payments row, not
+    // the count of payments (a bill can have several payments, and more
+    // than one can link the same transaction).
+    transaction_count: number
+    transactions: TransactionRef[]
+}
+
+// Minimal transaction reference, same spirit as AttachmentRef -- enough to
+// show the linked transaction inline and navigate to GET /transactions/{id}
+// without a round trip per row.
+export interface TransactionRef {
+    id: string
+    name: string
+    datetime: string
+    amount: string
+    currency_code: string
+}
+
+export interface BillAttachmentLink {
+    bill_id: string
+    attachment_id: string
+    created_at: string
+}
+
+export interface BillBudgetLink {
+    bill_id: string
+    budget_id: string
+    created_at: string
+}
 
 export interface Notification {
     id: string
@@ -300,4 +609,31 @@ export interface NotificationInput {
     description?: string
     entity_type?: string
     entity_id?: string
+}
+
+export interface UserInput {
+    // 3-30 chars, letters/numbers/underscore only (enforced server-side) — the
+    // public handle other users address this account by. Unrelated to the
+    // Cognito sign-in username, which is the account's email.
+    username: string
+    display_name?: string | null
+    configuration?: Record<string, unknown>
+    // Set to request a presigned upload URL for a new avatar (restricted
+    // server-side to image/png|jpeg|webp|gif) — stored at a fixed
+    // profiles/{user_id}/avatar key, so a new upload just overwrites the old one.
+    avatar_content_type?: string
+}
+export type UserPatch = Partial<UserInput>
+
+export interface AssistantReply {
+    reply: string
+}
+
+// The backend holds no conversation state between requests -- the full
+// history (oldest first, alternating user/assistant) is sent back on
+// every call. Each assistant entry's text must be the exact reply string
+// the backend returned for that turn.
+export interface AssistantHistoryEntry {
+    role: "user" | "assistant"
+    text: string
 }

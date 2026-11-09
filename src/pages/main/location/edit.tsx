@@ -23,12 +23,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
+import { LoadingState } from "@/components/loading-state"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "@/lib/toast"
 import { getLocation, updateLocation } from "@/api/locations"
+import { useCurrentUserId, isOwnedBy } from "@/hooks/use-current-user-id"
 import type { Location, LocationPatch } from "@/api/types"
 
 const formSchema = z.object({
@@ -56,6 +57,8 @@ function LocationEditPage() {
 
     const type = form.watch("type")
     const isPublic = location ? location.user_id == null : false
+    const currentUserId = useCurrentUserId()
+    const canEdit = isOwnedBy(location?.user_id, currentUserId)
 
     useEffect(() => {
         fetchLocation()
@@ -80,7 +83,7 @@ function LocationEditPage() {
     }
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
-        if (isPublic) {
+        if (!canEdit) {
             toast.error("Public locations can't be edited.")
             return
         }
@@ -123,15 +126,12 @@ function LocationEditPage() {
                 </CardHeader>
                 {
                     loading ?
-                        <div>
-                            <Skeleton className="h-6 w-full my-2" />
-                            <Skeleton className="h-6 w-full my-2" />
-                        </div>
+                        <LoadingState />
                     :
                     <>
-                    {isPublic && (
+                    {!canEdit && currentUserId !== undefined && (
                         <p className="text-sm text-muted-foreground mb-4">
-                            This is a public location and can&apos;t be edited.
+                            This location is public or belongs to another user, so it can&apos;t be edited here.
                         </p>
                     )}
                     <Form {...form}>
@@ -210,7 +210,7 @@ function LocationEditPage() {
                             )}
 
                             <div className="flex flex-col gap-2 w-full max-w-xs">
-                                <Button type="submit" disabled={isSubmitting || isPublic}>Submit</Button>
+                                <Button type="submit" disabled={isSubmitting || !canEdit}>Submit</Button>
                                 <Button type="button" onClick={onBack}>Back</Button>
                             </div>
                         </form>

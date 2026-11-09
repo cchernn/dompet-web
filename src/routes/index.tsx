@@ -8,6 +8,8 @@ import {
     SignUpPage,
 } from "@/pages/auth"
 import HomePage from "@/pages/main/home"
+import ProfilePage from "@/pages/main/profile"
+import NotificationsPage from "@/pages/main/notifications"
 import {
     TransactionListPage,
     TransactionEditPage,
@@ -43,6 +45,12 @@ import {
     BudgetEditPage,
     BudgetAddPage,
 } from "@/pages/main/budget"
+import {
+    BillListPage,
+    BillEditPage,
+    BillAddPage,
+    BillSeriesEditPage,
+} from "@/pages/main/bill"
 
 function AppRouter() {
     const publicRoutes = [
@@ -69,6 +77,22 @@ function AppRouter() {
             element: <AuthRoute>
                         <Layout route="overview" paths={['/']}>
                             <HomePage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/profile',
+            element: <AuthRoute>
+                        <Layout route="profile" paths={['/profile']}>
+                            <ProfilePage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/notifications',
+            element: <AuthRoute>
+                        <Layout route="notifications" paths={['/notifications']}>
+                            <NotificationsPage />
                         </Layout>
                     </AuthRoute>
         },
@@ -237,6 +261,38 @@ function AppRouter() {
             element: <AuthRoute>
                         <Layout route="budgets_add" paths={['/budgets']}>
                             <BudgetAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/bills',
+            element: <AuthRoute>
+                        <Layout route="bills" paths={['/bills']}>
+                            <BillListPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/bills/add',
+            element: <AuthRoute>
+                        <Layout route="bills_add" paths={['/bills']}>
+                            <BillAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/bills/series/:series_id',
+            element: <AuthRoute>
+                        <Layout route="bills_series_edit" paths={['/bills']}>
+                            <BillSeriesEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/bills/:bill_id',
+            element: <AuthRoute>
+                        <Layout route="bills_edit" paths={['/bills']}>
+                            <BillEditPage />
                         </Layout>
                     </AuthRoute>
         },

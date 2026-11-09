@@ -15,6 +15,7 @@ function AttachmentAddPage() {
     const navigate = useNavigate()
     const [file, setFile] = useState<File | null>(null)
     const [fileError, setFileError] = useState("")
+    const [name, setName] = useState("")
     const [uploading, setUploading] = useState(false)
 
     const onBack = () => navigate(-1)
@@ -28,7 +29,7 @@ function AttachmentAddPage() {
         setFileError("")
         setUploading(true)
         try {
-            await createAndUploadAttachment(file)
+            await createAndUploadAttachment(file, name.trim() || undefined)
             toast.success("Attachment uploaded")
             navigate("/attachments")
         } catch (error) {
@@ -56,6 +57,16 @@ function AttachmentAddPage() {
                             }}
                         />
                         {fileError && <p className="text-sm font-medium text-destructive">{fileError}</p>}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <Label htmlFor="attachment-name">Name</Label>
+                        <Input
+                            id="attachment-name"
+                            placeholder={file?.name || "Optional — defaults to the file name"}
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                        />
                     </div>
 
                     <div className="flex flex-col gap-2 w-full max-w-xs">
