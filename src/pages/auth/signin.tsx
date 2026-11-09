@@ -91,7 +91,7 @@ function SignInPage() {
                                     <FormItem>
                                         <div className="flex items-center justify-between">
                                             <FormLabel>Password</FormLabel>
-                                            <a className="text-sm hover:underline hover:font-bold transition-all duration-300" href="#">Forgot Password?</a>
+                                            <a className="text-sm hover:underline hover:font-bold transition-all duration-300" href="/forgot-password">Forgot Password?</a>
                                         </div>
                                         <FormControl>
                                         <Input type="password" placeholder="Enter Password" {...field} />

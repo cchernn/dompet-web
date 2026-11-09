@@ -1,4 +1,6 @@
 export { default as ConfirmPage } from "./confirm"
+export { default as ForgotPasswordPage } from "./forgot-password"
+export { default as ResetPasswordPage } from "./reset-password"
 export { default as SignInPage } from "./signin"
 export { default as SignOutPage } from "./signout"
 export { default as SignUpPage } from "./signup"

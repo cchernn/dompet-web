@@ -5,6 +5,8 @@ import {
     signIn,
     signOut,
     fetchAuthSession,
+    resetPassword,
+    confirmResetPassword,
 } from "aws-amplify/auth"
 
 Amplify.configure({
@@ -30,6 +32,12 @@ interface ConfirmSignUpParams {
 interface SignInParams {
     username: string
     password: string
+}
+
+interface ConfirmResetPasswordParams {
+    username: string
+    code: string
+    newPassword: string
 }
 
 const authService = {
@@ -63,6 +71,15 @@ const authService = {
             throw error
         }
     },
+
+    resetPassword: async (username: string) => resetPassword({ username }),
+
+    confirmResetPassword: async ({ username, code, newPassword }: ConfirmResetPasswordParams) =>
+        confirmResetPassword({
+            username,
+            confirmationCode: code,
+            newPassword,
+        }),
 
     signOut: async () => {
         try {

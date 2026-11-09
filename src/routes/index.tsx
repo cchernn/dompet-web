@@ -3,6 +3,8 @@ import AuthRoute from "@/lib/authRoute"
 import Layout from "@/lib/layout"
 import {
     ConfirmPage,
+    ForgotPasswordPage,
+    ResetPasswordPage,
     SignInPage,
     SignOutPage,
     SignUpPage,
@@ -69,6 +71,14 @@ function AppRouter() {
         {
             path: '/confirm',
             element: <ConfirmPage />
+        },
+        {
+            path: '/forgot-password',
+            element: <ForgotPasswordPage />
+        },
+        {
+            path: '/reset-password',
+            element: <ResetPasswordPage />
         }
     ]
     const authRoutes = [
