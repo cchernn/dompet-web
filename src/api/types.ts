@@ -591,6 +591,99 @@ export interface BillBudgetLink {
     created_at: string
 }
 
+export type StatementStatus = "pending" | "received" | "overdue"
+
+export interface StatementInput {
+    account_id: string
+    statement_date: string
+    period_start: string
+    period_end: string
+    received_date?: string
+    opening_balance?: number
+    closing_balance?: number
+    // Required by the backend only once a balance is given.
+    currency_code?: string
+    notes?: string
+}
+// account_id is fixed at creation -- not in the backend's UPDATABLE_FIELDS.
+export type StatementPatch = Partial<Omit<StatementInput, "account_id">>
+
+export interface StatementSeriesInput {
+    account_id: string
+    // Copied onto each generated statement.
+    currency_code?: string
+    recurrence_unit: BillRecurrenceUnit
+    recurrence_count: number
+    // First occurrence's statement_date.
+    anchor_date: string
+}
+// account_id and anchor_date are both create-only server-side.
+export type StatementSeriesPatch = Partial<Omit<StatementSeriesInput, "account_id" | "anchor_date">>
+
+// One occurrence -- either a standalone statement (series_id null) or a
+// single cycle generated from a StatementSeries (see sync_statements on the
+// backend, called at the top of every statement/notification read).
+export interface Statement {
+    id: string
+    user_id?: string | null
+    series_id?: string | null
+    account_id: string
+    statement_date: string
+    period_start: string
+    period_end: string
+    received_date?: string | null
+    opening_balance?: string | null
+    closing_balance?: string | null
+    currency_code?: string | null
+    notes?: string | null
+    is_active: boolean
+    created_at: string
+    updated_at: string
+}
+
+// The recurring schedule a Statement occurrence is generated from. An
+// account can only have one active series at a time (enforced server-side).
+// account_id and anchor_date are both create-only.
+export interface StatementSeries {
+    id: string
+    user_id?: string | null
+    account_id: string
+    currency_code?: string | null
+    recurrence_unit: BillRecurrenceUnit
+    recurrence_count: number
+    anchor_date: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+}
+
+// Shape of a row from GET /statements/search (dompet.vw_statements) --
+// joined account name, plus status derived from received_date/statement_date
+// rather than stored. Active statements only (the view is pre-filtered).
+export interface StatementSearchResult {
+    id: string
+    account_id: string
+    account: string
+    statement_date: string
+    period_start: string
+    period_end: string
+    received_date?: string | null
+    status: StatementStatus
+    is_recurring: boolean
+    opening_balance?: string | null
+    closing_balance?: string | null
+    currency?: string | null
+    notes?: string | null
+    attachment_count: number
+    attachments: AttachmentRef[]
+}
+
+export interface StatementAttachmentLink {
+    statement_id: string
+    attachment_id: string
+    created_at: string
+}
+
 export interface Notification {
     id: string
     user_id: string

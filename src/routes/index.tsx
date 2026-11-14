@@ -53,6 +53,12 @@ import {
     BillAddPage,
     BillSeriesEditPage,
 } from "@/pages/main/bill"
+import {
+    StatementListPage,
+    StatementEditPage,
+    StatementAddPage,
+    StatementSeriesEditPage,
+} from "@/pages/main/statement"
 
 function AppRouter() {
     const publicRoutes = [
@@ -303,6 +309,38 @@ function AppRouter() {
             element: <AuthRoute>
                         <Layout route="bills_edit" paths={['/bills']}>
                             <BillEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/statements',
+            element: <AuthRoute>
+                        <Layout route="statements" paths={['/statements']}>
+                            <StatementListPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/statements/add',
+            element: <AuthRoute>
+                        <Layout route="statements_add" paths={['/statements']}>
+                            <StatementAddPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/statements/series/:series_id',
+            element: <AuthRoute>
+                        <Layout route="statements_series_edit" paths={['/statements']}>
+                            <StatementSeriesEditPage />
+                        </Layout>
+                    </AuthRoute>
+        },
+        {
+            path: '/statements/:statement_id',
+            element: <AuthRoute>
+                        <Layout route="statements_edit" paths={['/statements']}>
+                            <StatementEditPage />
                         </Layout>
                     </AuthRoute>
         },

@@ -11,6 +11,7 @@ import {
     Wallet,
     PiggyBank,
     Receipt,
+    ScrollText,
     type LucideIcon,
 } from "lucide-react"
 import { NavUser } from "@/components/nav-user"
@@ -45,6 +46,11 @@ const financeItems = [
         title: "Bills",
         url: "/bills",
         icon: Receipt,
+    },
+    {
+        title: "Statements",
+        url: "/statements",
+        icon: ScrollText,
     },
     {
         title: "Transactions",
